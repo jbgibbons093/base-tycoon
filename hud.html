@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Base Tycoon HUD</title>
+    <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: transparent !important;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            color: white;
+            user-select: none;
+        }
+
+        /* ---- TOP BAR ---- */
+        .top-bar {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .stat-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 24px;
+            background: rgba(30, 30, 40, 0.85);
+            border: 2.5px solid rgba(255, 255, 255, 0.12);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.08);
+            backdrop-filter: blur(6px);
+            min-width: 80px;
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .stat-pill.pop {
+            transform: scale(1.12);
+            box-shadow: 0 4px 24px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.08);
+        }
+
+        .stat-icon {
+            font-size: 20px;
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.6;
+            font-weight: 700;
+        }
+
+        .stat-value {
+            font-family: 'Fredoka One', cursive;
+            font-size: 18px;
+            line-height: 1;
+        }
+
+        .stat-text {
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+        }
+
+        /* Color accents */
+        .gold .stat-value { color: #FFD700; }
+        .gold .stat-pill { border-color: rgba(255, 215, 0, 0.3); }
+        .base .stat-value { color: #00FF88; }
+        .base .stat-pill { border-color: rgba(0, 255, 136, 0.3); }
+        .level .stat-value { color: #7B68EE; }
+        .level .stat-pill { border-color: rgba(123, 104, 238, 0.3); }
+        .rebirth .stat-value { color: #FF6B6B; }
+        .rebirth .stat-pill { border-color: rgba(255, 107, 107, 0.3); }
+
+        /* ---- USERNAME BANNER ---- */
+        .username-bar {
+            position: fixed;
+            top: 62px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 16px;
+            border-radius: 12px;
+            background: rgba(30, 30, 40, 0.7);
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            font-family: 'Fredoka One', cursive;
+            font-size: 13px;
+            color: rgba(255, 255, 255, 0.7);
+            letter-spacing: 0.5px;
+            z-index: 10;
+            white-space: nowrap;
+        }
+
+        /* ---- NOTIFICATION TOAST ---- */
+        .toast-container {
+            position: fixed;
+            bottom: 120px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+            z-index: 20;
+        }
+
+        .toast {
+            padding: 8px 20px;
+            border-radius: 16px;
+            background: rgba(30, 30, 40, 0.9);
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            font-family: 'Fredoka One', cursive;
+            font-size: 15px;
+            color: #FFD700;
+            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+            white-space: nowrap;
+        }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(20px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; transform: translateY(0) scale(1); }
+            to { opacity: 0; transform: translateY(-10px) scale(0.95); }
+        }
+
+        /* ---- CLAIM FLASH ---- */
+        .claim-flash {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: radial-gradient(circle at center, rgba(0,255,136,0.15), transparent 70%);
+            pointer-events: none;
+            animation: flashIn 0.4s ease forwards;
+            z-index: 5;
+        }
+
+        @keyframes flashIn {
+            0% { opacity: 0; }
+            30% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+    <!-- TOP STAT BAR -->
+    <div class="top-bar">
+        <div class="stat-pill gold" id="pill-gold">
+            <span class="stat-icon">&#x1F4B0;</span>
+            <div class="stat-text">
+                <span class="stat-label">Gold</span>
+                <span class="stat-value" id="val-gold">0</span>
+            </div>
+        </div>
+        <div class="stat-pill base" id="pill-base">
+            <span class="stat-icon">&#x1F3E0;</span>
+            <div class="stat-text">
+                <span class="stat-label">Base</span>
+                <span class="stat-value" id="val-base">None</span>
+            </div>
+        </div>
+        <div class="stat-pill level" id="pill-level">
+            <span class="stat-icon">&#x2B50;</span>
+            <div class="stat-text">
+                <span class="stat-label">Level</span>
+                <span class="stat-value" id="val-level">1</span>
+            </div>
+        </div>
+        <div class="stat-pill rebirth" id="pill-rebirth">
+            <span class="stat-icon">&#x1F525;</span>
+            <div class="stat-text">
+                <span class="stat-label">Rebirths</span>
+                <span class="stat-value" id="val-rebirth">0</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- USERNAME -->
+    <div class="username-bar" id="username-bar" style="display:none;"></div>
+
+    <!-- TOAST CONTAINER -->
+    <div class="toast-container" id="toasts"></div>
+
+    <script>
+        const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+
+        // State
+        let state = {
+            gold: 0,
+            baseId: 0,
+            level: 1,
+            rebirths: 0,
+            username: ''
+        };
+
+        // DOM refs
+        const valGold = document.getElementById('val-gold');
+        const valBase = document.getElementById('val-base');
+        const valLevel = document.getElementById('val-level');
+        const valRebirth = document.getElementById('val-rebirth');
+        const pillGold = document.getElementById('pill-gold');
+        const pillBase = document.getElementById('pill-base');
+        const usernameBar = document.getElementById('username-bar');
+        const toastContainer = document.getElementById('toasts');
+
+        function formatGold(n) {
+            if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
+            if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
+            if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
+            return Math.floor(n).toString();
+        }
+
+        function updateDisplay() {
+            valGold.textContent = formatGold(state.gold);
+            valBase.textContent = state.baseId > 0 ? 'Base ' + state.baseId : 'None';
+            valLevel.textContent = state.level;
+            valRebirth.textContent = state.rebirths;
+
+            if (state.username) {
+                usernameBar.textContent = state.username;
+                usernameBar.style.display = 'block';
+            }
+        }
+
+        function popPill(el) {
+            el.classList.add('pop');
+            setTimeout(() => el.classList.remove('pop'), 200);
+        }
+
+        function showToast(text) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = text;
+            toastContainer.appendChild(t);
+            setTimeout(() => { if (t.parentNode) t.remove(); }, 2500);
+        }
+
+        function showClaimFlash() {
+            const flash = document.createElement('div');
+            flash.className = 'claim-flash';
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 500);
+        }
+
+        // Parse messages from Portals via SendMessageToIframes
+        // Format: "key:value" or "key:value1,value2"
+        if (sdk) {
+            sdk.setMessageListener(function(message) {
+                console.log('[HUD] Received:', message);
+
+                // --- INIT message: "init:gold,baseId,username" ---
+                if (message.startsWith('init:')) {
+                    const parts = message.substring(5).split(',');
+                    if (parts.length >= 2) {
+                        state.gold = parseFloat(parts[0]) || 0;
+                        state.baseId = parseInt(parts[1]) || 0;
+                    }
+                    if (parts.length >= 3) {
+                        state.username = parts[2].replace(/"/g, '').trim();
+                    }
+                    updateDisplay();
+                    return;
+                }
+
+                // --- GOLD update: "gold:123" ---
+                if (message.startsWith('gold:')) {
+                    const newGold = parseFloat(message.substring(5)) || 0;
+                    const diff = newGold - state.gold;
+                    state.gold = newGold;
+                    updateDisplay();
+                    popPill(pillGold);
+                    if (diff > 0) {
+                        showToast('+' + formatGold(diff) + ' Gold');
+                    }
+                    return;
+                }
+
+                // --- CLAIM: "claimed:3" (base number) ---
+                if (message.startsWith('claimed:')) {
+                    const baseNum = parseInt(message.substring(8)) || 0;
+                    state.baseId = baseNum;
+                    updateDisplay();
+                    popPill(pillBase);
+                    showClaimFlash();
+                    showToast('Base ' + baseNum + ' Claimed!');
+                    return;
+                }
+
+                // --- USERNAME: "username:PlayerName" ---
+                if (message.startsWith('username:')) {
+                    state.username = message.substring(9).replace(/"/g, '').trim();
+                    updateDisplay();
+                    return;
+                }
+
+                // --- RESET: "reset" ---
+                if (message === 'reset') {
+                    state.gold = 0;
+                    state.baseId = 0;
+                    state.level = 1;
+                    state.rebirths = 0;
+                    updateDisplay();
+                    showToast('All Progress Reset');
+                    return;
+                }
+            });
+        }
+
+        // Initial render
+        updateDisplay();
+
+        // Dev mode preview (outside Portals)
+        if (!sdk) {
+            state.gold = 12500;
+            state.baseId = 3;
+            state.username = 'TestPlayer';
+            state.level = 5;
+            state.rebirths = 2;
+            updateDisplay();
+        }
+    </script>
+</body>
+</html>
