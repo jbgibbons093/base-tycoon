@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Rebirth Altar</title>
+    <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0; padding: 0;
+            background: rgba(0,0,0,0.6);
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            user-select: none;
+        }
+
+        .altar-frame {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            background: white;
+            border: 5px solid #D63031;
+            border-radius: 24px;
+            box-shadow: 0 10px 0 rgba(214,48,49,0.3), 0 15px 40px rgba(0,0,0,0.4);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .altar-header {
+            background: linear-gradient(180deg, #FF7675 0%, #D63031 100%);
+            padding: 16px 20px;
+            text-align: center;
+            position: relative;
+        }
+        .altar-header h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 32px;
+            color: white;
+            margin: 0;
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.25);
+        }
+        .altar-header .subtitle {
+            font-size: 12px;
+            font-weight: 800;
+            color: rgba(255,255,255,0.85);
+            margin-top: 2px;
+        }
+        .gold-badge {
+            display: inline-block;
+            margin-top: 8px;
+            padding: 4px 16px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border: 3px solid #CC8800;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 15px;
+            color: #4A2800;
+        }
+        .close-x {
+            position: absolute;
+            top: 8px; right: 12px;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #2C3E50, #1A252F);
+            border: 3px solid #0D1318;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 18px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+        }
+        .close-x:active { transform: translateY(2px); box-shadow: none; }
+
+        /* Body */
+        .altar-body {
+            padding: 20px;
+            background: #FFF5F5;
+            text-align: center;
+        }
+
+        .rebirth-panel {
+            background: white;
+            border: 4px solid #D63031;
+            border-radius: 20px;
+            padding: 24px 20px;
+            box-shadow: 0 4px 0 rgba(214,48,49,0.2);
+        }
+        .rebirth-panel h2 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 28px;
+            color: #D63031;
+            margin: 0 0 4px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+        }
+        .rebirth-panel .sub {
+            font-size: 12px; font-weight: 800; color: #636E72;
+        }
+        .rebirth-cost-badge {
+            display: inline-block;
+            margin: 14px 0;
+            padding: 8px 24px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border: 3px solid #CC8800;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 20px;
+            color: #4A2800;
+        }
+        .rebirth-reward {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #E8FFE8, #D4FFD4);
+            border: 3px solid #2ECC40;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 13px;
+            color: #0A5A0A;
+            margin: 8px 0;
+        }
+        .rebirth-progress {
+            margin: 12px 0;
+            font-size: 11px; font-weight: 800; color: #95A5A6;
+        }
+        .rebirth-bar-track {
+            width: 80%;
+            margin: 6px auto;
+            height: 14px;
+            background: #DFE6E9;
+            border-radius: 7px;
+            border: 2px solid #B2BEC3;
+            overflow: hidden;
+        }
+        .rebirth-bar-fill {
+            height: 100%;
+            border-radius: 7px;
+            background: linear-gradient(90deg, #FF7675, #D63031);
+            transition: width 0.4s;
+        }
+        .rebirth-btn {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 12px 36px;
+            border: 3px solid;
+            border-radius: 16px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+            transition: all 0.1s;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+        }
+        .rebirth-btn:active { transform: translateY(3px); box-shadow: none; }
+        .rebirth-btn.ready {
+            background: linear-gradient(180deg, #FF7675, #D63031);
+            border-color: #A02020;
+            color: white;
+        }
+        .rebirth-btn.not-ready {
+            background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
+            border-color: #95A5A6;
+            color: #95A5A6;
+            cursor: not-allowed;
+            text-shadow: none;
+        }
+        .rebirth-stars {
+            font-size: 28px;
+            margin: 6px 0;
+        }
+        .rebirth-max {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px;
+            color: #2ECC40;
+            margin-top: 12px;
+        }
+
+        /* Info section */
+        .rebirth-info {
+            margin-top: 16px;
+            background: white;
+            border: 3px solid #DFE6E9;
+            border-radius: 16px;
+            padding: 14px;
+        }
+        .rebirth-info h3 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px;
+            color: #2C3E50;
+            margin: 0 0 8px;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 11px;
+            font-weight: 800;
+        }
+        .info-label { color: #636E72; }
+        .info-keep { color: #2ECC40; }
+        .info-lose { color: #D63031; }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #FF7675, #D63031);
+            border: 3px solid #A02020;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 18px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            animation: pop 0.3s ease, fadeOut 0.3s ease 2s forwards;
+            z-index: 30;
+        }
+        @keyframes pop { 0%{transform:translateX(-50%) scale(0.5);opacity:0} 70%{transform:translateX(-50%) scale(1.1)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
+        @keyframes fadeOut { to{opacity:0} }
+    </style>
+</head>
+<body>
+    <div class="altar-frame">
+        <div class="altar-header">
+            <h1>REBIRTH ALTAR</h1>
+            <div class="subtitle">Sacrifice your progress for permanent power</div>
+            <div class="gold-badge" id="gold-display">&#x1F4B0; 0</div>
+            <div class="close-x" onclick="closeShop()">X</div>
+        </div>
+
+        <div class="altar-body">
+            <div id="rebirth-content"></div>
+
+            <div class="rebirth-info">
+                <h3>What happens on Rebirth?</h3>
+                <div class="info-row"><span class="info-label">Gold</span><span class="info-lose">RESET</span></div>
+                <div class="info-row"><span class="info-label">Zone Unlocks</span><span class="info-lose">RESET</span></div>
+                <div class="info-row"><span class="info-label">Placed Brainrots</span><span class="info-lose">RESET</span></div>
+                <div class="info-row"><span class="info-label">Base & Floors</span><span class="info-keep">KEEP</span></div>
+                <div class="info-row"><span class="info-label">Income Upgrades</span><span class="info-keep">KEEP</span></div>
+                <div class="info-row"><span class="info-label">Rebirth Bonuses</span><span class="info-keep">KEEP (stacks!)</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+
+        const REBIRTH_COSTS = [500000, 2000000, 10000000];
+        const REBIRTH_BONUSES = ['1.5x Permanent Income', '2x Permanent + Ancient Ruins', '3x Permanent + Sky + Void'];
+
+        let state = { gold: 0, rebirth: 0 };
+
+        function fmt(n) {
+            if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
+            if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+            if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+            return n.toLocaleString();
+        }
+
+        function render() {
+            document.getElementById('gold-display').innerHTML = '&#x1F4B0; ' + fmt(state.gold);
+
+            const el = document.getElementById('rebirth-content');
+            const nextRebirth = state.rebirth + 1;
+            const maxRebirth = REBIRTH_COSTS.length;
+
+            if (state.rebirth >= maxRebirth) {
+                const stars = '\u2B50'.repeat(state.rebirth);
+                el.innerHTML = `
+                    <div class="rebirth-panel">
+                        <div class="rebirth-stars">${stars}</div>
+                        <h2>MAX REBIRTH!</h2>
+                        <div class="sub">You've reached Rebirth ${state.rebirth}. All zones unlocked.</div>
+                        <div class="rebirth-reward" style="margin-top:14px">${REBIRTH_BONUSES[state.rebirth-1]}</div>
+                        <div class="rebirth-max">All permanent bonuses active</div>
+                    </div>
+                `;
+                return;
+            }
+
+            const cost = REBIRTH_COSTS[state.rebirth];
+            const canRebirth = state.gold >= cost;
+            const progress = Math.min(100, (state.gold / cost) * 100);
+            const stars = state.rebirth > 0 ? '\u2B50'.repeat(state.rebirth) : '';
+
+            el.innerHTML = `
+                <div class="rebirth-panel">
+                    ${stars ? '<div class="rebirth-stars">' + stars + '</div>' : ''}
+                    <h2>REBIRTH ${nextRebirth}</h2>
+                    <div class="sub">Reset zone unlocks & placed brainrots for permanent power</div>
+                    <div class="rebirth-cost-badge">&#x1F4B0; ${fmt(cost)}</div>
+                    <div class="rebirth-reward">${REBIRTH_BONUSES[state.rebirth]}</div>
+                    <div class="rebirth-progress">
+                        ${fmt(state.gold)} / ${fmt(cost)} gold
+                    </div>
+                    <div class="rebirth-bar-track">
+                        <div class="rebirth-bar-fill" style="width:${progress}%"></div>
+                    </div>
+                    <button class="rebirth-btn ${canRebirth ? 'ready' : 'not-ready'}"
+                            onclick="doRebirth()" ${canRebirth ? '' : 'disabled'}>
+                        ${canRebirth ? 'REBIRTH NOW!' : 'NEED ' + fmt(cost) + 'g'}
+                    </button>
+                </div>
+            `;
+        }
+
+        function doRebirth() {
+            const cost = REBIRTH_COSTS[state.rebirth];
+            if (state.gold < cost) return;
+            state.gold -= cost;
+            state.rebirth++;
+            render();
+            if (sdk) {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: 'do_rebirth',
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+            }
+            toast('REBIRTH ' + state.rebirth + '!');
+        }
+
+        function toast(text) {
+            const old = document.querySelector('.toast'); if(old)old.remove();
+            const t = document.createElement('div'); t.className = 'toast'; t.textContent = text;
+            document.body.appendChild(t); setTimeout(()=>{if(t.parentNode)t.remove();},2500);
+        }
+
+        function closeShop() { if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
+
+        if (sdk) {
+            sdk.setMessageListener(function(msg) {
+                try {
+                    const data = JSON.parse(msg);
+                    if (data.gold !== undefined) state.gold = parseFloat(data.gold) || 0;
+                    if (data.rebirth !== undefined) state.rebirth = parseInt(data.rebirth) || 0;
+                    render();
+                } catch(e) {
+                    if (msg.startsWith('gold:')) {
+                        state.gold = parseFloat(msg.substring(5)) || 0;
+                        render();
+                    }
+                }
+            });
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('gold')) state.gold = parseFloat(params.get('gold')) || 0;
+        if (params.get('rebirth')) state.rebirth = parseInt(params.get('rebirth')) || 0;
+
+        render();
+
+        // Dev mode preview
+        if (!sdk) {
+            state.gold = 150000;
+            state.rebirth = 0;
+            render();
+        }
+    </script>
+</body>
+</html>

@@ -226,104 +226,6 @@
         .icon-floor { background: linear-gradient(180deg, #A8D8EA, #74B9FF); border-color: #4A90C0; }
         .icon-income { background: linear-gradient(180deg, #FFE44D, #FFB800); border-color: #CC8800; }
 
-        /* Rebirth panel */
-        .rebirth-panel {
-            background: white;
-            border: 4px solid #D63031;
-            border-radius: 20px;
-            padding: 20px;
-            text-align: center;
-            box-shadow: 0 4px 0 rgba(214,48,49,0.2);
-        }
-        .rebirth-panel h2 {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 26px;
-            color: #D63031;
-            margin: 0 0 4px;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
-        }
-        .rebirth-panel .sub {
-            font-size: 12px; font-weight: 800; color: #636E72;
-        }
-        .rebirth-cost-badge {
-            display: inline-block;
-            margin: 14px 0;
-            padding: 8px 24px;
-            border-radius: 20px;
-            background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border: 3px solid #CC8800;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 20px;
-            color: #4A2800;
-        }
-        .rebirth-reward {
-            display: inline-block;
-            padding: 6px 18px;
-            border-radius: 14px;
-            background: linear-gradient(180deg, #E8FFE8, #D4FFD4);
-            border: 3px solid #2ECC40;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 13px;
-            color: #0A5A0A;
-            margin: 8px 0;
-        }
-        .rebirth-progress {
-            margin: 12px 0;
-            font-size: 11px; font-weight: 800; color: #95A5A6;
-        }
-        .rebirth-bar-track {
-            width: 80%;
-            margin: 6px auto;
-            height: 14px;
-            background: #DFE6E9;
-            border-radius: 7px;
-            border: 2px solid #B2BEC3;
-            overflow: hidden;
-        }
-        .rebirth-bar-fill {
-            height: 100%;
-            border-radius: 7px;
-            background: linear-gradient(90deg, #FF7675, #D63031);
-            transition: width 0.4s;
-        }
-        .rebirth-btn {
-            display: inline-block;
-            margin-top: 14px;
-            padding: 12px 36px;
-            border: 3px solid;
-            border-radius: 16px;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 18px;
-            cursor: pointer;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-            transition: all 0.1s;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
-        }
-        .rebirth-btn:active { transform: translateY(3px); box-shadow: none; }
-        .rebirth-btn.ready {
-            background: linear-gradient(180deg, #FF7675, #D63031);
-            border-color: #A02020;
-            color: white;
-        }
-        .rebirth-btn.not-ready {
-            background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
-            border-color: #95A5A6;
-            color: #95A5A6;
-            cursor: not-allowed;
-            text-shadow: none;
-        }
-        .rebirth-stars {
-            font-size: 28px;
-            margin: 6px 0;
-        }
-        .rebirth-max {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 14px;
-            color: #2ECC40;
-            margin-top: 12px;
-        }
-
         /* Toast */
         .toast {
             position: fixed;
@@ -363,16 +265,12 @@
             <div class="tab" data-tab="income" onclick="switchTab('income')">
                 <span class="tab-icon">&#x1F4B0;</span>Income
             </div>
-            <div class="tab" data-tab="rebirth" onclick="switchTab('rebirth')">
-                <span class="tab-icon">&#x1F525;</span>Rebirth
-            </div>
         </div>
 
         <div class="shop-body">
             <div class="panel active" id="panel-zones"></div>
             <div class="panel" id="panel-floors"></div>
             <div class="panel" id="panel-income"></div>
-            <div class="panel" id="panel-rebirth"></div>
         </div>
     </div>
 
@@ -407,15 +305,11 @@
             { level:5, cost:1500000, multiplier:3.0, desc:'3x Income' },
         ];
 
-        const REBIRTH_COSTS = [500000, 2000000, 10000000];
-        const REBIRTH_BONUSES = ['1.5x Permanent Income', '2x Permanent + Ancient Ruins', '3x Permanent + Sky + Void'];
-
         let state = {
             gold: 0,
             unlockedZones: ['Beach Zone', 'Meadow'],
             unlockedFloors: [1],
             incomeLevel: 0,
-            rebirth: 0,
             hasBase: false
         };
 
@@ -526,58 +420,11 @@
             });
         }
 
-        function renderRebirth() {
-            const el = document.getElementById('panel-rebirth');
-            const nextRebirth = state.rebirth + 1;
-            const maxRebirth = REBIRTH_COSTS.length;
-
-            if (state.rebirth >= maxRebirth) {
-                const stars = '\u2B50'.repeat(state.rebirth);
-                el.innerHTML = `
-                    <div class="rebirth-panel">
-                        <div class="rebirth-stars">${stars}</div>
-                        <h2>MAX REBIRTH!</h2>
-                        <div class="sub">You've reached Rebirth ${state.rebirth}. All zones unlocked.</div>
-                        <div class="rebirth-reward" style="margin-top:14px">${REBIRTH_BONUSES[state.rebirth-1]}</div>
-                        <div class="rebirth-max">All permanent bonuses active</div>
-                    </div>
-                `;
-                return;
-            }
-
-            const cost = REBIRTH_COSTS[state.rebirth];
-            const canRebirth = state.gold >= cost;
-            const progress = Math.min(100, (state.gold / cost) * 100);
-            const stars = state.rebirth > 0 ? '\u2B50'.repeat(state.rebirth) : '';
-
-            el.innerHTML = `
-                <div class="rebirth-panel">
-                    ${stars ? '<div class="rebirth-stars">' + stars + '</div>' : ''}
-                    <h2>REBIRTH ${nextRebirth}</h2>
-                    <div class="sub">Reset zone unlocks & placed brainrots</div>
-                    <div class="sub" style="margin-top:2px">Keep: Base, Floors, Income upgrades</div>
-                    <div class="rebirth-cost-badge">&#x1F4B0; ${fmt(cost)}</div>
-                    <div class="rebirth-reward">${REBIRTH_BONUSES[state.rebirth]}</div>
-                    <div class="rebirth-progress">
-                        ${fmt(state.gold)} / ${fmt(cost)} gold
-                    </div>
-                    <div class="rebirth-bar-track">
-                        <div class="rebirth-bar-fill" style="width:${progress}%"></div>
-                    </div>
-                    <button class="rebirth-btn ${canRebirth ? 'ready' : 'not-ready'}"
-                            onclick="doRebirth()" ${canRebirth ? '' : 'disabled'}>
-                        ${canRebirth ? 'REBIRTH NOW!' : 'NEED ' + fmt(cost) + 'g'}
-                    </button>
-                </div>
-            `;
-        }
-
         function renderAll() {
             document.getElementById('gold-display').innerHTML = '&#x1F4B0; ' + fmt(state.gold);
             renderZones();
             renderFloors();
             renderIncome();
-            renderRebirth();
         }
 
         function buyZone(zoneName) {
@@ -626,23 +473,6 @@
             toast('Income Lv.' + level + ' - ' + u.multiplier + 'x!');
         }
 
-        function doRebirth() {
-            const cost = REBIRTH_COSTS[state.rebirth];
-            if (state.gold < cost) return;
-            state.gold -= cost;
-            state.rebirth++;
-            state.unlockedZones = ['Beach Zone', 'Meadow'];
-            state.incomeLevel = 0;
-            renderAll();
-            if (sdk) {
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: 'do_rebirth',
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-            }
-            toast('REBIRTH ' + state.rebirth + '!');
-        }
-
         function toast(text) {
             const old = document.querySelector('.toast'); if(old)old.remove();
             const t = document.createElement('div'); t.className = 'toast'; t.textContent = text;
@@ -659,7 +489,6 @@
                     if (data.unlockedZones) state.unlockedZones = data.unlockedZones;
                     if (data.unlockedFloors) state.unlockedFloors = data.unlockedFloors;
                     if (data.incomeLevel !== undefined) state.incomeLevel = parseInt(data.incomeLevel) || 0;
-                    if (data.rebirth !== undefined) state.rebirth = parseInt(data.rebirth) || 0;
                     if (data.hasBase !== undefined) state.hasBase = data.hasBase;
                     renderAll();
                 } catch(e) {
@@ -673,7 +502,6 @@
 
         const params = new URLSearchParams(window.location.search);
         if (params.get('gold')) state.gold = parseFloat(params.get('gold')) || 0;
-        if (params.get('rebirth')) state.rebirth = parseInt(params.get('rebirth')) || 0;
         if (params.get('hasBase')) state.hasBase = params.get('hasBase') === 'true';
         if (params.get('tab')) switchTab(params.get('tab'));
 
