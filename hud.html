@@ -17,14 +17,14 @@
             -webkit-text-stroke: 0.5px rgba(0,0,0,0.15);
         }
 
-        /* ---- TOP CURRENCY BARS ---- */
+        /* ---- BOTTOM-LEFT CURRENCY STACK ---- */
         .top-bar {
             position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 70px;
+            left: 12px;
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            gap: 6px;
             z-index: 10;
         }
 
@@ -83,9 +83,8 @@
         /* ---- CARRY BANNER ---- */
         .carry-banner {
             position: fixed;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 220px;
+            left: 12px;
             padding: 6px 20px;
             border-radius: 16px;
             background: linear-gradient(180deg, #FFB347 0%, #FF8C00 100%);
@@ -214,38 +213,103 @@
             setTimeout(() => { if (t.parentNode) t.remove(); }, 2500);
         }
 
-        if (sdk) {
-            sdk.setMessageListener(function(msg) {
-                try {
-                    const d = JSON.parse(msg);
-                    if (d.gold !== undefined) { state.gold = parseFloat(d.gold)||0; pop(document.getElementById('pill-gold')); }
-                    if (d.baseId !== undefined) state.baseId = parseInt(d.baseId)||0;
-                    if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying)||0;
-                    if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold)||0;
-                    if (d.rebirth !== undefined) state.rebirth = parseInt(d.rebirth)||0;
-                    if (d.toast) showToast(d.toast);
-                    updateDisplay();
-                    return;
-                } catch(e) {}
-                if (msg.startsWith('gold:')) {
-                    const v = parseFloat(msg.substring(5))||0;
-                    const diff = v - state.gold;
-                    state.gold = v; updateDisplay(); pop(document.getElementById('pill-gold'));
-                    if (diff > 0) showToast('+' + fmt(diff) + ' Gold');
-                } else if (msg.startsWith('carry:')) {
-                    const p = msg.substring(6).split(',');
-                    state.carrying = parseFloat(p[0])||0;
-                    state.carryGold = parseFloat(p[1])||0;
-                    updateDisplay();
-                } else if (msg.startsWith('base:')) {
-                    state.baseId = parseInt(msg.substring(5))||0; updateDisplay();
-                } else if (msg.startsWith('rebirth:')) {
-                    state.rebirth = parseInt(msg.substring(8))||0; updateDisplay();
-                } else if (msg.startsWith('toast:')) {
-                    showToast(msg.substring(6));
+        /** Parse a variable value from Portals |var| interpolation. */
+        function parseVarValue(raw) {
+            if (raw === undefined || raw === null || raw === '') return 0;
+            raw = String(raw).trim();
+            const num = Number(raw);
+            if (!isNaN(num)) return num;
+            try {
+                const parsed = JSON.parse(raw);
+                if (typeof parsed === 'number') return parsed;
+                if (typeof parsed === 'object' && parsed !== null) {
+                    const vals = Object.values(parsed);
+                    return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
                 }
-            });
+            } catch(e) {}
+            return 0;
         }
+
+        // --- Message deduplication ---
+        let _lastMsgId = '', _lastMsgTime = 0;
+        function processMessage(msg) {
+            const now = Date.now();
+            const msgId = msg + '_' + Math.floor(now / 100);
+            if (msgId === _lastMsgId && now - _lastMsgTime < 200) return;
+            _lastMsgId = msgId; _lastMsgTime = now;
+            handleMessage(msg);
+        }
+
+        function handleMessage(msg) {
+            // inv: format — "inv:Gold=|Gold|&BaseId=|BaseId|&..."
+            if (msg.startsWith('inv:')) {
+                const payload = msg.substring(4);
+                const pairs = payload.split('&');
+                for (const pair of pairs) {
+                    const eq = pair.indexOf('=');
+                    if (eq < 0) continue;
+                    const key = pair.substring(0, eq).trim();
+                    const val = parseVarValue(pair.substring(eq + 1));
+                    if (key === 'Gold') { const diff = val - state.gold; state.gold = val; pop(document.getElementById('pill-gold')); if (diff > 0) showToast('+' + fmt(diff) + ' Gold'); }
+                    else if (key === 'BaseId') state.baseId = val;
+                    else if (key === 'Rebirth') state.rebirth = val;
+                    else if (key === 'Carrying') state.carrying = val;
+                    else if (key === 'CarryGold') state.carryGold = val;
+                }
+                updateDisplay();
+                return;
+            }
+
+            // JSON format
+            try {
+                const d = JSON.parse(msg);
+                if (d.gold !== undefined) { state.gold = parseFloat(d.gold)||0; pop(document.getElementById('pill-gold')); }
+                if (d.baseId !== undefined) state.baseId = parseInt(d.baseId)||0;
+                if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying)||0;
+                if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold)||0;
+                if (d.rebirth !== undefined) state.rebirth = parseInt(d.rebirth)||0;
+                if (d.toast) showToast(d.toast);
+                updateDisplay();
+                return;
+            } catch(e) {}
+
+            // Simple prefix formats
+            if (msg.startsWith('gold:')) {
+                const v = parseFloat(msg.substring(5))||0;
+                const diff = v - state.gold;
+                state.gold = v; updateDisplay(); pop(document.getElementById('pill-gold'));
+                if (diff > 0) showToast('+' + fmt(diff) + ' Gold');
+            } else if (msg.startsWith('carry:')) {
+                const p = msg.substring(6).split(',');
+                state.carrying = parseFloat(p[0])||0;
+                state.carryGold = parseFloat(p[1])||0;
+                updateDisplay();
+            } else if (msg.startsWith('base:')) {
+                state.baseId = parseInt(msg.substring(5))||0; updateDisplay();
+            } else if (msg.startsWith('rebirth:')) {
+                state.rebirth = parseInt(msg.substring(8))||0; updateDisplay();
+            } else if (msg.startsWith('toast:')) {
+                showToast(msg.substring(6));
+            }
+        }
+
+        // --- SDK message listener ---
+        if (sdk) {
+            sdk.setMessageListener(function(msg) { processMessage(msg); });
+        }
+        window.addEventListener('message', function(event) {
+            if (event.data && typeof event.data === 'string') processMessage(event.data);
+            else if (event.data && event.data.portalsMessage) processMessage(event.data.portalsMessage);
+        });
+
+        // --- Keyboard refocus ---
+        function _doFocusGame() {
+            if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+        }
+        document.addEventListener('keydown', function() { if (!document.hidden) _doFocusGame(); });
+        _doFocusGame();
+        setTimeout(_doFocusGame, 100);
+        setTimeout(_doFocusGame, 300);
 
         updateDisplay();
         if (!sdk) { state.gold = 42350; state.baseId = 3; state.carrying = 1; state.carryGold = 14.6; state.rebirth = 1; updateDisplay(); }
