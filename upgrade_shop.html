@@ -675,6 +675,7 @@
         if (params.get('gold')) state.gold = parseFloat(params.get('gold')) || 0;
         if (params.get('rebirth')) state.rebirth = parseInt(params.get('rebirth')) || 0;
         if (params.get('hasBase')) state.hasBase = params.get('hasBase') === 'true';
+        if (params.get('tab')) switchTab(params.get('tab'));
 
         renderAll();
 
