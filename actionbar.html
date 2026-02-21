@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Action Bar</title>
+    <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: transparent !important;
+            overflow: visible;
+            font-family: 'Nunito', sans-serif;
+            color: white;
+            user-select: none;
+        }
+
+        /* ---- ACTION BAR CONTAINER ---- */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            padding: 6px 10px 8px;
+            background: rgba(20, 20, 30, 0.88);
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px 14px 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+        }
+
+        /* ---- SLOT ---- */
+        .slot {
+            position: relative;
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            flex-shrink: 0;
+        }
+
+        .slot:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .slot.active {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.12);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.25), inset 0 0 8px rgba(255, 215, 0, 0.08);
+        }
+
+        .slot.empty {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .slot.empty:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .slot-icon {
+            font-size: 22px;
+            line-height: 1;
+        }
+
+        .slot-label {
+            font-size: 8px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            opacity: 0.6;
+            margin-top: 2px;
+            white-space: nowrap;
+        }
+
+        .slot.active .slot-label {
+            opacity: 1;
+            color: #FFD700;
+        }
+
+        .slot-key {
+            position: absolute;
+            top: -6px;
+            right: -4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            background: rgba(40, 40, 50, 0.95);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            font-family: 'Fredoka One', cursive;
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        /* ---- SEPARATOR ---- */
+        .bar-sep {
+            width: 1px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 4px;
+            align-self: center;
+            flex-shrink: 0;
+        }
+
+        /* ---- DROP-UP MENU ---- */
+        .dropup {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(25, 25, 35, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 6px;
+            min-width: 120px;
+            box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            display: none;
+            z-index: 30;
+        }
+
+        .dropup.show {
+            display: block;
+            animation: dropupIn 0.15s ease;
+        }
+
+        @keyframes dropupIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        .dropup-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 2px 8px 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 4px;
+        }
+
+        .dropup-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.1s;
+            white-space: nowrap;
+        }
+
+        .dropup-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .dropup-item.equipped {
+            background: rgba(255, 215, 0, 0.12);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .dropup-item.locked {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .dropup-item .di-icon {
+            font-size: 18px;
+        }
+
+        .dropup-item .di-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dropup-item .di-name {
+            font-weight: 900;
+            font-size: 12px;
+            color: white;
+        }
+
+        .dropup-item.equipped .di-name {
+            color: #FFD700;
+        }
+
+        .dropup-item .di-stat {
+            font-size: 9px;
+            opacity: 0.5;
+            font-weight: 700;
+        }
+
+        .dropup-item .di-tag {
+            margin-left: auto;
+            font-family: 'Fredoka One', cursive;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        .tag-equipped {
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+        }
+
+        .tag-locked {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ---- CARRY INDICATOR ---- */
+        .carry-indicator {
+            position: fixed;
+            bottom: 72px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 14px;
+            border-radius: 10px;
+            background: rgba(255, 165, 0, 0.9);
+            border: 2px solid rgba(200, 120, 0, 0.8);
+            font-family: 'Fredoka One', cursive;
+            font-size: 13px;
+            color: #3A1800;
+            box-shadow: 0 3px 12px rgba(255, 165, 0, 0.3);
+            z-index: 10;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .carry-indicator.show {
+            display: block;
+            animation: dropupIn 0.2s ease;
+        }
+
+        /* ---- QUANTITY BADGE ---- */
+        .slot-qty {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            background: #FF6B6B;
+            border: 1.5px solid rgba(0, 0, 0, 0.3);
+            font-family: 'Fredoka One', cursive;
+            font-size: 9px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- CARRY INDICATOR (shown above bar when carrying brainrot) -->
+    <div class="carry-indicator" id="carry-indicator">
+        Carrying: <span id="carry-gold">0</span>g
+    </div>
+
+    <!-- ACTION BAR -->
+    <div class="action-bar" id="action-bar">
+        <!-- Weapon slot -->
+        <div class="slot active" id="slot-weapon" onclick="toggleDropup('weapon')">
+            <span class="slot-key">1</span>
+            <span class="slot-icon" id="weapon-icon">&#x1F52B;</span>
+            <span class="slot-label" id="weapon-label">Pistol</span>
+        </div>
+
+        <div class="bar-sep"></div>
+
+        <!-- Consumable slots -->
+        <div class="slot empty" id="slot-item1" onclick="toggleDropup('items')">
+            <span class="slot-key">2</span>
+            <span class="slot-icon" id="item1-icon">&#x2795;</span>
+            <span class="slot-label" id="item1-label">Empty</span>
+        </div>
+        <div class="slot empty" id="slot-item2">
+            <span class="slot-key">3</span>
+            <span class="slot-icon" id="item2-icon">&#x2795;</span>
+            <span class="slot-label" id="item2-label">Empty</span>
+        </div>
+        <div class="slot empty" id="slot-item3">
+            <span class="slot-key">4</span>
+            <span class="slot-icon" id="item3-icon">&#x2795;</span>
+            <span class="slot-label" id="item3-label">Empty</span>
+        </div>
+
+        <div class="bar-sep"></div>
+
+        <!-- Pet/companion slot -->
+        <div class="slot empty" id="slot-pet">
+            <span class="slot-key">5</span>
+            <span class="slot-icon" id="pet-icon">&#x1F43E;</span>
+            <span class="slot-label" id="pet-label">Pet</span>
+        </div>
+
+        <!-- WEAPON DROP-UP -->
+        <div class="dropup" id="dropup-weapon">
+            <div class="dropup-title">Weapons</div>
+            <div id="weapon-list"></div>
+        </div>
+
+        <!-- ITEMS DROP-UP -->
+        <div class="dropup" id="dropup-items">
+            <div class="dropup-title">Items</div>
+            <div id="items-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+
+        // ---- DATA ----
+        const WEAPONS = [
+            { id: 'pistol', name: 'Pistol', icon: '\u{1F52B}', stat: 'Fast \u2022 Low DMG' },
+            { id: 'rifle', name: 'Rifle', icon: '\u{1F3AF}', stat: 'Balanced' },
+            { id: 'shotgun', name: 'Shotgun', icon: '\u{1F4A5}', stat: 'Slow \u2022 High DMG' }
+        ];
+
+        const CONSUMABLES = [
+            { id: 'health_potion', name: 'Health Potion', icon: '\u{2764}\u{FE0F}', stat: 'Restore 50 HP' },
+            { id: 'speed_boost', name: 'Speed Boost', icon: '\u{26A1}', stat: '+50% speed 30s' },
+            { id: 'gold_magnet', name: 'Gold Magnet', icon: '\u{1F9F2}', stat: '2x pickup range 60s' },
+            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Block 3 hits' }
+        ];
+
+        // ---- STATE ----
+        let state = {
+            equippedWeapon: 'pistol',
+            ownedWeapons: ['pistol'],
+            equippedItems: [null, null, null],   // 3 consumable slots
+            itemQuantities: {},                  // { 'health_potion': 5, ... }
+            pet: null,
+            carrying: 0,
+            carryGold: 0
+        };
+
+        let openDropup = null;
+
+        // ---- DOM ----
+        const weaponIcon = document.getElementById('weapon-icon');
+        const weaponLabel = document.getElementById('weapon-label');
+        const weaponList = document.getElementById('weapon-list');
+        const itemsList = document.getElementById('items-list');
+        const carryIndicator = document.getElementById('carry-indicator');
+        const carryGoldEl = document.getElementById('carry-gold');
+
+        // ---- RENDERING ----
+        function render() {
+            // Weapon slot
+            const w = WEAPONS.find(w => w.id === state.equippedWeapon) || WEAPONS[0];
+            weaponIcon.innerHTML = w.icon;
+            weaponLabel.textContent = w.name;
+
+            // Consumable slots
+            for (let i = 0; i < 3; i++) {
+                const slotEl = document.getElementById('slot-item' + (i + 1));
+                const iconEl = document.getElementById('item' + (i + 1) + '-icon');
+                const labelEl = document.getElementById('item' + (i + 1) + '-label');
+
+                // Remove old quantity badges
+                const oldQty = slotEl.querySelector('.slot-qty');
+                if (oldQty) oldQty.remove();
+
+                const itemId = state.equippedItems[i];
+                if (itemId) {
+                    const item = CONSUMABLES.find(c => c.id === itemId);
+                    if (item) {
+                        slotEl.classList.remove('empty');
+                        iconEl.innerHTML = item.icon;
+                        labelEl.textContent = item.name;
+                        const qty = state.itemQuantities[itemId] || 0;
+                        if (qty > 0) {
+                            const badge = document.createElement('span');
+                            badge.className = 'slot-qty';
+                            badge.textContent = qty;
+                            slotEl.appendChild(badge);
+                        }
+                    }
+                } else {
+                    slotEl.classList.add('empty');
+                    iconEl.innerHTML = '\u2795';
+                    labelEl.textContent = 'Empty';
+                }
+            }
+
+            // Pet slot
+            const petSlot = document.getElementById('slot-pet');
+            const petIcon = document.getElementById('pet-icon');
+            const petLabel = document.getElementById('pet-label');
+            if (state.pet) {
+                petSlot.classList.remove('empty');
+                petIcon.innerHTML = state.pet.icon || '\u{1F43E}';
+                petLabel.textContent = state.pet.name || 'Pet';
+            } else {
+                petSlot.classList.add('empty');
+                petIcon.innerHTML = '\u{1F43E}';
+                petLabel.textContent = 'Pet';
+            }
+
+            // Carry indicator
+            if (state.carrying > 0) {
+                carryIndicator.classList.add('show');
+                carryGoldEl.textContent = state.carryGold;
+            } else {
+                carryIndicator.classList.remove('show');
+            }
+        }
+
+        function renderWeaponDropup() {
+            weaponList.innerHTML = '';
+            WEAPONS.forEach(w => {
+                const owned = state.ownedWeapons.includes(w.id);
+                const equipped = state.equippedWeapon === w.id;
+                const div = document.createElement('div');
+                div.className = 'dropup-item' + (equipped ? ' equipped' : '') + (!owned ? ' locked' : '');
+                div.innerHTML =
+                    '<span class="di-icon">' + w.icon + '</span>' +
+                    '<div class="di-info">' +
+                        '<span class="di-name">' + w.name + '</span>' +
+                        '<span class="di-stat">' + w.stat + '</span>' +
+                    '</div>' +
+                    (equipped ? '<span class="di-tag tag-equipped">Equipped</span>' :
+                     !owned ? '<span class="di-tag tag-locked">Locked</span>' : '');
+                if (owned && !equipped) {
+                    div.onclick = function(e) {
+                        e.stopPropagation();
+                        equipWeapon(w.id);
+                    };
+                }
+                weaponList.appendChild(div);
+            });
+        }
+
+        function renderItemsDropup() {
+            itemsList.innerHTML = '';
+            CONSUMABLES.forEach(c => {
+                const qty = state.itemQuantities[c.id] || 0;
+                const slotted = state.equippedItems.includes(c.id);
+                if (qty <= 0 && !slotted) return; // hide items we don't own
+                const div = document.createElement('div');
+                div.className = 'dropup-item' + (slotted ? ' equipped' : '');
+                div.innerHTML =
+                    '<span class="di-icon">' + c.icon + '</span>' +
+                    '<div class="di-info">' +
+                        '<span class="di-name">' + c.name + '</span>' +
+                        '<span class="di-stat">' + c.stat + '</span>' +
+                    '</div>' +
+                    (qty > 0 ? '<span class="di-tag tag-equipped">x' + qty + '</span>' : '');
+                div.onclick = function(e) {
+                    e.stopPropagation();
+                    useItem(c.id);
+                };
+                itemsList.appendChild(div);
+            });
+            if (itemsList.children.length === 0) {
+                const empty = document.createElement('div');
+                empty.className = 'dropup-item locked';
+                empty.innerHTML = '<span class="di-icon">\u{1F6D2}</span><div class="di-info"><span class="di-name">No Items</span><span class="di-stat">Buy from the shop!</span></div>';
+                itemsList.appendChild(empty);
+            }
+        }
+
+        // ---- ACTIONS ----
+        function equipWeapon(id) {
+            state.equippedWeapon = id;
+            render();
+            renderWeaponDropup();
+            closeAllDropups();
+            if (sdk) {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: 'equip_' + id,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+                sdk.focusGameKeyboard();
+            }
+        }
+
+        function useItem(id) {
+            const qty = state.itemQuantities[id] || 0;
+            if (qty <= 0) return;
+            state.itemQuantities[id] = qty - 1;
+
+            // Auto-slot into first empty slot if not already slotted
+            if (!state.equippedItems.includes(id)) {
+                const emptyIdx = state.equippedItems.indexOf(null);
+                if (emptyIdx !== -1) {
+                    state.equippedItems[emptyIdx] = id;
+                }
+            }
+
+            // Remove from slot if quantity hits 0
+            if (state.itemQuantities[id] <= 0) {
+                const idx = state.equippedItems.indexOf(id);
+                if (idx !== -1) state.equippedItems[idx] = null;
+            }
+
+            render();
+            renderItemsDropup();
+            closeAllDropups();
+
+            if (sdk) {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: 'use_' + id,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+                sdk.focusGameKeyboard();
+            }
+        }
+
+        // ---- DROP-UP TOGGLE ----
+        function toggleDropup(which) {
+            const el = document.getElementById('dropup-' + which);
+            if (openDropup === which) {
+                closeAllDropups();
+                return;
+            }
+            closeAllDropups();
+            if (which === 'weapon') renderWeaponDropup();
+            if (which === 'items') renderItemsDropup();
+
+            // Position the dropup above the triggering slot
+            const slotMap = { weapon: 'slot-weapon', items: 'slot-item1' };
+            const slotEl = document.getElementById(slotMap[which]);
+            if (slotEl) {
+                const bar = document.getElementById('action-bar');
+                const slotRect = slotEl.getBoundingClientRect();
+                const barRect = bar.getBoundingClientRect();
+                const slotCenter = slotRect.left + slotRect.width / 2 - barRect.left;
+                el.style.left = slotCenter + 'px';
+            }
+
+            el.classList.add('show');
+            openDropup = which;
+        }
+
+        function closeAllDropups() {
+            document.querySelectorAll('.dropup').forEach(d => d.classList.remove('show'));
+            openDropup = null;
+        }
+
+        // Close dropups when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropup') && !e.target.closest('.slot')) {
+                closeAllDropups();
+            }
+        });
+
+        // ---- SDK MESSAGE LISTENER ----
+        if (sdk) {
+            sdk.setMessageListener(function(message) {
+                console.log('[ActionBar] Received:', message);
+
+                // carry:count,gold
+                if (message.startsWith('carry:')) {
+                    const parts = message.substring(6).split(',');
+                    state.carrying = parseFloat(parts[0]) || 0;
+                    state.carryGold = parseFloat(parts[1]) || 0;
+                    render();
+                    return;
+                }
+
+                // weapon_owned:rifle
+                if (message.startsWith('weapon_owned:')) {
+                    const wid = message.substring(13).trim();
+                    if (!state.ownedWeapons.includes(wid)) {
+                        state.ownedWeapons.push(wid);
+                    }
+                    render();
+                    return;
+                }
+
+                // equip_weapon:shotgun
+                if (message.startsWith('equip_weapon:')) {
+                    state.equippedWeapon = message.substring(13).trim();
+                    render();
+                    return;
+                }
+
+                // item_add:health_potion,3
+                if (message.startsWith('item_add:')) {
+                    const parts = message.substring(9).split(',');
+                    const itemId = parts[0].trim();
+                    const qty = parseInt(parts[1]) || 1;
+                    state.itemQuantities[itemId] = (state.itemQuantities[itemId] || 0) + qty;
+                    // Auto-slot if possible
+                    if (!state.equippedItems.includes(itemId)) {
+                        const emptyIdx = state.equippedItems.indexOf(null);
+                        if (emptyIdx !== -1) state.equippedItems[emptyIdx] = itemId;
+                    }
+                    render();
+                    return;
+                }
+
+                // pet:name,icon
+                if (message.startsWith('pet:')) {
+                    const parts = message.substring(4).split(',');
+                    state.pet = { name: parts[0], icon: parts[1] || '\u{1F43E}' };
+                    render();
+                    return;
+                }
+
+                // Try JSON format
+                try {
+                    const d = JSON.parse(message);
+                    if (d.weapon) state.equippedWeapon = d.weapon;
+                    if (d.ownedWeapons) state.ownedWeapons = d.ownedWeapons;
+                    if (d.items) state.itemQuantities = d.items;
+                    if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying) || 0;
+                    if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold) || 0;
+                    if (d.pet) state.pet = d.pet;
+                    render();
+                } catch(e) {}
+            });
+        }
+
+        // ---- INIT ----
+        render();
+
+        // Dev preview
+        if (!sdk) {
+            state.ownedWeapons = ['pistol', 'rifle'];
+            state.equippedWeapon = 'rifle';
+            state.itemQuantities = { health_potion: 3, speed_boost: 1 };
+            state.equippedItems = ['health_potion', 'speed_boost', null];
+            state.carrying = 1;
+            state.carryGold = 14.6;
+            render();
+        }
+    </script>
+</body>
+</html>
