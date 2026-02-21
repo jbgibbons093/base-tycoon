@@ -135,9 +135,7 @@
             text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
         }
 
-        .btn-shop { background: linear-gradient(180deg, #74B9FF 0%, #3498DB 100%); border-color: #2176AA; }
         .btn-weapon { background: linear-gradient(180deg, #FF7675 0%, #D63031 100%); border-color: #A02020; }
-        .btn-rebirth { background: linear-gradient(180deg, #FFEAA7 0%, #FDCB6E 100%); border-color: #CC9900; }
 
         /* ---- WEAPON SELECTOR POPUP ---- */
         .weapon-panel {
@@ -303,19 +301,11 @@
         &#x1F9F8; Carrying: <span id="carry-gold">0</span>g
     </div>
 
-    <!-- SIDE BUTTONS -->
+    <!-- SIDE BUTTON: Weapon selector only -->
     <div class="side-buttons">
-        <div class="side-btn btn-shop" onclick="sendTask('open_shop')">
-            <span class="btn-icon">&#x1F6D2;</span>
-            <span class="btn-label">Shop</span>
-        </div>
         <div class="side-btn btn-weapon" onclick="toggleWeaponPanel()">
             <span class="btn-icon">&#x1F52B;</span>
             <span class="btn-label">Guns</span>
-        </div>
-        <div class="side-btn btn-rebirth" onclick="sendTask('open_rebirth')">
-            <span class="btn-icon">&#x2B50;</span>
-            <span class="btn-label">Rebirth</span>
         </div>
     </div>
 
@@ -406,12 +396,6 @@
 
         function toggleWeaponPanel() {
             weaponPanel.classList.toggle('show');
-        }
-
-        function sendTask(taskName) {
-            if (sdk) {
-                sdk.sendMessageToUnity(JSON.stringify({ TaskName: taskName, TaskTargetState: 'SetNotActiveToActive' }));
-            }
         }
 
         if (sdk) {

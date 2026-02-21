@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Items Shop</title>
+    <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0; padding: 0;
+            background: rgba(0,0,0,0.5);
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            user-select: none;
+        }
+
+        .shop-frame {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 520px;
+            max-height: 90vh;
+            background: white;
+            border: 5px solid #E17055;
+            border-radius: 24px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .shop-header {
+            background: linear-gradient(180deg, #FAB1A0 0%, #E17055 100%);
+            padding: 14px 20px;
+            text-align: center;
+            position: relative;
+            flex-shrink: 0;
+        }
+        .shop-header h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 30px;
+            color: white;
+            margin: 0;
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+        }
+        .gold-badge {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 4px 16px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border: 3px solid #CC8800;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 15px;
+            color: #4A2800;
+        }
+        .close-x {
+            position: absolute;
+            top: 8px; right: 12px;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #FF7675, #D63031);
+            border: 3px solid #A02020;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 18px; color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+        }
+        .close-x:active { transform: translateY(2px); box-shadow: none; }
+
+        .shop-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+            background: #F0F3F5;
+        }
+        .shop-body::-webkit-scrollbar { width: 6px; }
+        .shop-body::-webkit-scrollbar-thumb { background: #B2BEC3; border-radius: 3px; }
+
+        .section-label {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px;
+            color: #636E72;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 4px 12px;
+            margin-bottom: 8px;
+        }
+
+        .item-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .item-card {
+            background: white;
+            border: 3px solid #DFE6E9;
+            border-radius: 16px;
+            padding: 14px 10px;
+            text-align: center;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.06);
+            transition: all 0.15s;
+        }
+        .item-card:hover { transform: translateY(-2px); border-color: #E17055; }
+
+        .i-icon {
+            width: 52px; height: 52px;
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 28px;
+            margin: 0 auto 8px;
+            border: 3px solid;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+        }
+        .icon-ammo { background: linear-gradient(180deg, #636E72, #2D3436); border-color: #1A1A1A; }
+        .icon-heal { background: linear-gradient(180deg, #6EF06E, #2ECC40); border-color: #1FA030; }
+        .icon-boost { background: linear-gradient(180deg, #FFE44D, #FFB800); border-color: #CC8800; }
+        .icon-speed-pot { background: linear-gradient(180deg, #74B9FF, #3498DB); border-color: #2176AA; }
+        .icon-teleport { background: linear-gradient(180deg, #A29BFE, #6C5CE7); border-color: #5A4BD0; }
+        .icon-shield { background: linear-gradient(180deg, #74B9FF, #0984E3); border-color: #0660A0; }
+
+        .i-name {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px;
+            color: #2C3E50;
+        }
+        .i-desc {
+            font-size: 10px; font-weight: 700;
+            color: #636E72;
+            margin: 4px 0;
+            min-height: 24px;
+        }
+        .i-stock {
+            font-size: 10px; font-weight: 800;
+            color: #E17055;
+            margin-bottom: 6px;
+        }
+
+        .i-btn {
+            display: block;
+            width: 100%;
+            padding: 8px;
+            border: 3px solid;
+            border-radius: 12px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.12);
+            transition: all 0.1s;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.15);
+        }
+        .i-btn:active { transform: translateY(2px); box-shadow: none; }
+        .btn-buy {
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border-color: #CC8800;
+            color: #4A2800;
+        }
+        .btn-locked {
+            background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
+            border-color: #95A5A6;
+            color: #95A5A6;
+            cursor: not-allowed;
+            text-shadow: none;
+        }
+        .btn-cooldown {
+            background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
+            border-color: #95A5A6;
+            color: #636E72;
+            cursor: not-allowed;
+            text-shadow: none;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px; left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #FAB1A0, #E17055);
+            border: 3px solid #C44030;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 16px; color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+            animation: pop 0.3s ease, fadeOut 0.3s ease 2s forwards;
+            z-index: 30;
+        }
+        @keyframes pop { 0%{transform:translateX(-50%) scale(0.5);opacity:0} 70%{transform:translateX(-50%) scale(1.1)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
+        @keyframes fadeOut { to{opacity:0} }
+    </style>
+</head>
+<body>
+    <div class="shop-frame">
+        <div class="shop-header">
+            <h1>ITEMS</h1>
+            <div class="gold-badge" id="gold-display">&#x1F4B0; 0</div>
+            <div class="close-x" onclick="closeShop()">X</div>
+        </div>
+        <div class="shop-body" id="items-list"></div>
+    </div>
+
+    <script>
+        const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+
+        const ITEMS = [
+            {
+                section: 'Ammo',
+                items: [
+                    { id:'ammo_pistol', name:'Pistol Ammo', icon:'\u{1F52B}', iconClass:'icon-ammo', cost:500, desc:'36 rounds for pistol', task:'buy_ammo_pistol' },
+                    { id:'ammo_rifle', name:'Rifle Ammo', icon:'\u{1F3AF}', iconClass:'icon-ammo', cost:1000, desc:'90 rounds for rifle', task:'buy_ammo_rifle' },
+                    { id:'ammo_shotgun', name:'Shotgun Ammo', icon:'\u{1F4A5}', iconClass:'icon-ammo', cost:1500, desc:'24 shells for shotgun', task:'buy_ammo_shotgun' }
+                ]
+            },
+            {
+                section: 'Consumables',
+                items: [
+                    { id:'health_pack', name:'Health Pack', icon:'\u{1FA79}', iconClass:'icon-heal', cost:800, desc:'Heal to full HP', task:'use_health_pack' },
+                    { id:'gold_boost', name:'Gold Boost', icon:'\u{2B50}', iconClass:'icon-boost', cost:5000, desc:'2x income for 5 minutes', task:'use_gold_boost', cooldown:300 },
+                    { id:'speed_potion', name:'Speed Potion', icon:'\u{26A1}', iconClass:'icon-speed-pot', cost:2000, desc:'2x speed for 2 minutes', task:'use_speed_potion', cooldown:120 },
+                    { id:'base_teleport', name:'Base Teleport', icon:'\u{1F300}', iconClass:'icon-teleport', cost:1000, desc:'Instant teleport to your base', task:'use_base_teleport' },
+                    { id:'shield', name:'Shield Bubble', icon:'\u{1F6E1}', iconClass:'icon-shield', cost:3000, desc:'Immune to damage for 30s', task:'use_shield', cooldown:60 }
+                ]
+            }
+        ];
+
+        let state = { gold: 0, cooldowns: {} };
+
+        function fmt(n) {
+            if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
+            if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+            if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+            return n.toLocaleString();
+        }
+
+        function render() {
+            document.getElementById('gold-display').innerHTML = '&#x1F4B0; ' + fmt(state.gold);
+            const list = document.getElementById('items-list');
+            list.innerHTML = '';
+
+            ITEMS.forEach(section => {
+                const label = document.createElement('div');
+                label.className = 'section-label';
+                label.textContent = section.section;
+                list.appendChild(label);
+
+                const grid = document.createElement('div');
+                grid.className = 'item-grid';
+
+                section.items.forEach(item => {
+                    const canBuy = state.gold >= item.cost;
+                    const onCooldown = state.cooldowns[item.id] && state.cooldowns[item.id] > Date.now();
+                    const cdRemaining = onCooldown ? Math.ceil((state.cooldowns[item.id] - Date.now()) / 1000) : 0;
+
+                    let btnClass, btnText;
+                    if (onCooldown) { btnClass = 'btn-cooldown'; btnText = cdRemaining + 's'; }
+                    else if (canBuy) { btnClass = 'btn-buy'; btnText = fmt(item.cost) + 'g'; }
+                    else { btnClass = 'btn-locked'; btnText = fmt(item.cost) + 'g'; }
+
+                    const card = document.createElement('div');
+                    card.className = 'item-card';
+                    card.innerHTML = `
+                        <div class="i-icon ${item.iconClass}">${item.icon}</div>
+                        <div class="i-name">${item.name}</div>
+                        <div class="i-desc">${item.desc}</div>
+                        ${onCooldown ? '<div class="i-stock">Cooldown: ' + cdRemaining + 's</div>' : ''}
+                        <button class="i-btn ${btnClass}" data-item="${item.id}">${btnText}</button>
+                    `;
+                    grid.appendChild(card);
+                });
+
+                list.appendChild(grid);
+            });
+
+            list.querySelectorAll('.i-btn.btn-buy').forEach(btn => {
+                btn.addEventListener('click', () => buyItem(btn.dataset.item));
+            });
+        }
+
+        function buyItem(itemId) {
+            let foundItem = null;
+            ITEMS.forEach(s => { s.items.forEach(i => { if (i.id === itemId) foundItem = i; }); });
+            if (!foundItem) return;
+            if (state.gold < foundItem.cost) return;
+            if (state.cooldowns[itemId] && state.cooldowns[itemId] > Date.now()) return;
+
+            state.gold -= foundItem.cost;
+            if (foundItem.cooldown) {
+                state.cooldowns[itemId] = Date.now() + (foundItem.cooldown * 1000);
+            }
+            render();
+
+            if (sdk) {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: foundItem.task,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+            }
+            toast('Used ' + foundItem.name + '!');
+        }
+
+        // Update cooldowns every second
+        setInterval(() => {
+            let needsUpdate = false;
+            for (const [k, v] of Object.entries(state.cooldowns)) {
+                if (v > 0 && v <= Date.now()) {
+                    delete state.cooldowns[k];
+                    needsUpdate = true;
+                }
+            }
+            // Re-render if any active cooldowns
+            const hasActive = Object.values(state.cooldowns).some(v => v > Date.now());
+            if (needsUpdate || hasActive) render();
+        }, 1000);
+
+        function toast(text) {
+            const old = document.querySelector('.toast'); if(old)old.remove();
+            const t = document.createElement('div'); t.className = 'toast'; t.textContent = text;
+            document.body.appendChild(t); setTimeout(()=>{if(t.parentNode)t.remove();},2500);
+        }
+
+        function closeShop() { if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
+
+        if (sdk) {
+            sdk.setMessageListener(function(msg) {
+                try {
+                    const d = JSON.parse(msg);
+                    if (d.gold !== undefined) state.gold = parseFloat(d.gold) || 0;
+                    render();
+                } catch(e) {
+                    if (msg.startsWith('gold:')) {
+                        state.gold = parseFloat(msg.substring(5)) || 0;
+                        render();
+                    }
+                }
+            });
+        }
+
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('gold')) state.gold = parseFloat(params.get('gold')) || 0;
+
+        render();
+        if (!sdk) { state.gold = 25000; render(); }
+    </script>
+</body>
+</html>
