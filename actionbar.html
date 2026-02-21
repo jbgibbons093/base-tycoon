@@ -483,14 +483,25 @@
         }
 
         // ---- ACTIONS ----
+        // Quest names for iframe → Portals communication
+        // These must exactly match quest Names in the room
+        const EQUIP_QUEST = { pistol: 'equip_pistol', rifle: 'equip_rifle', shotgun: 'equip_shotgun' };
+        const CONSUME_QUEST = {
+            health_potion: 'consume_health_potion',
+            speed_boost: 'consume_speed_boost',
+            gold_magnet: 'consume_gold_magnet',
+            shield: 'consume_shield'
+        };
+
         function equipWeapon(id) {
+            if (!state.ownedWeapons.includes(id)) return;
             state.equippedWeapon = id;
             render();
             renderWeaponDropup();
             closeAllDropups();
-            if (sdk) {
+            if (sdk && EQUIP_QUEST[id]) {
                 sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: 'equip_' + id,
+                    TaskName: EQUIP_QUEST[id],
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
                 sdk.focusGameKeyboard();
@@ -500,6 +511,8 @@
         function useItem(id) {
             const qty = state.itemQuantities[id] || 0;
             if (qty <= 0) return;
+
+            // Optimistic UI update (server will confirm via inv: message)
             state.itemQuantities[id] = qty - 1;
 
             // Auto-slot into first empty slot if not already slotted
@@ -520,9 +533,11 @@
             renderItemsDropup();
             closeAllDropups();
 
-            if (sdk) {
+            // Send consume quest activation to Portals
+            // Room-side task will: decrement variable, then send updated inv: message back
+            if (sdk && CONSUME_QUEST[id]) {
                 sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: 'use_' + id,
+                    TaskName: CONSUME_QUEST[id],
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
                 sdk.focusGameKeyboard();
@@ -567,12 +582,145 @@
             }
         });
 
+        // ============================================================
+        // VARIABLE PARSER SYSTEM
+        // Receives Portals variable messages via SendMessageToIframes
+        // and updates action bar state from ownership variables.
+        //
+        // Variable naming convention (Portals player variables):
+        //   Own_Pistol, Own_Rifle, Own_Shotgun  (0/1)
+        //   Inv_HealthPotion, Inv_SpeedBoost, Inv_GoldMagnet, Inv_Shield (counts)
+        //
+        // Message format from Portals (SendMessageToIframes with |var| interpolation):
+        //   "inv:Own_Pistol=|Own_Pistol|&Own_Rifle=|Own_Rifle|&Own_Shotgun=|Own_Shotgun|
+        //    &Inv_HealthPotion=|Inv_HealthPotion|&Inv_SpeedBoost=|Inv_SpeedBoost|
+        //    &Inv_GoldMagnet=|Inv_GoldMagnet|&Inv_Shield=|Inv_Shield|"
+        //
+        // After Portals resolves |var| interpolation, iframe receives:
+        //   "inv:Own_Pistol=1&Own_Rifle=0&Inv_HealthPotion=3..." (raw numbers)
+        //   or "inv:Own_Pistol={"Player":1}&..." (object keyed by player)
+        //
+        // Send-back to Portals (consume/equip):
+        //   sdk.sendMessageToUnity(JSON.stringify({
+        //     TaskName: "consume_health_potion",  // quest name
+        //     TaskTargetState: "SetNotActiveToActive"
+        //   }))
+        // ============================================================
+
+        // Map Portals variable names to action bar state
+        const VAR_TO_WEAPON = {
+            'Own_Pistol': 'pistol',
+            'Own_Rifle': 'rifle',
+            'Own_Shotgun': 'shotgun'
+        };
+        const VAR_TO_ITEM = {
+            'Inv_HealthPotion': 'health_potion',
+            'Inv_SpeedBoost': 'speed_boost',
+            'Inv_GoldMagnet': 'gold_magnet',
+            'Inv_Shield': 'shield'
+        };
+
+        /**
+         * Parse a value from Portals variable interpolation.
+         * Handles: raw numbers ("3"), JSON objects ({"PlayerName": 3}),
+         * quoted strings, and edge cases.
+         */
+        function parseVarValue(raw) {
+            if (raw === undefined || raw === null || raw === '') return 0;
+            raw = String(raw).trim();
+            // Try as plain number first
+            const num = Number(raw);
+            if (!isNaN(num)) return num;
+            // Try as JSON (multiplayer format: {"Player1": 3, "Player2": 0})
+            try {
+                const parsed = JSON.parse(raw);
+                if (typeof parsed === 'number') return parsed;
+                if (typeof parsed === 'object' && parsed !== null) {
+                    // Take the current player's value (first value in object)
+                    const vals = Object.values(parsed);
+                    return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
+                }
+            } catch(e) {}
+            return 0;
+        }
+
+        /**
+         * Parse an inventory message from Portals.
+         * Format: "inv:Key1=Val1&Key2=Val2&..."
+         * Returns object of {key: numericValue}
+         */
+        function parseInventoryMessage(msg) {
+            if (!msg.startsWith('inv:')) return null;
+            const payload = msg.substring(4);
+            const result = {};
+            const pairs = payload.split('&');
+            for (const pair of pairs) {
+                const eqIdx = pair.indexOf('=');
+                if (eqIdx < 0) continue;
+                const key = pair.substring(0, eqIdx).trim();
+                const rawVal = pair.substring(eqIdx + 1);
+                result[key] = parseVarValue(rawVal);
+            }
+            return result;
+        }
+
+        /**
+         * Apply parsed inventory variables to action bar state.
+         */
+        function applyInventoryUpdate(vars) {
+            // Update weapon ownership
+            for (const [varName, weaponId] of Object.entries(VAR_TO_WEAPON)) {
+                if (vars[varName] !== undefined) {
+                    const owned = vars[varName] > 0;
+                    if (owned && !state.ownedWeapons.includes(weaponId)) {
+                        state.ownedWeapons.push(weaponId);
+                    } else if (!owned) {
+                        state.ownedWeapons = state.ownedWeapons.filter(w => w !== weaponId);
+                        // Pistol always stays owned as starter weapon
+                        if (!state.ownedWeapons.includes('pistol')) {
+                            state.ownedWeapons.push('pistol');
+                        }
+                    }
+                }
+            }
+
+            // Update item quantities
+            for (const [varName, itemId] of Object.entries(VAR_TO_ITEM)) {
+                if (vars[varName] !== undefined) {
+                    const qty = Math.max(0, Math.floor(vars[varName]));
+                    state.itemQuantities[itemId] = qty;
+                    // Auto-slot items with qty > 0 into empty slots
+                    if (qty > 0 && !state.equippedItems.includes(itemId)) {
+                        const emptyIdx = state.equippedItems.indexOf(null);
+                        if (emptyIdx !== -1) state.equippedItems[emptyIdx] = itemId;
+                    }
+                    // Remove from slot if qty drops to 0
+                    if (qty <= 0) {
+                        const idx = state.equippedItems.indexOf(itemId);
+                        if (idx !== -1) state.equippedItems[idx] = null;
+                    }
+                }
+            }
+
+            render();
+            console.log('[ActionBar] Inventory updated:', JSON.stringify(state.itemQuantities), 'Weapons:', state.ownedWeapons);
+        }
+
         // ---- SDK MESSAGE LISTENER ----
         if (sdk) {
             sdk.setMessageListener(function(message) {
                 console.log('[ActionBar] Received:', message);
 
-                // carry:count,gold
+                // ---- INVENTORY VARIABLE UPDATE ----
+                // Format: "inv:Own_Pistol=1&Own_Rifle=0&Inv_HealthPotion=3&..."
+                if (message.startsWith('inv:')) {
+                    const vars = parseInventoryMessage(message);
+                    if (vars) applyInventoryUpdate(vars);
+                    return;
+                }
+
+                // ---- CARRY UPDATE ----
+                // Format: "carry:count,goldValue"
                 if (message.startsWith('carry:')) {
                     const parts = message.substring(6).split(',');
                     state.carrying = parseFloat(parts[0]) || 0;
@@ -581,39 +729,22 @@
                     return;
                 }
 
-                // weapon_owned:rifle
-                if (message.startsWith('weapon_owned:')) {
-                    const wid = message.substring(13).trim();
-                    if (!state.ownedWeapons.includes(wid)) {
-                        state.ownedWeapons.push(wid);
+                // ---- SINGLE VARIABLE UPDATE ----
+                // Format: "var:VarName=Value" (for incremental updates)
+                if (message.startsWith('var:')) {
+                    const eqIdx = message.indexOf('=', 4);
+                    if (eqIdx > 4) {
+                        const key = message.substring(4, eqIdx).trim();
+                        const val = parseVarValue(message.substring(eqIdx + 1));
+                        const singleVars = {};
+                        singleVars[key] = val;
+                        applyInventoryUpdate(singleVars);
                     }
-                    render();
                     return;
                 }
 
-                // equip_weapon:shotgun
-                if (message.startsWith('equip_weapon:')) {
-                    state.equippedWeapon = message.substring(13).trim();
-                    render();
-                    return;
-                }
-
-                // item_add:health_potion,3
-                if (message.startsWith('item_add:')) {
-                    const parts = message.substring(9).split(',');
-                    const itemId = parts[0].trim();
-                    const qty = parseInt(parts[1]) || 1;
-                    state.itemQuantities[itemId] = (state.itemQuantities[itemId] || 0) + qty;
-                    // Auto-slot if possible
-                    if (!state.equippedItems.includes(itemId)) {
-                        const emptyIdx = state.equippedItems.indexOf(null);
-                        if (emptyIdx !== -1) state.equippedItems[emptyIdx] = itemId;
-                    }
-                    render();
-                    return;
-                }
-
-                // pet:name,icon
+                // ---- PET UPDATE ----
+                // Format: "pet:name,icon"
                 if (message.startsWith('pet:')) {
                     const parts = message.substring(4).split(',');
                     state.pet = { name: parts[0], icon: parts[1] || '\u{1F43E}' };
@@ -621,12 +752,26 @@
                     return;
                 }
 
-                // Try JSON format
+                // ---- JSON FORMAT (fallback) ----
                 try {
                     const d = JSON.parse(message);
                     if (d.weapon) state.equippedWeapon = d.weapon;
                     if (d.ownedWeapons) state.ownedWeapons = d.ownedWeapons;
-                    if (d.items) state.itemQuantities = d.items;
+                    if (d.items) {
+                        state.itemQuantities = d.items;
+                        // Re-slot items
+                        CONSUMABLES.forEach(c => {
+                            const qty = state.itemQuantities[c.id] || 0;
+                            if (qty > 0 && !state.equippedItems.includes(c.id)) {
+                                const emptyIdx = state.equippedItems.indexOf(null);
+                                if (emptyIdx !== -1) state.equippedItems[emptyIdx] = c.id;
+                            }
+                            if (qty <= 0) {
+                                const idx = state.equippedItems.indexOf(c.id);
+                                if (idx !== -1) state.equippedItems[idx] = null;
+                            }
+                        });
+                    }
                     if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying) || 0;
                     if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold) || 0;
                     if (d.pet) state.pet = d.pet;
@@ -634,6 +779,34 @@
                 } catch(e) {}
             });
         }
+
+        // ---- Keyboard refocus (so WASD movement keeps working while action bar is open) ----
+        function _doFocusGame() {
+            if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+        }
+        document.addEventListener('click', function(e) {
+            if (document.hidden) return;
+            if (e && e.target) {
+                var tag = e.target.tagName;
+                if (tag === 'BUTTON' || tag === 'SELECT' || tag === 'INPUT') return;
+                if (e.target.closest && e.target.closest('button, select, .slot, .dropup-item')) return;
+            }
+            _doFocusGame();
+        });
+        document.addEventListener('keydown', function() { if (!document.hidden) _doFocusGame(); });
+        document.addEventListener('mouseup', function(e) {
+            if (e && e.target) {
+                var tag = e.target.tagName;
+                if (tag === 'BUTTON' || tag === 'SELECT' || tag === 'INPUT') return;
+                if (e.target.closest && e.target.closest('button, select, .slot, .dropup-item')) return;
+            }
+            setTimeout(_doFocusGame, 50);
+        });
+        // Refocus on iframe open
+        _doFocusGame();
+        setTimeout(_doFocusGame, 100);
+        setTimeout(_doFocusGame, 300);
+        setTimeout(_doFocusGame, 600);
 
         // ---- INIT ----
         render();

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Items Shop</title>
+    <title>Rebirth</title>
     <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -19,10 +19,9 @@
             position: fixed;
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
-            width: 520px;
-            max-height: 90vh;
+            width: 460px;
             background: white;
-            border: 5px solid #E17055;
+            border: 5px solid #D63031;
             border-radius: 24px;
             box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
             overflow: hidden;
@@ -31,7 +30,7 @@
         }
 
         .shop-header {
-            background: linear-gradient(180deg, #FAB1A0 0%, #E17055 100%);
+            background: linear-gradient(180deg, #FF7675 0%, #D63031 100%);
             padding: 14px 20px;
             text-align: center;
             position: relative;
@@ -39,7 +38,7 @@
         }
         .shop-header h1 {
             font-family: 'Luckiest Guy', cursive;
-            font-size: 30px;
+            font-size: 32px;
             color: white;
             margin: 0;
             text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
@@ -73,117 +72,118 @@
         .close-x:active { transform: translateY(2px); box-shadow: none; }
 
         .shop-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
+            padding: 20px;
             background: #F0F3F5;
-        }
-        .shop-body::-webkit-scrollbar { width: 6px; }
-        .shop-body::-webkit-scrollbar-thumb { background: #B2BEC3; border-radius: 3px; }
-
-        .section-label {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 14px;
-            color: #636E72;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            padding: 4px 12px;
-            margin-bottom: 8px;
-        }
-
-        .item-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 8px;
-            margin-bottom: 14px;
-        }
-
-        .item-card {
-            background: white;
-            border: 3px solid #DFE6E9;
-            border-radius: 16px;
-            padding: 14px 10px;
             text-align: center;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.06);
-            transition: all 0.15s;
         }
-        .item-card:hover { transform: translateY(-2px); border-color: #E17055; }
 
-        .i-icon {
-            width: 52px; height: 52px;
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 28px;
-            margin: 0 auto 8px;
-            border: 3px solid;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+        /* Rebirth panel */
+        .rebirth-panel {
+            background: white;
+            border: 4px solid #D63031;
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            box-shadow: 0 4px 0 rgba(214,48,49,0.2);
         }
-        .icon-ammo { background: linear-gradient(180deg, #636E72, #2D3436); border-color: #1A1A1A; }
-        .icon-heal { background: linear-gradient(180deg, #6EF06E, #2ECC40); border-color: #1FA030; }
-        .icon-boost { background: linear-gradient(180deg, #FFE44D, #FFB800); border-color: #CC8800; }
-        .icon-speed-pot { background: linear-gradient(180deg, #74B9FF, #3498DB); border-color: #2176AA; }
-        .icon-teleport { background: linear-gradient(180deg, #A29BFE, #6C5CE7); border-color: #5A4BD0; }
-        .icon-shield { background: linear-gradient(180deg, #74B9FF, #0984E3); border-color: #0660A0; }
-
-        .i-name {
+        .rebirth-panel h2 {
             font-family: 'Luckiest Guy', cursive;
-            font-size: 14px;
-            color: #2C3E50;
+            font-size: 26px;
+            color: #D63031;
+            margin: 0 0 4px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
         }
-        .i-desc {
-            font-size: 10px; font-weight: 700;
-            color: #636E72;
-            margin: 4px 0;
-            min-height: 24px;
+        .rebirth-panel .sub {
+            font-size: 12px; font-weight: 800; color: #636E72;
         }
-        .i-stock {
-            font-size: 10px; font-weight: 800;
-            color: #E17055;
-            margin-bottom: 6px;
-        }
-
-        .i-btn {
-            display: block;
-            width: 100%;
-            padding: 8px;
-            border: 3px solid;
-            border-radius: 12px;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 13px;
-            cursor: pointer;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.12);
-            transition: all 0.1s;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.15);
-        }
-        .i-btn:active { transform: translateY(2px); box-shadow: none; }
-        .btn-buy {
+        .rebirth-cost-badge {
+            display: inline-block;
+            margin: 14px 0;
+            padding: 8px 24px;
+            border-radius: 20px;
             background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border-color: #CC8800;
+            border: 3px solid #CC8800;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 20px;
             color: #4A2800;
         }
-        .btn-locked {
+        .rebirth-reward {
+            display: inline-block;
+            padding: 6px 18px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #E8FFE8, #D4FFD4);
+            border: 3px solid #2ECC40;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 13px;
+            color: #0A5A0A;
+            margin: 8px 0;
+        }
+        .rebirth-progress {
+            margin: 12px 0;
+            font-size: 11px; font-weight: 800; color: #95A5A6;
+        }
+        .rebirth-bar-track {
+            width: 80%;
+            margin: 6px auto;
+            height: 14px;
+            background: #DFE6E9;
+            border-radius: 7px;
+            border: 2px solid #B2BEC3;
+            overflow: hidden;
+        }
+        .rebirth-bar-fill {
+            height: 100%;
+            border-radius: 7px;
+            background: linear-gradient(90deg, #FF7675, #D63031);
+            transition: width 0.4s;
+        }
+        .rebirth-btn {
+            display: inline-block;
+            margin-top: 14px;
+            padding: 12px 36px;
+            border: 3px solid;
+            border-radius: 16px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 18px;
+            cursor: pointer;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+            transition: all 0.1s;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+        }
+        .rebirth-btn:active { transform: translateY(3px); box-shadow: none; }
+        .rebirth-btn.ready {
+            background: linear-gradient(180deg, #FF7675, #D63031);
+            border-color: #A02020;
+            color: white;
+        }
+        .rebirth-btn.not-ready {
             background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
             border-color: #95A5A6;
             color: #95A5A6;
             cursor: not-allowed;
             text-shadow: none;
         }
-        .btn-cooldown {
-            background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
-            border-color: #95A5A6;
-            color: #636E72;
-            cursor: not-allowed;
-            text-shadow: none;
+        .rebirth-stars {
+            font-size: 28px;
+            margin: 6px 0;
+        }
+        .rebirth-max {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px;
+            color: #2ECC40;
+            margin-top: 12px;
         }
 
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 20px; left: 50%;
             transform: translateX(-50%);
             padding: 10px 24px;
             border-radius: 14px;
-            background: linear-gradient(180deg, #FAB1A0, #E17055);
-            border: 3px solid #C44030;
+            background: linear-gradient(180deg, #FF7675, #D63031);
+            border: 3px solid #A02020;
             box-shadow: 0 3px 0 rgba(0,0,0,0.2);
             font-family: 'Luckiest Guy', cursive;
             font-size: 16px; color: white;
@@ -198,38 +198,20 @@
 <body>
     <div class="shop-frame">
         <div class="shop-header">
-            <h1>ITEMS</h1>
+            <h1>REBIRTH</h1>
             <div class="gold-badge" id="gold-display">&#x1F4B0; 0</div>
             <div class="close-x" onclick="closeShop()">X</div>
         </div>
-        <div class="shop-body" id="items-list"></div>
+        <div class="shop-body" id="rebirth-content"></div>
     </div>
 
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
-        const ITEMS = [
-            {
-                section: 'Ammo',
-                items: [
-                    { id:'ammo_pistol', name:'Pistol Ammo', icon:'\u{1F52B}', iconClass:'icon-ammo', cost:500, desc:'36 rounds for pistol', task:'buy_ammo_pistol' },
-                    { id:'ammo_rifle', name:'Rifle Ammo', icon:'\u{1F3AF}', iconClass:'icon-ammo', cost:1000, desc:'90 rounds for rifle', task:'buy_ammo_rifle' },
-                    { id:'ammo_shotgun', name:'Shotgun Ammo', icon:'\u{1F4A5}', iconClass:'icon-ammo', cost:1500, desc:'24 shells for shotgun', task:'buy_ammo_shotgun' }
-                ]
-            },
-            {
-                section: 'Consumables',
-                items: [
-                    { id:'health_pack', name:'Health Pack', icon:'\u{1FA79}', iconClass:'icon-heal', cost:800, desc:'Heal to full HP', task:'use_health_pack' },
-                    { id:'gold_boost', name:'Gold Boost', icon:'\u{2B50}', iconClass:'icon-boost', cost:5000, desc:'2x income for 5 minutes', task:'use_gold_boost', cooldown:300 },
-                    { id:'speed_potion', name:'Speed Potion', icon:'\u{26A1}', iconClass:'icon-speed-pot', cost:2000, desc:'2x speed for 2 minutes', task:'use_speed_potion', cooldown:120 },
-                    { id:'base_teleport', name:'Base Teleport', icon:'\u{1F300}', iconClass:'icon-teleport', cost:1000, desc:'Instant teleport to your base', task:'use_base_teleport' },
-                    { id:'shield', name:'Shield Bubble', icon:'\u{1F6E1}', iconClass:'icon-shield', cost:3000, desc:'Immune to damage for 30s', task:'use_shield', cooldown:60 }
-                ]
-            }
-        ];
+        const REBIRTH_COSTS = [500000, 2000000, 10000000];
+        const REBIRTH_BONUSES = ['1.5x Permanent Income', '2x Permanent + Ancient Ruins', '3x Permanent + Sky + Void'];
 
-        let state = { gold: 0, cooldowns: {} };
+        let state = { gold: 0, rebirth: 0 };
 
         function fmt(n) {
             if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
@@ -240,83 +222,65 @@
 
         function render() {
             document.getElementById('gold-display').innerHTML = '&#x1F4B0; ' + fmt(state.gold);
-            const list = document.getElementById('items-list');
-            list.innerHTML = '';
+            const el = document.getElementById('rebirth-content');
+            const nextRebirth = state.rebirth + 1;
+            const maxRebirth = REBIRTH_COSTS.length;
 
-            ITEMS.forEach(section => {
-                const label = document.createElement('div');
-                label.className = 'section-label';
-                label.textContent = section.section;
-                list.appendChild(label);
+            if (state.rebirth >= maxRebirth) {
+                const stars = '\u2B50'.repeat(state.rebirth);
+                el.innerHTML = `
+                    <div class="rebirth-panel">
+                        <div class="rebirth-stars">${stars}</div>
+                        <h2>MAX REBIRTH!</h2>
+                        <div class="sub">You've reached Rebirth ${state.rebirth}. All zones unlocked.</div>
+                        <div class="rebirth-reward" style="margin-top:14px">${REBIRTH_BONUSES[state.rebirth-1]}</div>
+                        <div class="rebirth-max">All permanent bonuses active</div>
+                    </div>
+                `;
+                return;
+            }
 
-                const grid = document.createElement('div');
-                grid.className = 'item-grid';
+            const cost = REBIRTH_COSTS[state.rebirth];
+            const canRebirth = state.gold >= cost;
+            const progress = Math.min(100, (state.gold / cost) * 100);
+            const stars = state.rebirth > 0 ? '\u2B50'.repeat(state.rebirth) : '';
 
-                section.items.forEach(item => {
-                    const canBuy = state.gold >= item.cost;
-                    const onCooldown = state.cooldowns[item.id] && state.cooldowns[item.id] > Date.now();
-                    const cdRemaining = onCooldown ? Math.ceil((state.cooldowns[item.id] - Date.now()) / 1000) : 0;
-
-                    let btnClass, btnText;
-                    if (onCooldown) { btnClass = 'btn-cooldown'; btnText = cdRemaining + 's'; }
-                    else if (canBuy) { btnClass = 'btn-buy'; btnText = fmt(item.cost) + 'g'; }
-                    else { btnClass = 'btn-locked'; btnText = fmt(item.cost) + 'g'; }
-
-                    const card = document.createElement('div');
-                    card.className = 'item-card';
-                    card.innerHTML = `
-                        <div class="i-icon ${item.iconClass}">${item.icon}</div>
-                        <div class="i-name">${item.name}</div>
-                        <div class="i-desc">${item.desc}</div>
-                        ${onCooldown ? '<div class="i-stock">Cooldown: ' + cdRemaining + 's</div>' : ''}
-                        <button class="i-btn ${btnClass}" data-item="${item.id}">${btnText}</button>
-                    `;
-                    grid.appendChild(card);
-                });
-
-                list.appendChild(grid);
-            });
-
-            list.querySelectorAll('.i-btn.btn-buy').forEach(btn => {
-                btn.addEventListener('click', () => buyItem(btn.dataset.item));
-            });
+            el.innerHTML = `
+                <div class="rebirth-panel">
+                    ${stars ? '<div class="rebirth-stars">' + stars + '</div>' : ''}
+                    <h2>REBIRTH ${nextRebirth}</h2>
+                    <div class="sub">Reset zone unlocks & placed brainrots</div>
+                    <div class="sub" style="margin-top:2px">Keep: Base, Floors, Income upgrades</div>
+                    <div class="rebirth-cost-badge">&#x1F4B0; ${fmt(cost)}</div>
+                    <div class="rebirth-reward">${REBIRTH_BONUSES[state.rebirth]}</div>
+                    <div class="rebirth-progress">
+                        ${fmt(state.gold)} / ${fmt(cost)} gold
+                    </div>
+                    <div class="rebirth-bar-track">
+                        <div class="rebirth-bar-fill" style="width:${progress}%"></div>
+                    </div>
+                    <button class="rebirth-btn ${canRebirth ? 'ready' : 'not-ready'}"
+                            onclick="doRebirth()" ${canRebirth ? '' : 'disabled'}>
+                        ${canRebirth ? 'REBIRTH NOW!' : 'NEED ' + fmt(cost) + 'g'}
+                    </button>
+                </div>
+            `;
         }
 
-        function buyItem(itemId) {
-            let foundItem = null;
-            ITEMS.forEach(s => { s.items.forEach(i => { if (i.id === itemId) foundItem = i; }); });
-            if (!foundItem) return;
-            if (state.gold < foundItem.cost) return;
-            if (state.cooldowns[itemId] && state.cooldowns[itemId] > Date.now()) return;
-
-            state.gold -= foundItem.cost;
-            if (foundItem.cooldown) {
-                state.cooldowns[itemId] = Date.now() + (foundItem.cooldown * 1000);
-            }
+        function doRebirth() {
+            const cost = REBIRTH_COSTS[state.rebirth];
+            if (state.gold < cost) return;
+            state.gold -= cost;
+            state.rebirth++;
             render();
-
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: foundItem.task,
+                    TaskName: 'do_rebirth',
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
             }
-            toast('Used ' + foundItem.name + '!');
+            toast('REBIRTH ' + state.rebirth + '!');
         }
-
-        // Update cooldowns every second
-        setInterval(() => {
-            let needsUpdate = false;
-            for (const [k, v] of Object.entries(state.cooldowns)) {
-                if (v > 0 && v <= Date.now()) {
-                    delete state.cooldowns[k];
-                    needsUpdate = true;
-                }
-            }
-            // Re-render if any active cooldowns
-            const hasActive = Object.values(state.cooldowns).some(v => v > Date.now());
-            if (needsUpdate || hasActive) render();
-        }, 1000);
 
         function toast(text) {
             const old = document.querySelector('.toast'); if(old)old.remove();
@@ -354,9 +318,9 @@
         }
 
         function handleMessage(msg) {
-            console.log('[ItemsShop] Received:', msg);
+            console.log('[Rebirth] Received:', msg);
 
-            // inv: format — "inv:Gold=|Gold|&..."
+            // inv: format — "inv:Gold=|Gold|&Rebirth=|Rebirth|"
             if (msg.startsWith('inv:')) {
                 const payload = msg.substring(4);
                 const pairs = payload.split('&');
@@ -366,6 +330,7 @@
                     const key = pair.substring(0, eq).trim();
                     const val = parseVarValue(pair.substring(eq + 1));
                     if (key === 'Gold') state.gold = val;
+                    else if (key === 'Rebirth') state.rebirth = val;
                 }
                 render();
                 return;
@@ -382,6 +347,7 @@
             try {
                 const d = JSON.parse(msg);
                 if (d.gold !== undefined) state.gold = parseFloat(d.gold) || 0;
+                if (d.rebirth !== undefined) state.rebirth = parseInt(d.rebirth) || 0;
                 render();
             } catch(e) {}
         }
@@ -426,9 +392,16 @@
 
         const params = new URLSearchParams(window.location.search);
         if (params.get('gold')) state.gold = parseFloat(params.get('gold')) || 0;
+        if (params.get('rebirth')) state.rebirth = parseInt(params.get('rebirth')) || 0;
 
         render();
-        if (!sdk) { state.gold = 25000; render(); }
+
+        // Dev mode preview
+        if (!sdk) {
+            state.gold = 150000;
+            state.rebirth = 1;
+            render();
+        }
     </script>
 </body>
 </html>

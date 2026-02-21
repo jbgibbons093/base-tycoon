@@ -9,7 +9,7 @@
     <style>
         html, body {
             margin: 0; padding: 0;
-            background: rgba(0,0,0,0.5);
+            background: transparent !important;
             overflow: hidden;
             font-family: 'Nunito', sans-serif;
             user-select: none;
@@ -238,7 +238,30 @@
 
         let state = { gold: 0, owned: ['pistol'], equipped: 'pistol' };
 
-        function fmt(n) { return n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : n.toLocaleString(); }
+        function fmt(n) {
+            if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
+            if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+            if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+            return n.toLocaleString();
+        }
+
+        /** Parse a variable value from Portals |var| interpolation.
+         *  Handles: raw numbers, JSON objects {"Player":3}, edge cases. */
+        function parseVarValue(raw) {
+            if (raw === undefined || raw === null || raw === '') return 0;
+            raw = String(raw).trim();
+            const num = Number(raw);
+            if (!isNaN(num)) return num;
+            try {
+                const parsed = JSON.parse(raw);
+                if (typeof parsed === 'number') return parsed;
+                if (typeof parsed === 'object' && parsed !== null) {
+                    const vals = Object.values(parsed);
+                    return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
+                }
+            } catch(e) {}
+            return 0;
+        }
 
         function render() {
             document.getElementById('gold-display').innerHTML = '&#x1F4B0; ' + fmt(state.gold);
@@ -299,12 +322,91 @@
             document.body.appendChild(t); setTimeout(()=>{if(t.parentNode)t.remove();},2500);
         }
 
-        if (sdk) {
-            sdk.setMessageListener(function(msg) {
-                try { const d=JSON.parse(msg); if(d.gold!==undefined)state.gold=parseFloat(d.gold)||0; if(d.owned)state.owned=d.owned; if(d.equipped)state.equipped=d.equipped; render(); }
-                catch(e) { if(msg.startsWith('gold:')) { state.gold=parseFloat(msg.substring(5))||0; render(); } }
-            });
+        // --- Message deduplication ---
+        let _lastMsgId = '', _lastMsgTime = 0;
+        function processMessage(msg) {
+            const now = Date.now();
+            const msgId = msg + '_' + Math.floor(now / 100);
+            if (msgId === _lastMsgId && now - _lastMsgTime < 200) return;
+            _lastMsgId = msgId; _lastMsgTime = now;
+            handleMessage(msg);
         }
+
+        function handleMessage(msg) {
+            console.log('[WeaponShop] Received:', msg);
+
+            // inv: format — "inv:Gold=|Gold|&Own_Pistol=|Own_Pistol|&..."
+            if (msg.startsWith('inv:')) {
+                const payload = msg.substring(4);
+                const pairs = payload.split('&');
+                for (const pair of pairs) {
+                    const eq = pair.indexOf('=');
+                    if (eq < 0) continue;
+                    const key = pair.substring(0, eq).trim();
+                    const val = parseVarValue(pair.substring(eq + 1));
+                    if (key === 'Gold') state.gold = val;
+                    else if (key === 'Own_Pistol' && val > 0 && !state.owned.includes('pistol')) state.owned.push('pistol');
+                    else if (key === 'Own_Rifle' && val > 0 && !state.owned.includes('rifle')) state.owned.push('rifle');
+                    else if (key === 'Own_Shotgun' && val > 0 && !state.owned.includes('shotgun')) state.owned.push('shotgun');
+                }
+                render();
+                return;
+            }
+
+            // gold: format
+            if (msg.startsWith('gold:')) {
+                state.gold = parseFloat(msg.substring(5)) || 0;
+                render();
+                return;
+            }
+
+            // JSON format
+            try {
+                const d = JSON.parse(msg);
+                if (d.gold !== undefined) state.gold = parseFloat(d.gold) || 0;
+                if (d.owned) state.owned = d.owned;
+                if (d.equipped) state.equipped = d.equipped;
+                render();
+            } catch(e) {}
+        }
+
+        // --- SDK message listener ---
+        if (sdk) {
+            sdk.setMessageListener(function(msg) { processMessage(msg); });
+        }
+        window.addEventListener('message', function(event) {
+            if (event.data && typeof event.data === 'string') processMessage(event.data);
+            else if (event.data && event.data.portalsMessage) processMessage(event.data.portalsMessage);
+        });
+
+        // --- Keyboard refocus (so WASD movement keeps working while iframe is open) ---
+        function _doFocusGame() {
+            if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+        }
+        document.addEventListener('click', function(e) {
+            if (document.hidden) return;
+            if (e && e.target) {
+                var tag = e.target.tagName;
+                if (tag === 'BUTTON' || tag === 'SELECT' || tag === 'INPUT') return;
+                if (e.target.closest && e.target.closest('button, select')) return;
+            }
+            _doFocusGame();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { e.preventDefault(); closeShop(); return; }
+            if (!document.hidden) _doFocusGame();
+        });
+        document.addEventListener('mouseup', function(e) {
+            if (e && e.target) {
+                var tag = e.target.tagName;
+                if (tag === 'BUTTON' || tag === 'SELECT' || tag === 'INPUT') return;
+                if (e.target.closest && e.target.closest('button, select')) return;
+            }
+            setTimeout(_doFocusGame, 50);
+        });
+        _doFocusGame();
+        setTimeout(_doFocusGame, 100);
+        setTimeout(_doFocusGame, 300);
 
         const p=new URLSearchParams(window.location.search);
         if(p.get('gold'))state.gold=parseFloat(p.get('gold'))||0;
