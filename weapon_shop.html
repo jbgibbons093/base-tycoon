@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Weapon Shop</title>
+    <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0; padding: 0;
+            background: rgba(0,0,0,0.5);
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            user-select: none;
+        }
+
+        .shop-frame {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 480px;
+            background: white;
+            border: 5px solid #2176AA;
+            border-radius: 24px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        /* Header */
+        .shop-header {
+            background: linear-gradient(180deg, #74B9FF 0%, #3498DB 100%);
+            padding: 14px 20px;
+            text-align: center;
+            position: relative;
+        }
+        .shop-header h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 32px;
+            color: white;
+            margin: 0;
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
+        }
+        .gold-badge {
+            display: inline-block;
+            margin-top: 6px;
+            padding: 4px 16px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border: 3px solid #CC8800;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 16px;
+            color: #4A2800;
+        }
+        .close-x {
+            position: absolute;
+            top: 8px; right: 12px;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #FF7675, #D63031);
+            border: 3px solid #A02020;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 18px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+        }
+        .close-x:active { transform: translateY(2px); box-shadow: none; }
+
+        /* Body */
+        .shop-body {
+            padding: 16px;
+            display: flex;
+            gap: 12px;
+            background: #F0F3F5;
+        }
+
+        .weapon-card {
+            flex: 1;
+            background: white;
+            border: 3px solid #DFE6E9;
+            border-radius: 18px;
+            padding: 14px 10px;
+            text-align: center;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.08);
+            transition: all 0.15s;
+        }
+        .weapon-card:hover { transform: translateY(-3px); border-color: #3498DB; }
+        .weapon-card.equipped {
+            border-color: #2ECC40;
+            background: linear-gradient(180deg, #E8FFE8 0%, #D4FFD4 100%);
+            box-shadow: 0 4px 0 rgba(0,180,0,0.15);
+        }
+
+        .w-icon { font-size: 44px; }
+        .w-name {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 18px;
+            color: #2C3E50;
+            margin: 6px 0 4px;
+        }
+        .w-tier {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 2px 10px;
+            border-radius: 8px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        .tier-standard { background: #DFE6E9; color: #636E72; }
+        .tier-premium { background: #74B9FF; color: white; }
+        .tier-elite { background: linear-gradient(135deg, #FFD700, #FFA500); color: #4A2800; }
+
+        /* Stat bars */
+        .stat-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin: 4px 0;
+        }
+        .stat-row .label {
+            font-size: 11px;
+            font-weight: 800;
+            color: #636E72;
+            width: 40px;
+            text-align: right;
+        }
+        .stat-track {
+            flex: 1;
+            height: 10px;
+            background: #DFE6E9;
+            border-radius: 5px;
+            overflow: hidden;
+            border: 1px solid #B2BEC3;
+        }
+        .stat-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        .fill-dmg { background: linear-gradient(90deg, #FF7675, #D63031); }
+        .fill-spd { background: linear-gradient(90deg, #74B9FF, #3498DB); }
+        .fill-rng { background: linear-gradient(90deg, #FFEAA7, #FDCB6E); }
+
+        /* Buttons */
+        .action-btn {
+            display: block;
+            width: 100%;
+            margin-top: 10px;
+            padding: 10px;
+            border: 3px solid;
+            border-radius: 14px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 15px;
+            cursor: pointer;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+            transition: all 0.1s;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+        }
+        .action-btn:active { transform: translateY(2px); box-shadow: none; }
+
+        .btn-buy {
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border-color: #CC8800;
+            color: #4A2800;
+        }
+        .btn-equip {
+            background: linear-gradient(180deg, #74B9FF, #3498DB);
+            border-color: #2176AA;
+            color: white;
+        }
+        .btn-equipped {
+            background: linear-gradient(180deg, #6EF06E, #2ECC40);
+            border-color: #1FA030;
+            color: #0A3A0A;
+            cursor: default;
+        }
+        .btn-locked {
+            background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
+            border-color: #95A5A6;
+            color: #95A5A6;
+            cursor: not-allowed;
+        }
+
+        .equipped-tag {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 11px;
+            color: #2ECC40;
+            text-transform: uppercase;
+        }
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border: 3px solid #CC8800;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 16px;
+            color: #4A2800;
+            animation: pop 0.3s ease, fadeOut 0.3s ease 2s forwards;
+            z-index: 30;
+        }
+        @keyframes pop { 0%{transform:translateX(-50%) scale(0.5);opacity:0} 70%{transform:translateX(-50%) scale(1.1)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
+        @keyframes fadeOut { to{opacity:0} }
+    </style>
+</head>
+<body>
+    <div class="shop-frame">
+        <div class="shop-header">
+            <h1>SHOP</h1>
+            <div class="gold-badge" id="gold-display">&#x1F4B0; 0</div>
+            <div class="close-x" onclick="closeShop()">X</div>
+        </div>
+        <div class="shop-body" id="weapons-grid"></div>
+    </div>
+
+    <script>
+        const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+
+        const WEAPONS = [
+            { id:'pistol', name:'Pistol', icon:'\u{1F52B}', tier:'Standard', tierClass:'tier-standard', cost:0, dmg:30, spd:90, rng:50 },
+            { id:'rifle', name:'Rifle', icon:'\u{1F3AF}', tier:'Premium', tierClass:'tier-premium', cost:5000, dmg:60, spd:55, rng:85 },
+            { id:'shotgun', name:'Shotgun', icon:'\u{1F4A5}', tier:'Elite', tierClass:'tier-elite', cost:15000, dmg:95, spd:25, rng:30 }
+        ];
+
+        let state = { gold: 0, owned: ['pistol'], equipped: 'pistol' };
+
+        function fmt(n) { return n >= 1e6 ? (n/1e6).toFixed(1)+'M' : n >= 1e3 ? (n/1e3).toFixed(1)+'K' : n.toLocaleString(); }
+
+        function render() {
+            document.getElementById('gold-display').innerHTML = '&#x1F4B0; ' + fmt(state.gold);
+            const grid = document.getElementById('weapons-grid');
+            grid.innerHTML = '';
+
+            WEAPONS.forEach(w => {
+                const owned = state.owned.includes(w.id);
+                const equipped = state.equipped === w.id;
+                const canBuy = !owned && state.gold >= w.cost;
+
+                let btnHTML;
+                if (equipped) btnHTML = '<button class="action-btn btn-equipped">EQUIPPED</button>';
+                else if (owned) btnHTML = `<button class="action-btn btn-equip" onclick="equip('${w.id}')">EQUIP</button>`;
+                else if (canBuy) btnHTML = `<button class="action-btn btn-buy" onclick="buy('${w.id}')">${fmt(w.cost)}g</button>`;
+                else btnHTML = `<button class="action-btn btn-locked">${fmt(w.cost)}g</button>`;
+
+                const card = document.createElement('div');
+                card.className = 'weapon-card' + (equipped ? ' equipped' : '');
+                card.innerHTML = `
+                    <div class="w-icon">${w.icon}</div>
+                    <div class="w-name">${w.name}</div>
+                    <div class="w-tier ${w.tierClass}">${w.tier}</div>
+                    <div class="stat-row"><span class="label">DMG</span><div class="stat-track"><div class="stat-fill fill-dmg" style="width:${w.dmg}%"></div></div></div>
+                    <div class="stat-row"><span class="label">SPD</span><div class="stat-track"><div class="stat-fill fill-spd" style="width:${w.spd}%"></div></div></div>
+                    <div class="stat-row"><span class="label">RNG</span><div class="stat-track"><div class="stat-fill fill-rng" style="width:${w.rng}%"></div></div></div>
+                    ${equipped ? '<div class="equipped-tag">IN USE</div>' : ''}
+                    ${btnHTML}
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function buy(id) {
+            const w = WEAPONS.find(x=>x.id===id);
+            if (!w||state.owned.includes(id)||state.gold<w.cost) return;
+            state.gold -= w.cost;
+            state.owned.push(id);
+            state.equipped = id;
+            render();
+            if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:'buy_'+id,TaskTargetState:'SetNotActiveToActive'}));
+            toast('Bought '+w.name+'!');
+        }
+
+        function equip(id) {
+            if (state.equipped===id) return;
+            state.equipped = id;
+            render();
+            if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:'equip_'+id,TaskTargetState:'SetNotActiveToActive'}));
+            toast('Equipped '+WEAPONS.find(x=>x.id===id).name+'!');
+        }
+
+        function closeShop() { if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
+
+        function toast(text) {
+            const old=document.querySelector('.toast'); if(old)old.remove();
+            const t=document.createElement('div'); t.className='toast'; t.textContent=text;
+            document.body.appendChild(t); setTimeout(()=>{if(t.parentNode)t.remove();},2500);
+        }
+
+        if (sdk) {
+            sdk.setMessageListener(function(msg) {
+                try { const d=JSON.parse(msg); if(d.gold!==undefined)state.gold=parseFloat(d.gold)||0; if(d.owned)state.owned=d.owned; if(d.equipped)state.equipped=d.equipped; render(); }
+                catch(e) { if(msg.startsWith('gold:')) { state.gold=parseFloat(msg.substring(5))||0; render(); } }
+            });
+        }
+
+        const p=new URLSearchParams(window.location.search);
+        if(p.get('gold'))state.gold=parseFloat(p.get('gold'))||0;
+        if(p.get('owned'))state.owned=p.get('owned').split(',');
+        if(p.get('equipped'))state.equipped=p.get('equipped');
+
+        render();
+        if(!sdk){state.gold=25000;state.owned=['pistol','rifle'];state.equipped='rifle';render();}
+    </script>
+</body>
+</html>

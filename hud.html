@@ -3,239 +3,387 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Base Tycoon HUD</title>
+    <title>Brainrot Tycoon HUD</title>
     <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
     <style>
         html, body {
-            margin: 0;
-            padding: 0;
+            margin: 0; padding: 0;
             background: transparent !important;
             overflow: hidden;
             font-family: 'Nunito', sans-serif;
             color: white;
             user-select: none;
+            -webkit-text-stroke: 0.5px rgba(0,0,0,0.15);
         }
 
-        /* ---- TOP BAR ---- */
+        /* ---- TOP CURRENCY BARS ---- */
         .top-bar {
             position: fixed;
-            top: 12px;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 10px;
+            z-index: 10;
+        }
+
+        .currency-pill {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 6px 4px 4px;
+            border-radius: 28px;
+            border: 3px solid rgba(0,0,0,0.25);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.15);
+            position: relative;
+            min-width: 90px;
+        }
+        .currency-pill .icon-circle {
+            width: 36px; height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: 3px solid rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        .currency-pill .val {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 20px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+            letter-spacing: 0.5px;
+        }
+
+        /* Gold pill */
+        .pill-gold {
+            background: linear-gradient(180deg, #FFE44D 0%, #FFB800 100%);
+            border-color: #CC8800;
+        }
+        .pill-gold .icon-circle { background: #FFA500; border-color: #CC7700; }
+        .pill-gold .val { color: #4A2800; }
+
+        /* Base pill */
+        .pill-base {
+            background: linear-gradient(180deg, #6EF06E 0%, #2ECC40 100%);
+            border-color: #1FA030;
+        }
+        .pill-base .icon-circle { background: #22AA22; border-color: #188818; }
+        .pill-base .val { color: #0A3A0A; }
+
+        /* Rebirth pill */
+        .pill-rebirth {
+            background: linear-gradient(180deg, #FF7B7B 0%, #FF3B3B 100%);
+            border-color: #CC2222;
+        }
+        .pill-rebirth .icon-circle { background: #DD2222; border-color: #AA1111; }
+        .pill-rebirth .val { color: #3A0000; }
+
+        /* ---- CARRY BANNER ---- */
+        .carry-banner {
+            position: fixed;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 6px 20px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #FFB347 0%, #FF8C00 100%);
+            border: 3px solid #CC6600;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 16px;
+            color: #3A1800;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+            z-index: 10;
+            display: none;
+            white-space: nowrap;
+        }
+        .carry-banner.show { display: block; }
+
+        /* ---- SIDE BUTTONS ---- */
+        .side-buttons {
+            position: fixed;
+            left: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            z-index: 10;
+        }
+
+        .side-btn {
+            width: 56px; height: 56px;
+            border-radius: 14px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 3px solid rgba(0,0,0,0.25);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.25);
+            transition: transform 0.1s ease;
+            position: relative;
+        }
+        .side-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.25); }
+        .side-btn .btn-icon { font-size: 24px; }
+        .side-btn .btn-label {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 9px;
+            margin-top: 1px;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+        }
+
+        .btn-shop { background: linear-gradient(180deg, #74B9FF 0%, #3498DB 100%); border-color: #2176AA; }
+        .btn-weapon { background: linear-gradient(180deg, #FF7675 0%, #D63031 100%); border-color: #A02020; }
+        .btn-rebirth { background: linear-gradient(180deg, #FFEAA7 0%, #FDCB6E 100%); border-color: #CC9900; }
+
+        /* ---- WEAPON SELECTOR POPUP ---- */
+        .weapon-panel {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: white;
+            border: 4px solid #2176AA;
+            border-radius: 20px;
+            padding: 16px;
+            z-index: 20;
+            display: none;
+            box-shadow: 0 8px 0 rgba(0,0,0,0.15), 0 12px 30px rgba(0,0,0,0.2);
+        }
+        .weapon-panel.show { display: block; }
+
+        .weapon-panel h3 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 22px;
+            color: #2C3E50;
+            text-align: center;
+            margin: 0 0 12px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.08);
+        }
+
+        .weapon-grid { display: flex; gap: 10px; }
+
+        .weapon-card {
+            width: 110px;
+            padding: 12px 8px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #DFE6E9 0%, #B2BEC3 100%);
+            border: 3px solid #95A5A6;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+        }
+        .weapon-card:hover { transform: translateY(-2px); border-color: #3498DB; }
+        .weapon-card.equipped {
+            background: linear-gradient(180deg, #74B9FF 0%, #3498DB 100%);
+            border-color: #2176AA;
+        }
+        .weapon-card .w-icon { font-size: 36px; }
+        .weapon-card .w-name {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px;
+            color: #2C3E50;
+            margin-top: 4px;
+        }
+        .weapon-card.equipped .w-name { color: white; }
+        .weapon-card .w-stat {
+            font-size: 10px; font-weight: 800;
+            color: #636E72;
+            margin-top: 2px;
+        }
+        .weapon-card.equipped .w-stat { color: rgba(255,255,255,0.8); }
+
+        .weapon-close {
+            display: block;
+            margin: 12px auto 0;
+            padding: 8px 28px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #FF7675 0%, #D63031 100%);
+            border: 3px solid #A02020;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px;
+            color: white;
+            cursor: pointer;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+        }
+
+        /* ---- BOTTOM PET/BRAINROT BAR ---- */
+        .bottom-bar {
+            position: fixed;
+            bottom: 12px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             gap: 8px;
             z-index: 10;
         }
-
-        .stat-pill {
+        .bottom-slot {
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #DFE6E9 0%, #B2BEC3 100%);
+            border: 3px solid #95A5A6;
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 6px 14px;
-            border-radius: 24px;
-            background: rgba(30, 30, 40, 0.85);
-            border: 2.5px solid rgba(255, 255, 255, 0.12);
-            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255,255,255,0.08);
-            backdrop-filter: blur(6px);
-            min-width: 80px;
-            transition: transform 0.15s ease, box-shadow 0.15s ease;
+            justify-content: center;
+            font-size: 24px;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
+        }
+        .bottom-slot.active {
+            background: linear-gradient(180deg, #74B9FF 0%, #3498DB 100%);
+            border-color: #2176AA;
         }
 
-        .stat-pill.pop {
-            transform: scale(1.12);
-            box-shadow: 0 4px 24px rgba(255, 215, 0, 0.4), inset 0 1px 0 rgba(255,255,255,0.08);
-        }
-
-        .stat-icon {
-            font-size: 20px;
-            line-height: 1;
-        }
-
-        .stat-label {
-            font-size: 10px;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            opacity: 0.6;
-            font-weight: 700;
-        }
-
-        .stat-value {
-            font-family: 'Fredoka One', cursive;
-            font-size: 18px;
-            line-height: 1;
-        }
-
-        .stat-text {
-            display: flex;
-            flex-direction: column;
-            gap: 1px;
-        }
-
-        /* Color accents */
-        .gold .stat-value { color: #FFD700; }
-        .gold .stat-pill { border-color: rgba(255, 215, 0, 0.3); }
-        .base .stat-value { color: #00FF88; }
-        .base .stat-pill { border-color: rgba(0, 255, 136, 0.3); }
-        .level .stat-value { color: #7B68EE; }
-        .level .stat-pill { border-color: rgba(123, 104, 238, 0.3); }
-        .rebirth .stat-value { color: #FF6B6B; }
-        .rebirth .stat-pill { border-color: rgba(255, 107, 107, 0.3); }
-
-        /* ---- USERNAME BANNER ---- */
-        .username-bar {
-            position: fixed;
-            top: 62px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 4px 16px;
-            border-radius: 12px;
-            background: rgba(30, 30, 40, 0.7);
-            border: 1.5px solid rgba(255, 255, 255, 0.08);
-            font-family: 'Fredoka One', cursive;
-            font-size: 13px;
-            color: rgba(255, 255, 255, 0.7);
-            letter-spacing: 0.5px;
-            z-index: 10;
-            white-space: nowrap;
-        }
-
-        /* ---- NOTIFICATION TOAST ---- */
+        /* ---- TOAST ---- */
         .toast-container {
             position: fixed;
-            bottom: 120px;
+            bottom: 80px;
             left: 50%;
             transform: translateX(-50%);
             display: flex;
             flex-direction: column;
             gap: 6px;
             align-items: center;
-            z-index: 20;
+            z-index: 30;
         }
-
         .toast {
             padding: 8px 20px;
-            border-radius: 16px;
-            background: rgba(30, 30, 40, 0.9);
-            border: 2px solid rgba(255, 215, 0, 0.4);
-            font-family: 'Fredoka One', cursive;
-            font-size: 15px;
-            color: #FFD700;
-            box-shadow: 0 4px 20px rgba(255, 215, 0, 0.3);
-            animation: toastIn 0.3s ease, toastOut 0.3s ease 2s forwards;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border: 3px solid #CC8800;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 16px;
+            color: #4A2800;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+            animation: toastPop 0.3s ease, toastOut 0.3s ease 2s forwards;
             white-space: nowrap;
         }
-
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateY(20px) scale(0.9); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+        @keyframes toastPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
         }
-
         @keyframes toastOut {
-            from { opacity: 1; transform: translateY(0) scale(1); }
-            to { opacity: 0; transform: translateY(-10px) scale(0.95); }
+            to { opacity: 0; transform: translateY(-10px) scale(0.9); }
         }
 
-        /* ---- CLAIM FLASH ---- */
-        .claim-flash {
-            position: fixed;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: radial-gradient(circle at center, rgba(0,255,136,0.15), transparent 70%);
-            pointer-events: none;
-            animation: flashIn 0.4s ease forwards;
-            z-index: 5;
-        }
-
-        @keyframes flashIn {
-            0% { opacity: 0; }
-            30% { opacity: 1; }
-            100% { opacity: 0; }
+        /* Pop animation */
+        .pop { animation: popBounce 0.3s ease; }
+        @keyframes popBounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
 <body>
-    <!-- TOP STAT BAR -->
+    <!-- TOP CURRENCY BARS -->
     <div class="top-bar">
-        <div class="stat-pill gold" id="pill-gold">
-            <span class="stat-icon">&#x1F4B0;</span>
-            <div class="stat-text">
-                <span class="stat-label">Gold</span>
-                <span class="stat-value" id="val-gold">0</span>
-            </div>
+        <div class="currency-pill pill-gold" id="pill-gold">
+            <div class="icon-circle">&#x1F4B0;</div>
+            <span class="val" id="val-gold">0</span>
         </div>
-        <div class="stat-pill base" id="pill-base">
-            <span class="stat-icon">&#x1F3E0;</span>
-            <div class="stat-text">
-                <span class="stat-label">Base</span>
-                <span class="stat-value" id="val-base">None</span>
-            </div>
+        <div class="currency-pill pill-base" id="pill-base">
+            <div class="icon-circle">&#x1F3E0;</div>
+            <span class="val" id="val-base">---</span>
         </div>
-        <div class="stat-pill level" id="pill-level">
-            <span class="stat-icon">&#x2B50;</span>
-            <div class="stat-text">
-                <span class="stat-label">Level</span>
-                <span class="stat-value" id="val-level">1</span>
-            </div>
-        </div>
-        <div class="stat-pill rebirth" id="pill-rebirth">
-            <span class="stat-icon">&#x1F525;</span>
-            <div class="stat-text">
-                <span class="stat-label">Rebirths</span>
-                <span class="stat-value" id="val-rebirth">0</span>
-            </div>
+        <div class="currency-pill pill-rebirth" id="pill-rebirth">
+            <div class="icon-circle">&#x1F525;</div>
+            <span class="val" id="val-rebirth">0</span>
         </div>
     </div>
 
-    <!-- USERNAME -->
-    <div class="username-bar" id="username-bar" style="display:none;"></div>
+    <!-- CARRY BANNER -->
+    <div class="carry-banner" id="carry-banner">
+        &#x1F9F8; Carrying: <span id="carry-gold">0</span>g
+    </div>
 
-    <!-- TOAST CONTAINER -->
+    <!-- SIDE BUTTONS -->
+    <div class="side-buttons">
+        <div class="side-btn btn-shop" onclick="sendTask('open_shop')">
+            <span class="btn-icon">&#x1F6D2;</span>
+            <span class="btn-label">Shop</span>
+        </div>
+        <div class="side-btn btn-weapon" onclick="toggleWeaponPanel()">
+            <span class="btn-icon">&#x1F52B;</span>
+            <span class="btn-label">Guns</span>
+        </div>
+        <div class="side-btn btn-rebirth" onclick="sendTask('open_rebirth')">
+            <span class="btn-icon">&#x2B50;</span>
+            <span class="btn-label">Rebirth</span>
+        </div>
+    </div>
+
+    <!-- TOAST -->
     <div class="toast-container" id="toasts"></div>
+
+    <!-- WEAPON PANEL -->
+    <div class="weapon-panel" id="weapon-panel">
+        <h3>Select Weapon</h3>
+        <div class="weapon-grid">
+            <div class="weapon-card" data-weapon="pistol" onclick="selectWeapon('pistol')">
+                <div class="w-icon">&#x1F52B;</div>
+                <div class="w-name">Pistol</div>
+                <div class="w-stat">Fast &bull; Low DMG</div>
+            </div>
+            <div class="weapon-card" data-weapon="rifle" onclick="selectWeapon('rifle')">
+                <div class="w-icon">&#x1F3AF;</div>
+                <div class="w-name">Rifle</div>
+                <div class="w-stat">Balanced</div>
+            </div>
+            <div class="weapon-card" data-weapon="shotgun" onclick="selectWeapon('shotgun')">
+                <div class="w-icon">&#x1F4A5;</div>
+                <div class="w-name">Shotgun</div>
+                <div class="w-stat">Slow &bull; High DMG</div>
+            </div>
+        </div>
+        <button class="weapon-close" onclick="toggleWeaponPanel()">Close</button>
+    </div>
 
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
-        // State
-        let state = {
-            gold: 0,
-            baseId: 0,
-            level: 1,
-            rebirths: 0,
-            username: ''
-        };
+        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, weapon: 'none', rebirth: 0 };
 
-        // DOM refs
         const valGold = document.getElementById('val-gold');
         const valBase = document.getElementById('val-base');
-        const valLevel = document.getElementById('val-level');
         const valRebirth = document.getElementById('val-rebirth');
-        const pillGold = document.getElementById('pill-gold');
-        const pillBase = document.getElementById('pill-base');
-        const usernameBar = document.getElementById('username-bar');
+        const carryBanner = document.getElementById('carry-banner');
+        const carryGoldEl = document.getElementById('carry-gold');
+        const weaponPanel = document.getElementById('weapon-panel');
         const toastContainer = document.getElementById('toasts');
 
-        function formatGold(n) {
-            if (n >= 1e9) return (n / 1e9).toFixed(1) + 'B';
-            if (n >= 1e6) return (n / 1e6).toFixed(1) + 'M';
-            if (n >= 1e3) return (n / 1e3).toFixed(1) + 'K';
-            return Math.floor(n).toString();
+        function fmt(n) {
+            if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
+            if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+            if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+            return Math.floor(n).toLocaleString();
         }
 
         function updateDisplay() {
-            valGold.textContent = formatGold(state.gold);
-            valBase.textContent = state.baseId > 0 ? 'Base ' + state.baseId : 'None';
-            valLevel.textContent = state.level;
-            valRebirth.textContent = state.rebirths;
-
-            if (state.username) {
-                usernameBar.textContent = state.username;
-                usernameBar.style.display = 'block';
+            valGold.textContent = fmt(state.gold);
+            valBase.textContent = state.baseId > 0 ? '#' + state.baseId : '---';
+            valRebirth.textContent = state.rebirth;
+            if (state.carrying > 0) {
+                carryBanner.classList.add('show');
+                carryGoldEl.textContent = state.carryGold;
+            } else {
+                carryBanner.classList.remove('show');
             }
+            document.querySelectorAll('.weapon-card').forEach(c => {
+                c.classList.toggle('equipped', c.dataset.weapon === state.weapon);
+            });
         }
 
-        function popPill(el) {
+        function pop(el) {
+            el.classList.remove('pop');
+            void el.offsetWidth;
             el.classList.add('pop');
-            setTimeout(() => el.classList.remove('pop'), 200);
         }
 
         function showToast(text) {
@@ -246,89 +394,62 @@
             setTimeout(() => { if (t.parentNode) t.remove(); }, 2500);
         }
 
-        function showClaimFlash() {
-            const flash = document.createElement('div');
-            flash.className = 'claim-flash';
-            document.body.appendChild(flash);
-            setTimeout(() => flash.remove(), 500);
+        function selectWeapon(type) {
+            state.weapon = type;
+            updateDisplay();
+            weaponPanel.classList.remove('show');
+            if (sdk) {
+                sdk.sendMessageToUnity(JSON.stringify({ TaskName: 'equip_' + type, TaskTargetState: 'SetNotActiveToActive' }));
+                sdk.focusGameKeyboard();
+            }
         }
 
-        // Parse messages from Portals via SendMessageToIframes
-        // Format: "key:value" or "key:value1,value2"
+        function toggleWeaponPanel() {
+            weaponPanel.classList.toggle('show');
+        }
+
+        function sendTask(taskName) {
+            if (sdk) {
+                sdk.sendMessageToUnity(JSON.stringify({ TaskName: taskName, TaskTargetState: 'SetNotActiveToActive' }));
+            }
+        }
+
         if (sdk) {
-            sdk.setMessageListener(function(message) {
-                console.log('[HUD] Received:', message);
-
-                // --- INIT message: "init:gold,baseId,username" ---
-                if (message.startsWith('init:')) {
-                    const parts = message.substring(5).split(',');
-                    if (parts.length >= 2) {
-                        state.gold = parseFloat(parts[0]) || 0;
-                        state.baseId = parseInt(parts[1]) || 0;
-                    }
-                    if (parts.length >= 3) {
-                        state.username = parts[2].replace(/"/g, '').trim();
-                    }
+            sdk.setMessageListener(function(msg) {
+                try {
+                    const d = JSON.parse(msg);
+                    if (d.gold !== undefined) { state.gold = parseFloat(d.gold)||0; pop(document.getElementById('pill-gold')); }
+                    if (d.baseId !== undefined) state.baseId = parseInt(d.baseId)||0;
+                    if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying)||0;
+                    if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold)||0;
+                    if (d.weapon !== undefined) state.weapon = d.weapon;
+                    if (d.rebirth !== undefined) state.rebirth = parseInt(d.rebirth)||0;
+                    if (d.toast) showToast(d.toast);
                     updateDisplay();
                     return;
-                }
-
-                // --- GOLD update: "gold:123" ---
-                if (message.startsWith('gold:')) {
-                    const newGold = parseFloat(message.substring(5)) || 0;
-                    const diff = newGold - state.gold;
-                    state.gold = newGold;
+                } catch(e) {}
+                if (msg.startsWith('gold:')) {
+                    const v = parseFloat(msg.substring(5))||0;
+                    const diff = v - state.gold;
+                    state.gold = v; updateDisplay(); pop(document.getElementById('pill-gold'));
+                    if (diff > 0) showToast('+' + fmt(diff) + ' Gold');
+                } else if (msg.startsWith('carry:')) {
+                    const p = msg.substring(6).split(',');
+                    state.carrying = parseFloat(p[0])||0;
+                    state.carryGold = parseFloat(p[1])||0;
                     updateDisplay();
-                    popPill(pillGold);
-                    if (diff > 0) {
-                        showToast('+' + formatGold(diff) + ' Gold');
-                    }
-                    return;
-                }
-
-                // --- CLAIM: "claimed:3" (base number) ---
-                if (message.startsWith('claimed:')) {
-                    const baseNum = parseInt(message.substring(8)) || 0;
-                    state.baseId = baseNum;
-                    updateDisplay();
-                    popPill(pillBase);
-                    showClaimFlash();
-                    showToast('Base ' + baseNum + ' Claimed!');
-                    return;
-                }
-
-                // --- USERNAME: "username:PlayerName" ---
-                if (message.startsWith('username:')) {
-                    state.username = message.substring(9).replace(/"/g, '').trim();
-                    updateDisplay();
-                    return;
-                }
-
-                // --- RESET: "reset" ---
-                if (message === 'reset') {
-                    state.gold = 0;
-                    state.baseId = 0;
-                    state.level = 1;
-                    state.rebirths = 0;
-                    updateDisplay();
-                    showToast('All Progress Reset');
-                    return;
+                } else if (msg.startsWith('base:')) {
+                    state.baseId = parseInt(msg.substring(5))||0; updateDisplay();
+                } else if (msg.startsWith('rebirth:')) {
+                    state.rebirth = parseInt(msg.substring(8))||0; updateDisplay();
+                } else if (msg.startsWith('toast:')) {
+                    showToast(msg.substring(6));
                 }
             });
         }
 
-        // Initial render
         updateDisplay();
-
-        // Dev mode preview (outside Portals)
-        if (!sdk) {
-            state.gold = 12500;
-            state.baseId = 3;
-            state.username = 'TestPlayer';
-            state.level = 5;
-            state.rebirths = 2;
-            updateDisplay();
-        }
+        if (!sdk) { state.gold = 42350; state.baseId = 3; state.carrying = 1; state.carryGold = 14.6; state.weapon = 'rifle'; state.rebirth = 1; updateDisplay(); }
     </script>
 </body>
 </html>
