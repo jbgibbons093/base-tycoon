@@ -118,7 +118,6 @@
             border: 3px solid;
             box-shadow: 0 2px 0 rgba(0,0,0,0.1);
         }
-        .icon-ammo { background: linear-gradient(180deg, #636E72, #2D3436); border-color: #1A1A1A; }
         .icon-heal { background: linear-gradient(180deg, #6EF06E, #2ECC40); border-color: #1FA030; }
         .icon-boost { background: linear-gradient(180deg, #FFE44D, #FFB800); border-color: #CC8800; }
         .icon-speed-pot { background: linear-gradient(180deg, #74B9FF, #3498DB); border-color: #2176AA; }
@@ -209,14 +208,6 @@
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
         const ITEMS = [
-            {
-                section: 'Ammo',
-                items: [
-                    { id:'ammo_pistol', name:'Pistol Ammo', icon:'\u{1F52B}', iconClass:'icon-ammo', cost:500, desc:'36 rounds for pistol', task:'buy_ammo_pistol' },
-                    { id:'ammo_rifle', name:'Rifle Ammo', icon:'\u{1F3AF}', iconClass:'icon-ammo', cost:1000, desc:'90 rounds for rifle', task:'buy_ammo_rifle' },
-                    { id:'ammo_shotgun', name:'Shotgun Ammo', icon:'\u{1F4A5}', iconClass:'icon-ammo', cost:1500, desc:'24 shells for shotgun', task:'buy_ammo_shotgun' }
-                ]
-            },
             {
                 section: 'Consumables',
                 items: [

@@ -115,7 +115,6 @@
         .icon-speed { background: linear-gradient(180deg, #74B9FF, #3498DB); border-color: #2176AA; }
         .icon-carry { background: linear-gradient(180deg, #FFB347, #FF8C00); border-color: #CC6600; }
         .icon-armor { background: linear-gradient(180deg, #95A5A6, #636E72); border-color: #4A4A4A; }
-        .icon-luck { background: linear-gradient(180deg, #FFEAA7, #FDCB6E); border-color: #CC9900; }
 
         .g-info { flex: 1; min-width: 0; }
         .g-name {
@@ -258,16 +257,6 @@
                     { cost: 75000, effect: '+75 Max HP', desc: 'Heavy armor' },
                     { cost: 200000, effect: '+100 Max HP', desc: 'Tank mode' }
                 ]
-            },
-            {
-                id: 'lucky_charm', name: 'Lucky Charm', icon: '\u{1F340}', iconClass: 'icon-luck',
-                maxLevel: 3,
-                taskPrefix: 'gear_luck',
-                levels: [
-                    { cost: 20000, effect: '+10% gold per cycle', desc: 'Bonus income' },
-                    { cost: 100000, effect: '+25% gold per cycle', desc: 'Lucky earner' },
-                    { cost: 500000, effect: '+50% gold per cycle', desc: 'Fortune favors you' }
-                ]
             }
         ];
 
@@ -396,7 +385,6 @@
                     else if (key === 'Gear_SpeedBoots') state.gearLevels.speed_boots = val;
                     else if (key === 'Gear_CarryPack') state.gearLevels.carry_pack = val;
                     else if (key === 'Gear_Armor') state.gearLevels.armor = val;
-                    else if (key === 'Gear_LuckyCharm') state.gearLevels.lucky_charm = val;
                 }
                 render();
                 return;
@@ -464,7 +452,7 @@
         if (params.get('gold')) state.gold = parseFloat(params.get('gold')) || 0;
 
         render();
-        if (!sdk) { state.gold = 50000; state.gearLevels = {speed_boots:2, carry_pack:1, armor:0, magnet:0, lucky_charm:0}; render(); }
+        if (!sdk) { state.gold = 50000; state.gearLevels = {speed_boots:2, carry_pack:1, armor:0}; render(); }
     </script>
 </body>
 </html>
