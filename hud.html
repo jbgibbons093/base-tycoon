@@ -14,84 +14,163 @@
             font-family: 'Nunito', sans-serif;
             color: white;
             user-select: none;
-            -webkit-text-stroke: 0.5px rgba(0,0,0,0.15);
         }
 
         /* ---- BOTTOM-LEFT CURRENCY STACK ---- */
-        .top-bar {
+        .hud-stack {
             position: fixed;
             bottom: 70px;
-            left: 12px;
+            left: 10px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 8px;
             z-index: 10;
         }
 
+        /* Roblox-style currency pill: icon circle on left, wide rounded bar */
         .currency-pill {
             display: flex;
             align-items: center;
-            gap: 6px;
-            padding: 4px 6px 4px 4px;
-            border-radius: 28px;
-            border: 3px solid rgba(0,0,0,0.25);
-            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.15);
+            height: 54px;
+            border-radius: 27px;
+            border: 4px solid;
+            box-shadow: 0 5px 0 rgba(0,0,0,0.25), 0 8px 18px rgba(0,0,0,0.12);
             position: relative;
-            min-width: 90px;
+            min-width: 160px;
+            padding-right: 18px;
         }
-        .currency-pill .icon-circle {
-            width: 36px; height: 36px;
+        .currency-pill .icon-wrap {
+            width: 54px; height: 54px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 20px;
-            border: 3px solid rgba(0,0,0,0.2);
             flex-shrink: 0;
+            margin-left: -2px;
+            position: relative;
+            z-index: 2;
         }
         .currency-pill .val {
             font-family: 'Luckiest Guy', cursive;
-            font-size: 20px;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
-            letter-spacing: 0.5px;
+            font-size: 26px;
+            letter-spacing: 1px;
+            margin-left: 8px;
+            white-space: nowrap;
         }
 
-        /* Gold pill */
+        /* ---- GOLD PILL ---- */
         .pill-gold {
-            background: linear-gradient(180deg, #FFE44D 0%, #FFB800 100%);
-            border-color: #CC8800;
+            background: linear-gradient(180deg, #FFD23F 0%, #F5A623 100%);
+            border-color: #C47F17;
         }
-        .pill-gold .icon-circle { background: #FFA500; border-color: #CC7700; }
-        .pill-gold .val { color: #4A2800; }
+        .pill-gold .icon-wrap {
+            background: radial-gradient(circle at 40% 38%, #FFE87C, #F5A623 70%);
+            border: 4px solid #B8860B;
+            box-shadow: 0 3px 0 #8B6508, inset 0 2px 6px rgba(255,255,255,0.5);
+        }
+        .pill-gold .val {
+            color: #5C3300;
+            text-shadow: 1px 2px 0 rgba(255,255,255,0.3);
+        }
 
-        /* Base pill */
+        /* Gold coin SVG-style icon */
+        .coin-icon {
+            position: relative;
+            width: 32px; height: 32px;
+        }
+        .coin-icon .coin-back {
+            position: absolute;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%);
+            top: 2px; left: 2px;
+        }
+        .coin-icon .coin-front {
+            position: absolute;
+            width: 30px; height: 30px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 40% 35%, #FFE44D 0%, #FFB800 50%, #E6A100 100%);
+            border: 2px solid #B8860B;
+            top: 0; left: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .coin-icon .coin-symbol {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 18px;
+            color: #8B6508;
+            text-shadow: 0 1px 0 rgba(255,255,255,0.45);
+            margin-top: -1px;
+        }
+
+        /* ---- BASE PILL ---- */
         .pill-base {
-            background: linear-gradient(180deg, #6EF06E 0%, #2ECC40 100%);
-            border-color: #1FA030;
+            background: linear-gradient(180deg, #7BF07B 0%, #32C842 100%);
+            border-color: #1D9E2E;
         }
-        .pill-base .icon-circle { background: #22AA22; border-color: #188818; }
-        .pill-base .val { color: #0A3A0A; }
+        .pill-base .icon-wrap {
+            background: radial-gradient(circle at 40% 38%, #90EE90, #2ECC40 70%);
+            border: 4px solid #1A8A28;
+            box-shadow: 0 3px 0 #146D1E, inset 0 2px 6px rgba(255,255,255,0.4);
+        }
+        .pill-base .val {
+            color: #0D3D0D;
+            text-shadow: 1px 2px 0 rgba(255,255,255,0.3);
+        }
 
-        /* Rebirth pill */
-        .pill-rebirth {
-            background: linear-gradient(180deg, #FF7B7B 0%, #FF3B3B 100%);
-            border-color: #CC2222;
+        /* House icon */
+        .house-icon {
+            position: relative;
+            width: 30px; height: 28px;
         }
-        .pill-rebirth .icon-circle { background: #DD2222; border-color: #AA1111; }
-        .pill-rebirth .val { color: #3A0000; }
+        .house-icon .roof {
+            width: 0; height: 0;
+            border-left: 17px solid transparent;
+            border-right: 17px solid transparent;
+            border-bottom: 13px solid #FFFFFF;
+            position: absolute;
+            top: 0; left: -2px;
+            filter: drop-shadow(0 -1px 1px rgba(0,0,0,0.15));
+        }
+        .house-icon .walls {
+            width: 24px; height: 14px;
+            background: #FFFFFF;
+            border-radius: 0 0 3px 3px;
+            position: absolute;
+            top: 11px; left: 3px;
+            box-shadow: inset 0 -3px 0 rgba(0,0,0,0.08);
+        }
+        .house-icon .door {
+            width: 7px; height: 10px;
+            background: #2ECC40;
+            border-radius: 3.5px 3.5px 0 0;
+            position: absolute;
+            bottom: 0; left: 50%;
+            transform: translateX(-50%);
+        }
+        .house-icon .window {
+            width: 5px; height: 5px;
+            background: #2ECC40;
+            border-radius: 1px;
+            position: absolute;
+            top: 2px;
+        }
+        .house-icon .window.l { left: 2px; }
+        .house-icon .window.r { right: 2px; }
 
         /* ---- CARRY BANNER ---- */
         .carry-banner {
             position: fixed;
-            bottom: 220px;
-            left: 12px;
-            padding: 6px 20px;
-            border-radius: 16px;
+            bottom: 195px;
+            left: 10px;
+            padding: 7px 20px;
+            border-radius: 20px;
             background: linear-gradient(180deg, #FFB347 0%, #FF8C00 100%);
-            border: 3px solid #CC6600;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            border: 4px solid #CC6600;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.25);
             font-family: 'Luckiest Guy', cursive;
-            font-size: 16px;
+            font-size: 17px;
             color: #3A1800;
             text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
             z-index: 10;
@@ -113,13 +192,13 @@
             z-index: 30;
         }
         .toast {
-            padding: 8px 20px;
-            border-radius: 14px;
+            padding: 10px 24px;
+            border-radius: 16px;
             background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border: 3px solid #CC8800;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            border: 4px solid #CC8800;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.25);
             font-family: 'Luckiest Guy', cursive;
-            font-size: 16px;
+            font-size: 18px;
             color: #4A2800;
             text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
             animation: toastPop 0.3s ease, toastOut 0.3s ease 2s forwards;
@@ -144,25 +223,37 @@
     </style>
 </head>
 <body>
-    <!-- TOP CURRENCY BARS -->
-    <div class="top-bar">
+    <!-- CURRENCY PILLS -->
+    <div class="hud-stack">
         <div class="currency-pill pill-gold" id="pill-gold">
-            <div class="icon-circle">&#x1F4B0;</div>
+            <div class="icon-wrap">
+                <div class="coin-icon">
+                    <div class="coin-back"></div>
+                    <div class="coin-front">
+                        <span class="coin-symbol">$</span>
+                    </div>
+                </div>
+            </div>
             <span class="val" id="val-gold">0</span>
         </div>
         <div class="currency-pill pill-base" id="pill-base">
-            <div class="icon-circle">&#x1F3E0;</div>
+            <div class="icon-wrap">
+                <div class="house-icon">
+                    <div class="roof"></div>
+                    <div class="walls">
+                        <div class="window l"></div>
+                        <div class="window r"></div>
+                        <div class="door"></div>
+                    </div>
+                </div>
+            </div>
             <span class="val" id="val-base">---</span>
-        </div>
-        <div class="currency-pill pill-rebirth" id="pill-rebirth">
-            <div class="icon-circle">&#x1F525;</div>
-            <span class="val" id="val-rebirth">0</span>
         </div>
     </div>
 
     <!-- CARRY BANNER -->
     <div class="carry-banner" id="carry-banner">
-        &#x1F9F8; Carrying: <span id="carry-gold">0</span>g
+        Carrying: <span id="carry-gold">0</span>g
     </div>
 
     <!-- TOAST -->
@@ -171,11 +262,10 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
-        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, rebirth: 0 };
+        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0 };
 
         const valGold = document.getElementById('val-gold');
         const valBase = document.getElementById('val-base');
-        const valRebirth = document.getElementById('val-rebirth');
         const carryBanner = document.getElementById('carry-banner');
         const carryGoldEl = document.getElementById('carry-gold');
         const toastContainer = document.getElementById('toasts');
@@ -190,7 +280,6 @@
         function updateDisplay() {
             valGold.textContent = fmt(state.gold);
             valBase.textContent = state.baseId > 0 ? '#' + state.baseId : '---';
-            valRebirth.textContent = state.rebirth;
             if (state.carrying > 0) {
                 carryBanner.classList.add('show');
                 carryGoldEl.textContent = state.carryGold;
@@ -252,7 +341,6 @@
                     const val = parseVarValue(pair.substring(eq + 1));
                     if (key === 'Gold') { const diff = val - state.gold; state.gold = val; pop(document.getElementById('pill-gold')); if (diff > 0) showToast('+' + fmt(diff) + ' Gold'); }
                     else if (key === 'BaseId') state.baseId = val;
-                    else if (key === 'Rebirth') state.rebirth = val;
                     else if (key === 'Carrying') state.carrying = val;
                     else if (key === 'CarryGold') state.carryGold = val;
                 }
@@ -267,7 +355,6 @@
                 if (d.baseId !== undefined) state.baseId = parseInt(d.baseId)||0;
                 if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying)||0;
                 if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold)||0;
-                if (d.rebirth !== undefined) state.rebirth = parseInt(d.rebirth)||0;
                 if (d.toast) showToast(d.toast);
                 updateDisplay();
                 return;
@@ -286,8 +373,6 @@
                 updateDisplay();
             } else if (msg.startsWith('base:')) {
                 state.baseId = parseInt(msg.substring(5))||0; updateDisplay();
-            } else if (msg.startsWith('rebirth:')) {
-                state.rebirth = parseInt(msg.substring(8))||0; updateDisplay();
             } else if (msg.startsWith('toast:')) {
                 showToast(msg.substring(6));
             }
@@ -312,7 +397,7 @@
         setTimeout(_doFocusGame, 300);
 
         updateDisplay();
-        if (!sdk) { state.gold = 42350; state.baseId = 3; state.carrying = 1; state.carryGold = 14.6; state.rebirth = 1; updateDisplay(); }
+        if (!sdk) { state.gold = 42350; state.baseId = 3; state.carrying = 1; state.carryGold = 14.6; updateDisplay(); }
     </script>
 </body>
 </html>

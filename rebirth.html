@@ -43,9 +43,14 @@
             margin: 0;
             text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
         }
+        .header-badges {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 6px;
+        }
         .gold-badge {
             display: inline-block;
-            margin-top: 6px;
             padding: 4px 16px;
             border-radius: 20px;
             background: linear-gradient(180deg, #FFE44D, #FFB800);
@@ -54,6 +59,18 @@
             font-family: 'Luckiest Guy', cursive;
             font-size: 15px;
             color: #4A2800;
+        }
+        .rebirth-badge {
+            display: inline-block;
+            padding: 4px 16px;
+            border-radius: 20px;
+            background: linear-gradient(180deg, #FF7B7B, #FF3B3B);
+            border: 3px solid #CC2222;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 15px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
         }
         .close-x {
             position: absolute;
@@ -199,7 +216,10 @@
     <div class="shop-frame">
         <div class="shop-header">
             <h1>REBIRTH</h1>
-            <div class="gold-badge" id="gold-display">&#x1F4B0; 0</div>
+            <div class="header-badges">
+                <div class="gold-badge" id="gold-display">Gold: 0</div>
+                <div class="rebirth-badge" id="rebirth-display">Rebirth: 0</div>
+            </div>
             <div class="close-x" onclick="closeShop()">X</div>
         </div>
         <div class="shop-body" id="rebirth-content"></div>
@@ -221,7 +241,8 @@
         }
 
         function render() {
-            document.getElementById('gold-display').innerHTML = '&#x1F4B0; ' + fmt(state.gold);
+            document.getElementById('gold-display').textContent = 'Gold: ' + fmt(state.gold);
+            document.getElementById('rebirth-display').textContent = 'Rebirth: ' + state.rebirth;
             const el = document.getElementById('rebirth-content');
             const nextRebirth = state.rebirth + 1;
             const maxRebirth = REBIRTH_COSTS.length;
