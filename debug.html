@@ -16,7 +16,7 @@
         }
         .debug-panel {
             position: fixed;
-            top: 10px;
+            bottom: 70px;
             right: 10px;
             background: rgba(0,0,0,0.85);
             border: 2px solid #0f0;
@@ -25,9 +25,11 @@
             font-size: 13px;
             line-height: 1.5;
             max-width: 340px;
-            max-height: 80vh;
+            max-height: 70vh;
             overflow-y: auto;
             z-index: 999;
+            pointer-events: auto;
+            cursor: default;
         }
         .debug-panel h3 {
             margin: 0 0 6px 0;
