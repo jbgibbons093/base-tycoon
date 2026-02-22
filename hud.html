@@ -73,34 +73,46 @@
             text-shadow: 1px 2px 0 rgba(255,255,255,0.3);
         }
 
-        /* Gold coin SVG-style icon */
+        /* Gold coin — chunky 3D front-facing coin */
         .coin-icon {
             position: relative;
-            width: 32px; height: 32px;
+            width: 40px; height: 40px;
         }
-        .coin-icon .coin-back {
+        /* Outer dark rim — the thick edge ring */
+        .coin-icon .coin-rim {
+            position: absolute;
+            width: 40px; height: 40px;
+            border-radius: 50%;
+            background: conic-gradient(from 200deg, #7A5A00, #A07800 40%, #6B4E00 60%, #8B6914 80%, #7A5A00);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        /* Inner gold face */
+        .coin-icon .coin-face {
             position: absolute;
             width: 30px; height: 30px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #DAA520 0%, #B8860B 100%);
-            top: 2px; left: 2px;
-        }
-        .coin-icon .coin-front {
-            position: absolute;
-            width: 30px; height: 30px;
-            border-radius: 50%;
-            background: radial-gradient(circle at 40% 35%, #FFE44D 0%, #FFB800 50%, #E6A100 100%);
-            border: 2px solid #B8860B;
-            top: 0; left: 0;
+            top: 5px; left: 5px;
+            background: radial-gradient(ellipse at 45% 35%, #FFE96B 0%, #FFCC00 35%, #F5A623 65%, #D4880A 100%);
+            box-shadow: inset 0 -2px 4px rgba(139,101,8,0.4), inset 0 2px 3px rgba(255,255,200,0.5);
             display: flex;
             align-items: center;
             justify-content: center;
         }
+        /* Highlight arc — top shine */
+        .coin-icon .coin-shine {
+            position: absolute;
+            width: 24px; height: 12px;
+            border-radius: 12px 12px 0 0;
+            top: 6px; left: 8px;
+            background: linear-gradient(180deg, rgba(255,255,220,0.6) 0%, rgba(255,255,220,0) 100%);
+        }
         .coin-icon .coin-symbol {
             font-family: 'Luckiest Guy', cursive;
-            font-size: 18px;
-            color: #8B6508;
-            text-shadow: 0 1px 0 rgba(255,255,255,0.45);
+            font-size: 20px;
+            color: #7A5500;
+            text-shadow: 0 1px 0 rgba(255,255,200,0.5), 0 -1px 0 rgba(100,70,0,0.3);
+            position: relative;
+            z-index: 2;
             margin-top: -1px;
         }
 
@@ -228,10 +240,11 @@
         <div class="currency-pill pill-gold" id="pill-gold">
             <div class="icon-wrap">
                 <div class="coin-icon">
-                    <div class="coin-back"></div>
-                    <div class="coin-front">
+                    <div class="coin-rim"></div>
+                    <div class="coin-face">
                         <span class="coin-symbol">$</span>
                     </div>
+                    <div class="coin-shine"></div>
                 </div>
             </div>
             <span class="val" id="val-gold">0</span>
