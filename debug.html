@@ -12,83 +12,89 @@
             overflow: hidden;
             font-family: 'Courier New', monospace;
             color: #0f0;
-            user-select: none;
+            pointer-events: none;
         }
         .debug-panel {
             position: fixed;
             bottom: 70px;
             right: 10px;
-            background: rgba(0,0,0,0.85);
-            border: 2px solid #0f0;
-            border-radius: 8px;
-            padding: 10px 14px;
-            font-size: 13px;
-            line-height: 1.5;
-            max-width: 340px;
-            max-height: 70vh;
+            background: rgba(0,0,0,0.8);
+            border: 1px solid #0f04;
+            border-radius: 6px;
+            padding: 6px 8px;
+            font-size: 11px;
+            line-height: 1.4;
+            width: 220px;
+            max-height: 50vh;
             overflow-y: auto;
-            z-index: 999;
             pointer-events: auto;
             cursor: default;
         }
-        .debug-panel h3 {
-            margin: 0 0 6px 0;
+        .debug-panel::-webkit-scrollbar { width: 4px; }
+        .debug-panel::-webkit-scrollbar-thumb { background: #0f04; border-radius: 2px; }
+        .hdr {
             color: #0ff;
-            font-size: 14px;
-            border-bottom: 1px solid #0ff;
-            padding-bottom: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            margin: 0 0 3px 0;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #0ff3;
         }
-        .section { margin-bottom: 10px; }
+        .section { margin-bottom: 4px; }
         .section-title {
             color: #ff0;
             font-weight: bold;
-            font-size: 12px;
-            margin-top: 8px;
+            font-size: 9px;
+            margin-top: 4px;
+            letter-spacing: 1px;
         }
-        .var-row { display: flex; justify-content: space-between; }
-        .var-name { color: #aaa; }
-        .var-val { color: #0f0; font-weight: bold; }
-        .var-val.active { color: #0f0; }
-        .var-val.zero { color: #666; }
+        .var-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0 2px;
+        }
+        .var-name { color: #999; font-size: 10px; }
+        .var-val { color: #0f0; font-weight: bold; font-size: 10px; }
+        .var-val.zero { color: #555; }
         .var-val.highlight { color: #ff0; }
         .msg-log {
-            margin-top: 8px;
+            margin-top: 4px;
             border-top: 1px solid #333;
-            padding-top: 6px;
-            max-height: 150px;
+            padding-top: 3px;
+            max-height: 80px;
             overflow-y: auto;
-            font-size: 11px;
-            color: #888;
+            font-size: 9px;
+            color: #777;
         }
-        .msg-log div { word-break: break-all; margin-bottom: 2px; }
-        .msg-log .ts { color: #555; }
+        .msg-log div { word-break: break-all; margin-bottom: 1px; }
+        .msg-log .ts { color: #444; }
     </style>
 </head>
 <body>
     <div class="debug-panel" id="panel">
-        <h3>DEBUG PANEL</h3>
+        <div class="hdr">DBG</div>
         <div class="section">
             <div class="section-title">ECONOMY</div>
             <div class="var-row"><span class="var-name">Gold</span><span class="var-val" id="v-Gold">0</span></div>
-            <div class="var-row"><span class="var-name">My_Base_ID</span><span class="var-val" id="v-My_Base_ID">0</span></div>
-            <div class="var-row"><span class="var-name">CollectTimer</span><span class="var-val" id="v-CollectTimer">0</span></div>
+            <div class="var-row"><span class="var-name">Base</span><span class="var-val" id="v-My_Base_ID">0</span></div>
+            <div class="var-row"><span class="var-name">Timer</span><span class="var-val" id="v-CollectTimer">0</span></div>
         </div>
         <div class="section">
-            <div class="section-title">CARRYING</div>
-            <div class="var-row"><span class="var-name">Carrying</span><span class="var-val" id="v-Carrying">0</span></div>
-            <div class="var-row"><span class="var-name">Carrying_Which</span><span class="var-val" id="v-Carrying_Which">0</span></div>
-            <div class="var-row"><span class="var-name">Carrying_Gold</span><span class="var-val" id="v-Carrying_Gold">0</span></div>
+            <div class="section-title">CARRY</div>
+            <div class="var-row"><span class="var-name">Has</span><span class="var-val" id="v-Carrying">0</span></div>
+            <div class="var-row"><span class="var-name">Which</span><span class="var-val" id="v-Carrying_Which">0</span></div>
+            <div class="var-row"><span class="var-name">Gold</span><span class="var-val" id="v-Carrying_Gold">0</span></div>
         </div>
         <div class="section">
-            <div class="section-title">OWNERSHIP (Own_bv_*)</div>
+            <div class="section-title">OWNED</div>
             <div id="own-vars"></div>
         </div>
         <div class="section">
-            <div class="section-title">BASE INCOME (Base_*_Income_*)</div>
+            <div class="section-title">INCOME</div>
             <div id="income-vars"></div>
         </div>
         <div class="section">
-            <div class="section-title">MESSAGE LOG</div>
+            <div class="section-title">LOG</div>
             <div class="msg-log" id="msg-log"></div>
         </div>
     </div>
@@ -97,7 +103,6 @@
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
         const trackedVars = {};
-        const coreVars = ['Gold', 'My_Base_ID', 'CollectTimer', 'Carrying', 'Carrying_Which', 'Carrying_Gold'];
         const ownVarsEl = document.getElementById('own-vars');
         const incomeVarsEl = document.getElementById('income-vars');
         const msgLog = document.getElementById('msg-log');
@@ -133,36 +138,35 @@
 
         function renderOwnVars() {
             const keys = Object.keys(trackedVars).filter(k => k.startsWith('Own_bv_')).sort();
-            if (keys.length === 0) { ownVarsEl.innerHTML = '<span class="var-name">(none yet)</span>'; return; }
-            // Only show non-zero ones, plus count
+            if (keys.length === 0) { ownVarsEl.innerHTML = '<span class="var-name">-</span>'; return; }
             const nonZero = keys.filter(k => trackedVars[k] > 0);
-            let html = `<div class="var-row"><span class="var-name">Total owned</span><span class="var-val highlight">${nonZero.length} / ${keys.length}</span></div>`;
+            let html = `<div class="var-row"><span class="var-name">Total</span><span class="var-val highlight">${nonZero.length}/${keys.length}</span></div>`;
             for (const k of nonZero) {
                 const short = k.replace('Own_bv_', '');
-                html += `<div class="var-row"><span class="var-name">${short}</span><span class="var-val active">1</span></div>`;
+                html += `<div class="var-row"><span class="var-name">${short}</span><span class="var-val">1</span></div>`;
             }
             ownVarsEl.innerHTML = html;
         }
 
         function renderIncomeVars() {
             const keys = Object.keys(trackedVars).filter(k => k.match(/^Base_\d+_Income_/)).sort();
-            if (keys.length === 0) { incomeVarsEl.innerHTML = '<span class="var-name">(none yet)</span>'; return; }
+            if (keys.length === 0) { incomeVarsEl.innerHTML = '<span class="var-name">-</span>'; return; }
             const nonZero = keys.filter(k => trackedVars[k] > 0);
             let html = '';
             for (const k of nonZero) {
-                html += `<div class="var-row"><span class="var-name">${k}</span><span class="var-val active">${trackedVars[k]}</span></div>`;
+                html += `<div class="var-row"><span class="var-name">${k}</span><span class="var-val">${trackedVars[k]}</span></div>`;
             }
-            if (!html) html = '<span class="var-name">(all zero)</span>';
+            if (!html) html = '<span class="var-name">all 0</span>';
             incomeVarsEl.innerHTML = html;
         }
 
         function logMsg(msg) {
             const time = new Date().toLocaleTimeString('en-US', {hour12:false});
             const div = document.createElement('div');
-            const short = msg.length > 120 ? msg.substring(0, 120) + '...' : msg;
+            const short = msg.length > 80 ? msg.substring(0, 80) + '...' : msg;
             div.innerHTML = `<span class="ts">${time}</span> ${short}`;
             msgLog.insertBefore(div, msgLog.firstChild);
-            while (msgLog.children.length > 30) msgLog.removeChild(msgLog.lastChild);
+            while (msgLog.children.length > 20) msgLog.removeChild(msgLog.lastChild);
         }
 
         let _lastMsgId = '', _lastMsgTime = 0;
@@ -176,7 +180,7 @@
         }
 
         function handleMessage(msg) {
-            if (msg.startsWith('inv:')) {
+            if (msg.startsWith('inv:') || msg.startsWith('dbg:')) {
                 const payload = msg.substring(4);
                 const pairs = payload.split('&');
                 for (const pair of pairs) {
@@ -188,19 +192,6 @@
                 }
                 return;
             }
-            if (msg.startsWith('dbg:')) {
-                const payload = msg.substring(4);
-                const pairs = payload.split('&');
-                for (const pair of pairs) {
-                    const eq = pair.indexOf('=');
-                    if (eq < 0) continue;
-                    const key = pair.substring(0, eq).trim();
-                    const val = parseVarValue(pair.substring(eq + 1));
-                    updateVar(key, val);
-                }
-                return;
-            }
-            // Also parse gold: carry: base: etc
             if (msg.startsWith('gold:')) updateVar('Gold', parseFloat(msg.substring(5))||0);
             else if (msg.startsWith('base:')) updateVar('My_Base_ID', parseInt(msg.substring(5))||0);
         }
@@ -216,6 +207,9 @@
         function _doFocusGame() {
             if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
         }
+        document.addEventListener('mouseup', function(e) {
+            setTimeout(_doFocusGame, 50);
+        });
         document.addEventListener('keydown', function() { if (!document.hidden) _doFocusGame(); });
         _doFocusGame();
         setTimeout(_doFocusGame, 100);
