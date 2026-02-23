@@ -664,6 +664,9 @@
             Ancient_Ruins: 'RUN', Sky_Platform: 'SKY', The_Void: 'VID'
         };
 
+        /* ---- QUEST NUMBER -> BV NAME (for My_Carrying_Brainrot variable) ---- */
+        var QUEST_NUM_TO_BV = {112:"bv_Banana",114:"bv_BurbaloniLuliloli",116:"bv_Noobini_Pizzanini",118:"bv_Tim_Cheese",120:"bv_Image_removebg_preview_29",122:"bv_Fluriflura",124:"bv_Pandaccini_Bananini",126:"bv_Puffaball",128:"bv_Liliri_Lalira",130:"bv_Pipi_Kiwi",132:"bv_Pakrah",134:"bv_Lionel_Cactuseli",136:"bv_Cocofanto",138:"bv_ChimpanziniBananini",140:"bv_Africa_by_toto_to_sahur",142:"bv_Ballerinolololo",144:"bv_POTATO",146:"bv_Cocosini_Mama",148:"bv_PIGEONS_ARE_SPIES_MADE_BY",150:"bv_Teenage_turtle",152:"bv_Dolphini_Jetskini",154:"bv_Slitta_Sprinta",156:"bv_Trippi_Troppi",158:"bv_Clickerinocrabo",160:"bv_Astronaut",162:"bv_Cant_come_up_with_a_funny",164:"bv_Lol_Fridge",166:"bv_Boneca_Ambalabu",168:"bv_Cupcake_Koala",170:"bv_Lavadorito_Spinito",172:"bv_Cacto_Hipopotamo1",174:"bv_TaTas",176:"bv_Pintealotto",178:"bv_Moby",180:"bv_Watermelon_Doggy",182:"bv_Garamadundung",184:"bv_Trenostruzzo_Turbo_3000",186:"bv_Cappuccino_Assassino",188:"bv_Burguro_And_Fryuro",190:"bv_AvocadiniGuffo",192:"bv_Homicidio_doloso",194:"bv_Brri_Brri_Bicus_Dicus_Bom",196:"bv_Skibidi_toilet",198:"bv_PeroLemonfulldetial",200:"bv_Avocadini_Antilopini",202:"bv_Dolphin_But_Banana",204:"bv_wombo",206:"bv_Berry_berry_bicus_dickus",208:"bv_Cerberus",210:"bv_NewBlueberrinni",212:"bv_Quackula",214:"bv_Sig_ma_Boy",216:"bv_GOAT",218:"bv_Strawberrelli_Flamingelli",220:"bv_Pi_Pi_Watermelon",222:"bv_GlorboFruttodrillo",224:"bv_Time_moving_slow",226:"bv_Quivioli_Ameleonni",228:"bv_Lebron_james",230:"bv_SigmaGirl",232:"bv_Tartaruga_Cisternaaaa",234:"bv_Tracoducotulu",236:"bv_Toiletto",238:"bv_Mythic_lucky_block",240:"bv_Ballerina_cappucinaaaa21pct",242:"bv_King_von",244:"bv_Jacko_Spaventosa",246:"bv_Travis_scott",248:"bv_Cavallo_Virtuoso",250:"bv_Lil_wayne",252:"bv_Bombardiro_Crocodilo",254:"bv_Te_Te_Te_Sahur",256:"bv_Carti",258:"bv_Tralalita",260:"bv_Everybody_hates_Chihuanin",262:"bv_TractorDino",264:"bv_BrainrotGodLuckyBlock",266:"bv_Tukanno_Bananno",268:"bv_Gorillo_Watermelondrillo",270:"bv_Money_Money_Man",272:"bv_Matteofr",274:"bv_Trippi_Troppi_Troppa_Trip",276:"bv_Dragon_Gingerini",278:"bv_Graipuss",280:"bv_TangTangVfx",282:"bv_Nuclearo_Dinosauro",284:"bv_LasTralaleritas",286:"bv_Job",288:"bv_Los_Tralaleritos",290:"bv_Chicliterita_bicicliterit",292:"bv_SecretLuckyBlock",294:"bv_KetupatKepat",296:"bv_La_vacca_no_effects",298:"bv_Chicleteira",300:"bv_TralaleroTralala",302:"bv_Strawberryelephant",304:"bv_Magi_Ribbitini",306:"bv_Meowl",308:"bv_Money_money_puggy"};
+
         // Reverse lookup: brainrot name -> zone
         var BV_TO_ZONE = {};
         (function() {
@@ -819,6 +822,26 @@
                         if (gv !== state.gold) {
                             state.gold = gv;
                             pop(document.getElementById('pill-gold'));
+                        }
+                    }
+                    // Parse base ID
+                    if (params.My_Base_ID !== undefined) {
+                        state.baseId = parseInt(params.My_Base_ID) || 0;
+                    }
+                    // Parse carrying brainrot from server variable
+                    if (params.My_Carrying_Brainrot !== undefined) {
+                        var carryNum = parseInt(params.My_Carrying_Brainrot) || 0;
+                        if (carryNum > 0 && QUEST_NUM_TO_BV[carryNum]) {
+                            var bvKey = QUEST_NUM_TO_BV[carryNum];
+                            state.carrying = 1;
+                            state.carryBvKey = bvKey;
+                            state.carryName = bvKey.substring(3).replace(/_/g, ' ');
+                            state.carryGold = GOLD_PER_SECOND[bvKey] || 0;
+                        } else {
+                            state.carrying = 0;
+                            state.carryBvKey = '';
+                            state.carryName = '';
+                            state.carryGold = 0;
                         }
                     }
                     // Parse owned brainrot counts
@@ -979,6 +1002,11 @@
         updateDisplay();
         if (sdk) {
             resetAllBrainrots();
+            // Reset ZC_ variables server-side on login
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: 'reset_zc_login',
+                TaskTargetState: 'SetNotActiveToActive'
+            }));
             // Start spawn timers after reset completes (~6s for 99 brainrots at 60ms each)
             setTimeout(function() { startSpawnTimers(); }, 7000);
             startGoldAccumulator();
