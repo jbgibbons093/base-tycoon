@@ -933,8 +933,153 @@
                 } else if (msg.startsWith('toast:')) {
                     playSound('notification');
                     showToast(msg.substring(6));
+                } else if (msg.startsWith('repopulate:')) {
+                    var baseNum = parseInt(msg.substring(11)) || 0;
+                    if (baseNum > 0) repopulateBase(baseNum);
                 }
             });
+        }
+
+        /* ---- REPOPULATE BASE (fire DuplicateItem for all owned brainrots) ---- */
+        var BV_DROP_MAP = {
+            'bv_Africa_by_toto_to_sahur': 'drop_bv_Africa_by_toto_to_sahur',
+            'bv_Astronaut': 'drop_bv_Astronaut',
+            'bv_AvocadiniGuffo': 'drop_bv_AvocadiniGuffo',
+            'bv_Avocadini_Antilopini': 'drop_bv_Avocadini_Antilopini',
+            'bv_Ballerina_cappucinaaaa21pct': 'drop_bv_Ballerina_cappucinaaaa21pct',
+            'bv_Ballerinolololo': 'drop_bv_Ballerinolololo',
+            'bv_Banana': 'drop_bv_Banana',
+            'bv_Berry_berry_bicus_dickus': 'drop_bv_Berry_berry_bicus_dickus',
+            'bv_Bombardiro_Crocodilo': 'drop_bv_Bombardiro_Crocodilo',
+            'bv_Boneca_Ambalabu': 'drop_bv_Boneca_Ambalabu',
+            'bv_BrainrotGodLuckyBlock': 'drop_bv_BrainrotGodLuckyBlock',
+            'bv_Brri_Brri_Bicus_Dicus_Bom': 'drop_bv_Brri_Brri_Bicus_Dicus_Bom',
+            'bv_BurbaloniLuliloli': 'drop_bv_BurbaloniLuliloli',
+            'bv_Burguro_And_Fryuro': 'drop_bv_Burguro_And_Fryuro',
+            'bv_Cacto_Hipopotamo1': 'drop_bv_Cacto_Hipopotamo1',
+            'bv_Cant_come_up_with_a_funny': 'drop_bv_Cant_come_up_with_a_funny',
+            'bv_Cappuccino_Assassino': 'drop_bv_Cappuccino_Assassino',
+            'bv_Carti': 'drop_bv_Carti',
+            'bv_Cavallo_Virtuoso': 'drop_bv_Cavallo_Virtuoso',
+            'bv_Cerberus': 'drop_bv_Cerberus',
+            'bv_Chicleteira': 'drop_bv_Chicleteira',
+            'bv_Chicliterita_bicicliterit': 'drop_bv_Chicliterita_bicicliterit',
+            'bv_ChimpanziniBananini': 'drop_bv_ChimpanziniBananini',
+            'bv_Clickerinocrabo': 'drop_bv_Clickerinocrabo',
+            'bv_Cocofanto': 'drop_bv_Cocofanto',
+            'bv_Cocosini_Mama': 'drop_bv_Cocosini_Mama',
+            'bv_Cupcake_Koala': 'drop_bv_Cupcake_Koala',
+            'bv_Dolphin_But_Banana': 'drop_bv_Dolphin_But_Banana',
+            'bv_Dolphini_Jetskini': 'drop_bv_Dolphini_Jetskini',
+            'bv_Dragon_Gingerini': 'drop_bv_Dragon_Gingerini',
+            'bv_Everybody_hates_Chihuanin': 'drop_bv_Everybody_hates_Chihuanin',
+            'bv_Fluriflura': 'drop_bv_Fluriflura',
+            'bv_GOAT': 'drop_bv_GOAT',
+            'bv_Garamadundung': 'drop_bv_Garamadundung',
+            'bv_GlorboFruttodrillo': 'drop_bv_GlorboFruttodrillo',
+            'bv_Gorillo_Watermelondrillo': 'drop_bv_Gorillo_Watermelondrillo',
+            'bv_Graipuss': 'drop_bv_Graipuss',
+            'bv_Homicidio_doloso': 'drop_bv_Homicidio_doloso',
+            'bv_Image_removebg_preview_29': 'drop_bv_Image_removebg_preview_29',
+            'bv_Jacko_Spaventosa': 'drop_bv_Jacko_Spaventosa',
+            'bv_Job': 'drop_bv_Job',
+            'bv_KetupatKepat': 'drop_bv_KetupatKepat',
+            'bv_King_von': 'drop_bv_King_von',
+            'bv_La_vacca_no_effects': 'drop_bv_La_vacca_no_effects',
+            'bv_LasTralaleritas': 'drop_bv_LasTralaleritas',
+            'bv_Lavadorito_Spinito': 'drop_bv_Lavadorito_Spinito',
+            'bv_Lebron_james': 'drop_bv_Lebron_james',
+            'bv_Lil_wayne': 'drop_bv_Lil_wayne',
+            'bv_Liliri_Lalira': 'drop_bv_Liliri_Lalira',
+            'bv_Lionel_Cactuseli': 'drop_bv_Lionel_Cactuseli',
+            'bv_Lol_Fridge': 'drop_bv_Lol_Fridge',
+            'bv_Los_Tralaleritos': 'drop_bv_Los_Tralaleritos',
+            'bv_Magi_Ribbitini': 'drop_bv_Magi_Ribbitini',
+            'bv_Matteofr': 'drop_bv_Matteofr',
+            'bv_Meowl': 'drop_bv_Meowl',
+            'bv_Moby': 'drop_bv_Moby',
+            'bv_Money_Money_Man': 'drop_bv_Money_Money_Man',
+            'bv_Money_money_puggy': 'drop_bv_Money_money_puggy',
+            'bv_Mythic_lucky_block': 'drop_bv_Mythic_lucky_block',
+            'bv_NewBlueberrinni': 'drop_bv_NewBlueberrinni',
+            'bv_Noobini_Pizzanini': 'drop_bv_Noobini_Pizzanini',
+            'bv_Nuclearo_Dinosauro': 'drop_bv_Nuclearo_Dinosauro',
+            'bv_PIGEONS_ARE_SPIES_MADE_BY': 'drop_bv_PIGEONS_ARE_SPIES_MADE_BY',
+            'bv_POTATO': 'drop_bv_POTATO',
+            'bv_Pakrah': 'drop_bv_Pakrah',
+            'bv_Pandaccini_Bananini': 'drop_bv_Pandaccini_Bananini',
+            'bv_PeroLemonfulldetial': 'drop_bv_PeroLemonfulldetial',
+            'bv_Pi_Pi_Watermelon': 'drop_bv_Pi_Pi_Watermelon',
+            'bv_Pintealotto': 'drop_bv_Pintealotto',
+            'bv_Pipi_Kiwi': 'drop_bv_Pipi_Kiwi',
+            'bv_Puffaball': 'drop_bv_Puffaball',
+            'bv_Quackula': 'drop_bv_Quackula',
+            'bv_Quivioli_Ameleonni': 'drop_bv_Quivioli_Ameleonni',
+            'bv_SecretLuckyBlock': 'drop_bv_SecretLuckyBlock',
+            'bv_Sig_ma_Boy': 'drop_bv_Sig_ma_Boy',
+            'bv_SigmaGirl': 'drop_bv_SigmaGirl',
+            'bv_Skibidi_toilet': 'drop_bv_Skibidi_toilet',
+            'bv_Slitta_Sprinta': 'drop_bv_Slitta_Sprinta',
+            'bv_Strawberrelli_Flamingelli': 'drop_bv_Strawberrelli_Flamingelli',
+            'bv_Strawberryelephant': 'drop_bv_Strawberryelephant',
+            'bv_TaTas': 'drop_bv_TaTas',
+            'bv_TangTangVfx': 'drop_bv_TangTangVfx',
+            'bv_Tartaruga_Cisternaaaa': 'drop_bv_Tartaruga_Cisternaaaa',
+            'bv_Te_Te_Te_Sahur': 'drop_bv_Te_Te_Te_Sahur',
+            'bv_Teenage_turtle': 'drop_bv_Teenage_turtle',
+            'bv_Tim_Cheese': 'drop_bv_Tim_Cheese',
+            'bv_Time_moving_slow': 'drop_bv_Time_moving_slow',
+            'bv_Toiletto': 'drop_bv_Toiletto',
+            'bv_Tracoducotulu': 'drop_bv_Tracoducotulu',
+            'bv_TractorDino': 'drop_bv_TractorDino',
+            'bv_TralaleroTralala': 'drop_bv_TralaleroTralala',
+            'bv_Tralalita': 'drop_bv_Tralalita',
+            'bv_Travis_scott': 'drop_bv_Travis_scott',
+            'bv_Trenostruzzo_Turbo_3000': 'drop_bv_Trenostruzzo_Turbo_3000',
+            'bv_Trippi_Troppi': 'drop_bv_Trippi_Troppi',
+            'bv_Trippi_Troppi_Troppa_Trip': 'drop_bv_Trippi_Troppi_Troppa_Trip',
+            'bv_Tukanno_Bananno': 'drop_bv_Tukanno_Bananno',
+            'bv_Watermelon_Doggy': 'drop_bv_Watermelon_Doggy',
+            'bv_wombo': 'drop_bv_wombo'
+        };
+
+        function repopulateBase(baseNum) {
+            if (!sdk) return;
+            console.log('[HUD] Repopulating base ' + baseNum + ' with owned brainrots');
+            var delay = 0;
+            var keys = Object.keys(ownedBrainrots);
+            var totalFired = 0;
+            for (var i = 0; i < keys.length; i++) {
+                var bvKey = keys[i];
+                var count = ownedBrainrots[bvKey] || 0;
+                var dropStem = BV_DROP_MAP[bvKey];
+                if (!dropStem || count <= 0) continue;
+                var taskName = dropStem + '_b' + baseNum;
+                // Fire once per copy owned (duplicate stacks at same position)
+                for (var c = 0; c < count; c++) {
+                    (function(tn, d) {
+                        setTimeout(function() {
+                            sdk.sendMessageToUnity(JSON.stringify({
+                                TaskName: tn,
+                                TaskTargetState: 'SetNotActiveToActive'
+                            }));
+                            // Reset back to NotActive after 100ms so it can fire again
+                            setTimeout(function() {
+                                sdk.sendMessageToUnity(JSON.stringify({
+                                    TaskName: tn,
+                                    TaskTargetState: 'SetActiveToNotActive'
+                                }));
+                            }, 100);
+                        }, d);
+                    })(taskName, delay);
+                    delay += 50;
+                    totalFired++;
+                }
+            }
+            console.log('[HUD] Fired ' + totalFired + ' DuplicateItem tasks over ' + delay + 'ms');
+            if (totalFired > 0) {
+                notify('Restoring ' + totalFired + ' brainrots...', 'info');
+            }
         }
 
         /* ---- KEYBOARD REFOCUS ---- */
