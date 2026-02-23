@@ -356,7 +356,7 @@
             render();
             playSound('purchase');
             spawnSpendParticles(8);
-            var BUY_TASK_MAP = {pistol:'600_buy_pistol', rifle:'601_buy_rifle', shotgun:'602_buy_shotgun'};
+            var BUY_TASK_MAP = {pistol:'buy_pistol', rifle:'buy_rifle', shotgun:'buy_shotgun'};
             if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:BUY_TASK_MAP[id],TaskTargetState:'SetNotActiveToActive'}));
             toast('Bought '+w.name+'!');
         }
@@ -366,7 +366,7 @@
             state.equipped = id;
             render();
             playSound('click');
-            var EQUIP_TASK_MAP = {pistol:'603_equip_pistol', rifle:'604_equip_rifle', shotgun:'605_equip_shotgun'};
+            var EQUIP_TASK_MAP = {pistol:'equip_pistol', rifle:'equip_rifle', shotgun:'equip_shotgun'};
             if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:EQUIP_TASK_MAP[id],TaskTargetState:'SetNotActiveToActive'}));
             toast('Equipped '+WEAPONS.find(x=>x.id===id).name+'!');
         }

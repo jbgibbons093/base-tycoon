@@ -323,21 +323,21 @@
         const ZONES = [
             { id:'beach_zone', name:'Beach Zone', tier:'Common', tierClass:'tier-common', iconClass:'icon-beach', cost:0, icon:'\u{1F3D6}', gold:'1-3g', taskName:null },
             { id:'meadow', name:'Meadow', tier:'Common', tierClass:'tier-common', iconClass:'icon-meadow', cost:0, icon:'\u{1F33F}', gold:'1-3g', taskName:null },
-            { id:'forest_zone', name:'Forest Zone', tier:'Rare', tierClass:'tier-rare', iconClass:'icon-forest', cost:2000, icon:'\u{1F332}', gold:'5-10g', taskName:'103_unlock_forest_zone' },
-            { id:'jungle_zone', name:'Jungle Zone', tier:'Rare', tierClass:'tier-rare', iconClass:'icon-jungle', cost:2000, icon:'\u{1F334}', gold:'5-10g', taskName:'104_unlock_jungle_zone' },
-            { id:'cave_zone', name:'Cave Zone', tier:'Epic', tierClass:'tier-epic', iconClass:'icon-cave', cost:8000, icon:'\u{1FAA8}', gold:'10-20g', taskName:'105_unlock_cave_zone' },
-            { id:'crystal_cove', name:'Crystal Cove', tier:'Epic', tierClass:'tier-epic', iconClass:'icon-crystal', cost:8000, icon:'\u{1F48E}', gold:'10-20g', taskName:'106_unlock_crystal_cove' },
-            { id:'boss_arena', name:'Boss Arena', tier:'Legendary', tierClass:'tier-legendary', iconClass:'icon-boss', cost:25000, icon:'\u{2694}', gold:'20-40g', taskName:'107_unlock_boss_arena' },
-            { id:'volcano_zone', name:'Volcano Zone', tier:'Mythic', tierClass:'tier-mythic', iconClass:'icon-volcano', cost:75000, icon:'\u{1F30B}', gold:'40-80g', taskName:'108_unlock_volcano_zone' },
-            { id:'ancient_ruins', name:'Ancient Ruins', tier:'Brainrot God', tierClass:'tier-god', iconClass:'icon-ruins', cost:200000, icon:'\u{1F3DB}', gold:'80-150g', rebirth:1, taskName:'109_unlock_ancient_ruins' },
-            { id:'sky_platform', name:'Sky Platform', tier:'Secret', tierClass:'tier-secret', iconClass:'icon-sky', cost:500000, icon:'\u{2601}', gold:'150-300g', rebirth:2, taskName:'110_unlock_sky_platform' },
-            { id:'the_void', name:'The Void', tier:'OG', tierClass:'tier-og', iconClass:'icon-void', cost:1000000, icon:'\u{1F573}', gold:'300-500g', rebirth:3, taskName:'111_unlock_the_void' },
+            { id:'forest_zone', name:'Forest Zone', tier:'Rare', tierClass:'tier-rare', iconClass:'icon-forest', cost:2000, icon:'\u{1F332}', gold:'5-10g', taskName:'unlock_forest_zone' },
+            { id:'jungle_zone', name:'Jungle Zone', tier:'Rare', tierClass:'tier-rare', iconClass:'icon-jungle', cost:2000, icon:'\u{1F334}', gold:'5-10g', taskName:'unlock_jungle_zone' },
+            { id:'cave_zone', name:'Cave Zone', tier:'Epic', tierClass:'tier-epic', iconClass:'icon-cave', cost:8000, icon:'\u{1FAA8}', gold:'10-20g', taskName:'unlock_cave_zone' },
+            { id:'crystal_cove', name:'Crystal Cove', tier:'Epic', tierClass:'tier-epic', iconClass:'icon-crystal', cost:8000, icon:'\u{1F48E}', gold:'10-20g', taskName:'unlock_crystal_cove' },
+            { id:'boss_arena', name:'Boss Arena', tier:'Legendary', tierClass:'tier-legendary', iconClass:'icon-boss', cost:25000, icon:'\u{2694}', gold:'20-40g', taskName:'unlock_boss_arena' },
+            { id:'volcano_zone', name:'Volcano Zone', tier:'Mythic', tierClass:'tier-mythic', iconClass:'icon-volcano', cost:75000, icon:'\u{1F30B}', gold:'40-80g', taskName:'unlock_volcano_zone' },
+            { id:'ancient_ruins', name:'Ancient Ruins', tier:'Brainrot God', tierClass:'tier-god', iconClass:'icon-ruins', cost:200000, icon:'\u{1F3DB}', gold:'80-150g', rebirth:1, taskName:'unlock_ancient_ruins' },
+            { id:'sky_platform', name:'Sky Platform', tier:'Secret', tierClass:'tier-secret', iconClass:'icon-sky', cost:500000, icon:'\u{2601}', gold:'150-300g', rebirth:2, taskName:'unlock_sky_platform' },
+            { id:'the_void', name:'The Void', tier:'OG', tierClass:'tier-og', iconClass:'icon-void', cost:1000000, icon:'\u{1F573}', gold:'300-500g', rebirth:3, taskName:'unlock_the_void' },
         ];
 
         const FLOORS = [
-            { num:2, cost:1000, slots:10, bonus:'+10% Rare gold', taskName:'100_unlock_floor_2' },
-            { num:3, cost:5000, slots:10, bonus:'+10% Epic gold', taskName:'101_unlock_floor_3' },
-            { num:4, cost:20000, slots:10, bonus:'+15% Legendary+ gold', taskName:'102_unlock_floor_4' },
+            { num:2, cost:1000, slots:10, bonus:'+10% Rare gold', taskName:'unlock_floor_2' },
+            { num:3, cost:5000, slots:10, bonus:'+10% Epic gold', taskName:'unlock_floor_3' },
+            { num:4, cost:20000, slots:10, bonus:'+15% Legendary+ gold', taskName:'unlock_floor_4' },
         ];
 
         let state = {

@@ -351,17 +351,17 @@
         ];
 
         const CONSUMABLES = [
-            { id: 'health_pack', name: 'Health\nPack', icon: '\u{1FA79}', stat: 'Heal to full HP', cost: 800, task: '640_use_health_pack', varName: 'Inv_Health_Pack' },
-            { id: 'speed_potion', name: 'Speed\nPotion', icon: '\u{26A1}', stat: '2x speed 2min', cost: 2000, task: '641_use_speed_potion', cooldown: 120, varName: 'Inv_Speed_Potion' },
-            { id: 'base_teleport', name: 'Base TP', icon: '\u{1F300}', stat: 'Teleport to base', cost: 1000, task: '642_use_base_teleport', varName: 'Inv_Base_Teleport' },
-            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Immune 30s', cost: 3000, task: '643_use_shield', cooldown: 60, varName: 'Inv_Shield' }
+            { id: 'health_pack', name: 'Health\nPack', icon: '\u{1FA79}', stat: 'Heal to full HP', cost: 800, task: 'use_health_pack', varName: 'Inv_Health_Pack' },
+            { id: 'speed_potion', name: 'Speed\nPotion', icon: '\u{26A1}', stat: '2x speed 2min', cost: 2000, task: 'use_speed_potion', cooldown: 120, varName: 'Inv_Speed_Potion' },
+            { id: 'base_teleport', name: 'Base TP', icon: '\u{1F300}', stat: 'Teleport to base', cost: 1000, task: 'use_base_teleport', varName: 'Inv_Base_Teleport' },
+            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Immune 30s', cost: 3000, task: 'use_shield', cooldown: 60, varName: 'Inv_Shield' }
         ];
 
         // ---- STATE ----
         let state = {
             gold: 0,
-            equippedWeapon: 'pistol',
-            ownedWeapons: ['pistol'],
+            equippedWeapon: null,
+            ownedWeapons: [],
             equippedItems: ['health_pack', 'speed_potion', 'shield'],   // 3 consumable slots (pre-assigned)
             cooldowns: {},
             itemCounts: {},   // e.g. { health_pack: 3, speed_potion: 1, ... }
@@ -383,9 +383,14 @@
         // ---- RENDERING ----
         function render() {
             // Weapon slot
-            const w = WEAPONS.find(w => w.id === state.equippedWeapon) || WEAPONS[0];
-            weaponIcon.innerHTML = w.icon;
-            weaponLabel.textContent = w.name;
+            const w = state.equippedWeapon ? WEAPONS.find(w => w.id === state.equippedWeapon) : null;
+            if (w) {
+                weaponIcon.innerHTML = w.icon;
+                weaponLabel.textContent = w.name;
+            } else {
+                weaponIcon.innerHTML = '\u2014';
+                weaponLabel.textContent = 'None';
+            }
 
             // Consumable slots
             for (let i = 0; i < 3; i++) {
@@ -508,7 +513,7 @@
         // ---- ACTIONS ----
         // Quest names for iframe → Portals communication
         // These must exactly match quest Names in the room
-        const EQUIP_QUEST = { pistol: '603_equip_pistol', rifle: '604_equip_rifle', shotgun: '605_equip_shotgun' };
+        const EQUIP_QUEST = { pistol: 'equip_pistol', rifle: 'equip_rifle', shotgun: 'equip_shotgun' };
 
         function equipWeapon(id) {
             if (!state.ownedWeapons.includes(id)) return;
