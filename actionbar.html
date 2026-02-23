@@ -15,7 +15,6 @@
             font-family: 'Nunito', sans-serif;
             color: white;
             user-select: none;
-            pointer-events: none;
         }
 
         /* ---- ACTION BAR CONTAINER ---- */
@@ -34,7 +33,6 @@
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(8px);
             z-index: 10;
-            pointer-events: auto;
         }
 
         /* ---- SLOT ---- */
@@ -250,7 +248,6 @@
             z-index: 10;
             display: none;
             white-space: nowrap;
-            pointer-events: auto;
         }
 
         .carry-indicator.show {
@@ -312,6 +309,11 @@
             <span class="slot-icon" id="item3-icon">&#x2795;</span>
             <span class="slot-label" id="item3-label">Empty</span>
         </div>
+        <div class="slot" id="slot-item4" onclick="useSlotItem(3)">
+            <span class="slot-key">5</span>
+            <span class="slot-icon" id="item4-icon">&#x2795;</span>
+            <span class="slot-label" id="item4-label">Empty</span>
+        </div>
 
         <!-- WEAPON DROP-UP -->
         <div class="dropup" id="dropup-weapon">
@@ -356,7 +358,7 @@
             gold: 0,
             equippedWeapon: null,
             ownedWeapons: [],
-            equippedItems: ['health_pack', 'speed_potion', 'shield'],   // 3 consumable slots (pre-assigned)
+            equippedItems: ['health_pack', 'speed_potion', 'base_teleport', 'shield'],   // 4 consumable slots
             cooldowns: {},
             itemCounts: {},   // e.g. { health_pack: 3, speed_potion: 1, ... }
             carrying: 0,
@@ -386,7 +388,7 @@
             }
 
             // Consumable slots
-            for (let i = 0; i < 3; i++) {
+            for (let i = 0; i < 4; i++) {
                 const slotEl = document.getElementById('slot-item' + (i + 1));
                 const iconEl = document.getElementById('item' + (i + 1) + '-icon');
                 const labelEl = document.getElementById('item' + (i + 1) + '-label');
@@ -769,7 +771,7 @@
             state.gold = 25000;
             state.ownedWeapons = ['pistol', 'rifle'];
             state.equippedWeapon = 'rifle';
-            state.equippedItems = ['health_pack', 'speed_potion', 'shield'];
+            state.equippedItems = ['health_pack', 'speed_potion', 'base_teleport', 'shield'];
             state.carrying = 1;
             state.carryGold = 14.6;
             render();
