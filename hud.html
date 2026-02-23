@@ -147,115 +147,6 @@
             white-space: nowrap;
         }
 
-        /* ---- SIDE BUTTONS ---- */
-        .side-buttons {
-            position: fixed;
-            left: 10px;
-            top: 50%;
-            transform: translateY(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            z-index: 10;
-        }
-
-        .side-btn {
-            width: 56px; height: 56px;
-            border-radius: 14px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 3px solid rgba(0,0,0,0.25);
-            box-shadow: 0 4px 0 rgba(0,0,0,0.25);
-            transition: transform 0.1s ease;
-            position: relative;
-        }
-        .side-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,0.25); }
-        .side-btn .btn-icon { font-size: 24px; }
-        .side-btn .btn-label {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 9px;
-            margin-top: 1px;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-        }
-
-        .btn-weapon { background: linear-gradient(180deg, #FF7675 0%, #D63031 100%); border-color: #A02020; }
-
-        /* ---- WEAPON SELECTOR POPUP ---- */
-        .weapon-panel {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: white;
-            border: 4px solid #2176AA;
-            border-radius: 20px;
-            padding: 16px;
-            z-index: 20;
-            display: none;
-            box-shadow: 0 8px 0 rgba(0,0,0,0.15), 0 12px 30px rgba(0,0,0,0.2);
-        }
-        .weapon-panel.show { display: block; }
-
-        .weapon-panel h3 {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 22px;
-            color: #2C3E50;
-            text-align: center;
-            margin: 0 0 12px;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.08);
-        }
-
-        .weapon-grid { display: flex; gap: 10px; }
-
-        .weapon-card {
-            width: 110px;
-            padding: 12px 8px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, #DFE6E9 0%, #B2BEC3 100%);
-            border: 3px solid #95A5A6;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.15s;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
-        }
-        .weapon-card:hover { transform: translateY(-2px); border-color: #3498DB; }
-        .weapon-card.equipped {
-            background: linear-gradient(180deg, #74B9FF 0%, #3498DB 100%);
-            border-color: #2176AA;
-        }
-        .weapon-card .w-icon { font-size: 36px; }
-        .weapon-card .w-name {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 14px;
-            color: #2C3E50;
-            margin-top: 4px;
-        }
-        .weapon-card.equipped .w-name { color: white; }
-        .weapon-card .w-stat {
-            font-size: 10px; font-weight: 800;
-            color: #636E72;
-            margin-top: 2px;
-        }
-        .weapon-card.equipped .w-stat { color: rgba(255,255,255,0.8); }
-
-        .weapon-close {
-            display: block;
-            margin: 12px auto 0;
-            padding: 8px 28px;
-            border-radius: 14px;
-            background: linear-gradient(180deg, #FF7675 0%, #D63031 100%);
-            border: 3px solid #A02020;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 14px;
-            color: white;
-            cursor: pointer;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-        }
-
         /* ---- BOTTOM PET/BRAINROT BAR ---- */
         .bottom-bar {
             position: fixed;
@@ -372,6 +263,27 @@
             to { opacity: 0; transform: translateY(-10px) scale(0.9); }
         }
 
+        /* Pending gold sub-text */
+        .gold-pending {
+            font-family: 'Nunito', sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            color: #8B6914;
+            opacity: 0.8;
+            margin-top: -2px;
+            text-align: center;
+        }
+        .gold-rate {
+            font-family: 'Nunito', sans-serif;
+            font-size: 9px;
+            font-weight: 700;
+            color: #8B6914;
+            opacity: 0.6;
+            text-align: center;
+        }
+        .pill-gold { flex-direction: column; align-items: center; padding: 4px 10px; }
+        .pill-gold .gold-row { display: flex; align-items: center; gap: 6px; }
+
         /* Pop animation */
         .pop { animation: popBounce 0.3s ease; }
         @keyframes popBounce {
@@ -385,8 +297,12 @@
     <!-- TOP CURRENCY BARS -->
     <div class="top-bar">
         <div class="currency-pill pill-gold" id="pill-gold">
-            <div class="icon-circle">&#x1F4B0;</div>
-            <span class="val" id="val-gold">0</span>
+            <div class="gold-row">
+                <div class="icon-circle">&#x1F4B0;</div>
+                <span class="val" id="val-gold">0</span>
+            </div>
+            <div class="gold-pending" id="gold-pending" style="display:none">+0 pending</div>
+            <div class="gold-rate" id="gold-rate" style="display:none">0/s</div>
         </div>
         <div class="currency-pill pill-base" id="pill-base">
             <div class="icon-circle">&#x1F3E0;</div>
@@ -406,47 +322,16 @@
         &#x1F9F8; Carrying <span id="carry-name">???</span> (<span id="carry-gold">0</span>g)
     </div>
 
-    <!-- SIDE BUTTON: Weapon selector only -->
-    <div class="side-buttons">
-        <div class="side-btn btn-weapon" onclick="toggleWeaponPanel()">
-            <span class="btn-icon">&#x1F52B;</span>
-            <span class="btn-label">Guns</span>
-        </div>
-    </div>
-
     <!-- NOTIFICATION FEED -->
     <div class="notif-container" id="notifs"></div>
 
     <!-- TOAST (legacy) -->
     <div class="toast-container" id="toasts"></div>
 
-    <!-- WEAPON PANEL -->
-    <div class="weapon-panel" id="weapon-panel">
-        <h3>Select Weapon</h3>
-        <div class="weapon-grid">
-            <div class="weapon-card" data-weapon="pistol" onclick="selectWeapon('pistol')">
-                <div class="w-icon">&#x1F52B;</div>
-                <div class="w-name">Pistol</div>
-                <div class="w-stat">Fast &bull; Low DMG</div>
-            </div>
-            <div class="weapon-card" data-weapon="rifle" onclick="selectWeapon('rifle')">
-                <div class="w-icon">&#x1F3AF;</div>
-                <div class="w-name">Rifle</div>
-                <div class="w-stat">Balanced</div>
-            </div>
-            <div class="weapon-card" data-weapon="shotgun" onclick="selectWeapon('shotgun')">
-                <div class="w-icon">&#x1F4A5;</div>
-                <div class="w-name">Shotgun</div>
-                <div class="w-stat">Slow &bull; High DMG</div>
-            </div>
-        </div>
-        <button class="weapon-close" onclick="toggleWeaponPanel()">Close</button>
-    </div>
-
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
-        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', weapon: 'none', rebirth: 0 };
+        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', rebirth: 0, pendingGold: 0, earningRate: 0 };
 
         const valGold = document.getElementById('val-gold');
         const valBase = document.getElementById('val-base');
@@ -454,7 +339,6 @@
         const carryBanner = document.getElementById('carry-banner');
         const carryGoldEl = document.getElementById('carry-gold');
         const carryNameEl = document.getElementById('carry-name');
-        const weaponPanel = document.getElementById('weapon-panel');
         const toastContainer = document.getElementById('toasts');
         const notifContainer = document.getElementById('notifs');
 
@@ -478,9 +362,6 @@
             } else {
                 carryBanner.classList.remove('show');
             }
-            document.querySelectorAll('.weapon-card').forEach(c => {
-                c.classList.toggle('equipped', c.dataset.weapon === state.weapon);
-            });
         }
 
         function pop(el) {
@@ -513,21 +394,6 @@
             setTimeout(function() { if (t.parentNode) t.remove(); }, 2500);
         }
 
-        /* ---- WEAPON SELECTOR ---- */
-        function selectWeapon(type) {
-            state.weapon = type;
-            updateDisplay();
-            weaponPanel.classList.remove('show');
-            if (sdk) {
-                sdk.sendMessageToUnity(JSON.stringify({ TaskName: 'equip_' + type, TaskTargetState: 'SetNotActiveToActive' }));
-                sdk.focusGameKeyboard();
-            }
-        }
-
-        function toggleWeaponPanel() {
-            weaponPanel.classList.toggle('show');
-        }
-
         /* ---- SPAWN SYSTEM ---- */
         const ZONES = {
             Beach: ["bv_Banana","bv_BurbaloniLuliloli","bv_Noobini_Pizzanini","bv_Tim_Cheese","bv_Image-removebg-preview_29","bv_Fluriflura","bv_Pandaccini_Bananini","bv_Puffaball","bv_Liliri_Lalira","bv_Pipi_Kiwi"],
@@ -542,6 +408,162 @@
             Sky_Platform: ["bv_Dragon_Gingerini","bv_Graipuss","bv_TangTangVfx","bv_Nuclearo_Dinosauro","bv_LasTralaleritas","bv_Job","bv_Los_Tralaleritos","bv_Chicliterita_bicicliterit","bv_SecretLuckyBlock","bv_KetupatKepat","bv_La_vacca_no_effects"],
             The_Void: ["bv_Chicleteira","bv_TralaleroTralala","bv_Strawberryelephant","bv_Magi_Ribbitini","bv_Meowl","bv_Money_money_puggy"]
         };
+
+        /* ---- GOLD PER SECOND (from brainrot_economy.xlsx) ---- */
+        var GOLD_PER_SECOND = {
+            'bv_Banana': 1.3, 'bv_BurbaloniLuliloli': 1.4, 'bv_Noobini_Pizzanini': 1.9,
+            'bv_Tim_Cheese': 1.9, 'bv_Image-removebg-preview_29': 2.4, 'bv_Fluriflura': 1.7,
+            'bv_Pandaccini_Bananini': 2.0, 'bv_Puffaball': 2.5, 'bv_Liliri_Lalira': 2.7,
+            'bv_Pipi_Kiwi': 1.3, 'bv_Pakrah': 1.4, 'bv_Lionel-Cactuseli': 1.8,
+            'bv_Cocofanto': 1.1, 'bv_ChimpanziniBananini': 1.7,
+            'bv_Africa_by_toto_to_sahur': 2.8, 'bv_Ballerinolololo': 2.6,
+            'bv_POTATO': 1.0, 'bv_Cocosini_Mama': 1.2,
+            'bv_PIGEONS_ARE_SPIES_MADE_BY': 7.4, 'bv_Teenage_turtle': 9.5,
+            'bv_Dolphini_Jetskini': 7.4, 'bv_Slitta_Sprinta': 6.8,
+            'bv_Trippi_Troppi': 7.2, 'bv_Clickerinocrabo': 7.4,
+            'bv_Astronaut': 6.4, 'bv_Cant_come_up_with_a_funny': 8.9, 'bv_Lol_Fridge': 8.8,
+            'bv_Boneca_Ambalabu': 9.4, 'bv_Cupcake_Koala': 5.8,
+            'bv_Lavadorito_Spinito': 7.9, 'bv_Cacto_Hipopotamo1': 9.0,
+            'bv_TaTas': 5.4, 'bv_Pintealotto': 5.3, 'bv_Moby': 5.4,
+            'bv_Watermelon_Doggy': 9.3, 'bv_Garamadundung': 9.2,
+            'bv_Trenostruzzo_Turbo_3000': 8.6, 'bv_Cappuccino_Assassino': 10.8,
+            'bv_Burguro-And-Fryuro': 16.8, 'bv_AvocadiniGuffo': 17.5,
+            'bv_Homicidio_doloso': 15.6, 'bv_Brri_Brri_Bicus_Dicus_Bom': 16.9,
+            'bv_Skibidi_toilet': 15.2, 'bv_PeroLemonfulldetial': 19.9,
+            'bv_Avocadini_Antilopini': 16.0, 'bv_Dolphin_But_Banana': 15.7,
+            'bv_wombo': 15.2, 'bv_Berry_berry_bicus_dickus': 19.3, 'bv_Cerberus': 14.9,
+            'bv_NewBlueberrinni': 25.0, 'bv_Quackula': 26.7, 'bv_Sig_ma_Boy': 33.3,
+            'bv_GOAT': 29.5, 'bv_Strawberrelli_Flamingelli': 24.3,
+            'bv_Pi_Pi_Watermelon': 25.3, 'bv_GlorboFruttodrillo': 25.5,
+            'bv_Time_moving_slow': 33.3, 'bv_Quivioli_Ameleonni': 22.5,
+            'bv_Lebron_james': 31.0, 'bv_SigmaGirl': 38.2,
+            'bv_Tartaruga_Cisternaaaa': 29.3, 'bv_Tracoducotulu': 44.5,
+            'bv_Toiletto': 59.7, 'bv_Mythic_lucky_block': 79.5,
+            'bv_Ballerina_cappucinaaaa21pct': 55.9, 'bv_King_von': 53.7,
+            'bv_Jacko_Spaventosa': 76.0, 'bv_Travis_scott': 78.4,
+            'bv_Cavallo_Virtuoso': 41.9, 'bv_Lil_wayne': 74.3,
+            'bv_Bombardiro_Crocodilo': 72.8, 'bv_Te_Te_Te_Sahur': 54.3,
+            'bv_Carti': 48.7, 'bv_Tralalita': 139.1,
+            'bv_Everybody_hates_Chihuanin': 145.6, 'bv_TractorDino': 94.2,
+            'bv_BrainrotGodLuckyBlock': 87.8, 'bv_Tukanno_Bananno': 97.2,
+            'bv_Gorillo-Watermelondrillo': 142.2, 'bv_Money_Money_Man': 148.8,
+            'bv_Matteofr': 98.1, 'bv_Trippi_Troppi_Troppa_Trip': 148.6,
+            'bv_Dragon_Gingerini': 204.5, 'bv_Graipuss': 169.4,
+            'bv_TangTangVfx': 198.0, 'bv_Nuclearo_Dinosauro': 156.0,
+            'bv_LasTralaleritas': 219.4, 'bv_Job': 266.4,
+            'bv_Los_Tralaleritos': 228.2, 'bv_Chicliterita_bicicliterit': 246.1,
+            'bv_SecretLuckyBlock': 211.1, 'bv_KetupatKepat': 165.2,
+            'bv_La_vacca_no_effects': 227.8, 'bv_Chicleteira': 428.9,
+            'bv_TralaleroTralala': 405.3, 'bv_Strawberryelephant': 443.1,
+            'bv_Magi_Ribbitini': 413.9, 'bv_Meowl': 456.6,
+            'bv_Money_money_puggy': 448.5
+        };
+
+        /* ---- GOLD ACCUMULATION SYSTEM ---- */
+        var ownedBrainrots = {};  // bv_Name -> count owned
+        var goldPendingEl = document.getElementById('gold-pending');
+        var goldRateEl = document.getElementById('gold-rate');
+        var DENOM_VALUES = [100000, 50000, 10000, 5000, 1000, 500, 100, 50, 10, 5, 1];
+        var DENOM_TASKS = {
+            1: 'add_gold_1', 5: 'add_gold_5', 10: 'add_gold_10',
+            50: 'add_gold_50', 100: 'add_gold_100', 500: 'add_gold_500',
+            1000: 'add_gold_1000', 5000: 'add_gold_5000', 10000: 'add_gold_10000',
+            50000: 'add_gold_50000', 100000: 'add_gold_100000'
+        };
+
+        function calcEarningRate() {
+            var rate = 0;
+            var keys = Object.keys(ownedBrainrots);
+            for (var i = 0; i < keys.length; i++) {
+                var count = ownedBrainrots[keys[i]];
+                var gps = GOLD_PER_SECOND[keys[i]] || 0;
+                rate += count * gps;
+            }
+            state.earningRate = rate;
+            return rate;
+        }
+
+        // Accumulate gold every second
+        function startGoldAccumulator() {
+            setInterval(function() {
+                if (state.earningRate > 0) {
+                    state.pendingGold += state.earningRate;
+                    updateGoldDisplay();
+                }
+            }, 1000);
+        }
+
+        function updateGoldDisplay() {
+            if (state.pendingGold > 0) {
+                goldPendingEl.textContent = '+' + fmt(Math.floor(state.pendingGold)) + ' pending';
+                goldPendingEl.style.display = 'block';
+            } else {
+                goldPendingEl.style.display = 'none';
+            }
+            if (state.earningRate > 0) {
+                goldRateEl.textContent = fmt(state.earningRate) + '/s';
+                goldRateEl.style.display = 'block';
+            } else {
+                goldRateEl.style.display = 'none';
+            }
+        }
+
+        function triggerTask(taskName) {
+            if (sdk) {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: taskName,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+            }
+        }
+
+        function collectGold() {
+            var amount = Math.floor(state.pendingGold);
+            if (amount <= 0) return;
+            state.pendingGold = state.pendingGold - amount; // keep fractional remainder
+
+            // Break into denomination tasks
+            var tasks = [];
+            var remaining = amount;
+            for (var i = 0; i < DENOM_VALUES.length; i++) {
+                var d = DENOM_VALUES[i];
+                while (remaining >= d) {
+                    tasks.push(DENOM_TASKS[d]);
+                    remaining -= d;
+                }
+            }
+
+            // Fire tasks staggered 200ms apart
+            for (var t = 0; t < tasks.length; t++) {
+                (function(task, delay) {
+                    setTimeout(function() { triggerTask(task); }, delay);
+                })(tasks[t], t * 200);
+            }
+
+            // Show notification
+            notify('+' + fmt(amount) + ' Gold collected!', 'gold');
+            pop(document.getElementById('pill-gold'));
+            updateGoldDisplay();
+        }
+
+        // Parse owned brainrot counts from inv: messages
+        function parseOwnedBrainrots(params) {
+            var keys = Object.keys(params);
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                if (k.startsWith('Own_bv_')) {
+                    var bvKey = k.substring(4); // "bv_Banana"
+                    var val = parseFloat(params[k]) || 0;
+                    if (val > 0) {
+                        ownedBrainrots[bvKey] = val;
+                    } else {
+                        delete ownedBrainrots[bvKey];
+                    }
+                }
+            }
+            calcEarningRate();
+            updateGoldDisplay();
+        }
 
         const SPAWN_INTERVAL = 30; // seconds
         const MAX_PER_ZONE = 3;
@@ -674,7 +696,6 @@
                     if (d.baseId !== undefined) state.baseId = parseInt(d.baseId)||0;
                     if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying)||0;
                     if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold)||0;
-                    if (d.weapon !== undefined) state.weapon = d.weapon;
                     if (d.rebirth !== undefined) state.rebirth = parseInt(d.rebirth)||0;
                     if (d.toast) showToast(d.toast);
                     if (d.notif) notify(d.notif, d.notifType || 'info');
@@ -682,33 +703,64 @@
                     return;
                 } catch(e) {}
                 // String-based messages
-                if (msg.startsWith('gold:')) {
+                if (msg.startsWith('inv:')) {
+                    // Parse key=value pairs: inv:Gold=123&Own_bv_Banana=2&...
+                    var pairs = msg.substring(4).split('&');
+                    var params = {};
+                    for (var pi = 0; pi < pairs.length; pi++) {
+                        var kv = pairs[pi].split('=');
+                        if (kv.length === 2) params[kv[0]] = kv[1];
+                    }
+                    if (params.Gold !== undefined) {
+                        var gv = parseFloat(params.Gold) || 0;
+                        if (gv !== state.gold) {
+                            state.gold = gv;
+                            pop(document.getElementById('pill-gold'));
+                        }
+                    }
+                    // Parse owned brainrot counts
+                    parseOwnedBrainrots(params);
+                    updateDisplay();
+                } else if (msg === 'collect:go') {
+                    // Player stepped on collect trigger — collect accumulated gold
+                    collectGold();
+                } else if (msg.startsWith('gold:')) {
                     var v = parseFloat(msg.substring(5))||0;
                     var diff = v - state.gold;
                     state.gold = v; updateDisplay(); pop(document.getElementById('pill-gold'));
                     if (diff > 0) notify('+' + fmt(diff) + ' Gold', 'gold');
                 } else if (msg.startsWith('pickup:')) {
-                    // Format: pickup:Picked up SuffixName! (Xg/2min)
-                    notify(msg.substring(7), 'pickup');
-                    // Parse name and gold, update carrying state
-                    var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
-                    if (pMatch) {
-                        state.carrying = 1;
-                        state.carryName = pMatch[1].replace(/_/g, ' ');
-                        state.carryGold = parseFloat(pMatch[2]) || 0;
-                        updateDisplay();
-                        // Decrement spawn count for the brainrot's zone
-                        var bvKey = 'bv_' + pMatch[1];
-                        var pZone = BV_TO_ZONE[bvKey];
-                        if (pZone && spawnCounts[pZone] > 0) {
-                            spawnCounts[pZone]--;
+                    if (state.carrying > 0) {
+                        // Already carrying — show warning instead of fake pickup
+                        notify('Already carrying a brainrot!', 'info');
+                    } else {
+                        notify(msg.substring(7), 'pickup');
+                        var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
+                        if (pMatch) {
+                            state.carrying = 1;
+                            state.carryName = pMatch[1].replace(/_/g, ' ');
+                            state.carryBvKey = 'bv_' + pMatch[1];
+                            state.carryGold = parseFloat(pMatch[2]) || 0;
+                            updateDisplay();
+                            var bvKey = 'bv_' + pMatch[1];
+                            var pZone = BV_TO_ZONE[bvKey];
+                            if (pZone && spawnCounts[pZone] > 0) {
+                                spawnCounts[pZone]--;
+                            }
                         }
                     }
                 } else if (msg.startsWith('deposit:')) {
                     if (state.carrying > 0) {
                         notify(msg.substring(8), 'deposit');
+                        // Increment owned brainrot count locally
+                        if (state.carryBvKey) {
+                            ownedBrainrots[state.carryBvKey] = (ownedBrainrots[state.carryBvKey] || 0) + 1;
+                            calcEarningRate();
+                            updateGoldDisplay();
+                        }
                         state.carrying = 0;
                         state.carryName = '';
+                        state.carryBvKey = '';
                         state.carryGold = 0;
                         updateDisplay();
                     }
@@ -732,7 +784,7 @@
             if (sdk && sdk.focusGameKeyboard) sdk.focusGameKeyboard();
         }
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('button') && !e.target.closest('.side-btn') && !e.target.closest('.weapon-card')) {
+            if (!e.target.closest('button')) {
                 _doFocusGame();
             }
         });
@@ -745,9 +797,10 @@
         updateDisplay();
         if (sdk) {
             startSpawnTimers();
+            startGoldAccumulator();
         } else {
             // Dev preview
-            state.gold = 42350; state.baseId = 3; state.carrying = 1; state.carryGold = 14.6; state.weapon = 'rifle'; state.rebirth = 1;
+            state.gold = 42350; state.baseId = 3; state.carrying = 1; state.carryGold = 14.6; state.rebirth = 1;
             updateDisplay();
             notify('+125 Gold', 'gold');
             setTimeout(function() { notify('Picked up Banana! (1.3g)', 'pickup'); }, 500);
