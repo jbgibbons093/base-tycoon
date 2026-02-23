@@ -17,14 +17,15 @@
             -webkit-text-stroke: 0.5px rgba(0,0,0,0.15);
         }
 
-        /* ---- TOP CURRENCY BARS ---- */
-        .top-bar {
+        /* ---- BOTTOM-LEFT HUD STACK ---- */
+        .hud-stack {
             position: fixed;
-            top: 10px;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 70px;
+            left: 12px;
             display: flex;
-            gap: 10px;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
             z-index: 10;
         }
 
@@ -89,117 +90,74 @@
             font-family: 'Nunito', sans-serif;
         }
 
-        /* ---- CARRY BANNER ---- */
+        /* ---- CARRY BANNER (below cash in stack) ---- */
         .carry-banner {
-            position: fixed;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 6px 20px;
-            border-radius: 16px;
+            padding: 4px 14px;
+            border-radius: 14px;
             background: linear-gradient(180deg, #FFB347 0%, #FF8C00 100%);
             border: 3px solid #CC6600;
             box-shadow: 0 3px 0 rgba(0,0,0,0.2);
             font-family: 'Luckiest Guy', cursive;
-            font-size: 16px;
+            font-size: 14px;
             color: #3A1800;
             text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
-            z-index: 10;
             display: none;
             white-space: nowrap;
         }
         .carry-banner.show { display: block; }
 
-        /* ---- SPAWN TIMERS ---- */
+        /* ---- SPAWN TIMERS (vertical, above notifs) ---- */
         .spawn-strip {
-            position: fixed;
-            top: 90px;
-            left: 50%;
-            transform: translateX(-50%);
             display: flex;
-            gap: 4px;
-            z-index: 10;
+            flex-direction: column;
+            gap: 6px;
+            align-items: flex-start;
         }
         .spawn-pip {
-            width: 32px; height: 32px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 10px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+            position: relative;
+        }
+        .spawn-pip .pip-bg {
+            width: 28px; height: 28px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 9px;
-            color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
-            position: relative;
-            background: conic-gradient(rgba(255,255,255,0.25) 0%, transparent 0%);
-            border: 2px solid rgba(255,255,255,0.2);
-        }
-        .spawn-pip .pip-bg {
-            position: absolute;
-            inset: 0;
-            border-radius: 50%;
-            z-index: -1;
+            flex-shrink: 0;
         }
         .spawn-pip .pip-label {
+            font-size: 8px;
             position: relative;
             z-index: 1;
         }
         .spawn-pip .pip-time {
-            position: absolute;
-            bottom: -12px;
-            left: 50%;
-            transform: translateX(-50%);
-            font-size: 7px;
+            font-size: 9px;
             font-family: 'Nunito', sans-serif;
             font-weight: 800;
-            color: rgba(255,255,255,0.7);
+            color: rgba(255,255,255,0.8);
             white-space: nowrap;
         }
 
-        /* ---- BOTTOM PET/BRAINROT BAR ---- */
-        .bottom-bar {
-            position: fixed;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 8px;
-            z-index: 10;
-        }
-        .bottom-slot {
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            background: linear-gradient(180deg, #DFE6E9 0%, #B2BEC3 100%);
-            border: 3px solid #95A5A6;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
-        }
-        .bottom-slot.active {
-            background: linear-gradient(180deg, #74B9FF 0%, #3498DB 100%);
-            border-color: #2176AA;
-        }
-
-        /* ---- NOTIFICATION FEED ---- */
+        /* ---- NOTIFICATION FEED (above cash in stack) ---- */
         .notif-container {
-            position: fixed;
-            top: 100px;
-            right: 12px;
             display: flex;
             flex-direction: column;
-            gap: 6px;
-            align-items: flex-end;
-            z-index: 30;
+            gap: 4px;
+            align-items: flex-start;
             pointer-events: none;
         }
         .notif {
-            padding: 8px 16px;
-            border-radius: 14px;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            padding: 5px 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
             font-family: 'Luckiest Guy', cursive;
-            font-size: 15px;
+            font-size: 12px;
             text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
             white-space: nowrap;
             animation: notifSlide 0.3s ease, notifOut 0.4s ease 3s forwards;
@@ -230,12 +188,12 @@
             color: #2C3E50;
         }
         @keyframes notifSlide {
-            0% { transform: translateX(100px); opacity: 0; }
-            70% { transform: translateX(-5px); }
+            0% { transform: translateX(-80px); opacity: 0; }
+            70% { transform: translateX(3px); }
             100% { transform: translateX(0); opacity: 1; }
         }
         @keyframes notifOut {
-            to { opacity: 0; transform: translateX(50px); }
+            to { opacity: 0; transform: translateX(-40px); }
         }
 
         /* ---- LEGACY TOAST (keep for compat) ---- */
@@ -303,8 +261,15 @@
     </style>
 </head>
 <body>
-    <!-- TOP CURRENCY BARS -->
-    <div class="top-bar">
+    <!-- BOTTOM-LEFT HUD STACK (top to bottom: timers, notifs, cash, carry) -->
+    <div class="hud-stack">
+        <!-- SPAWN TIMERS (topmost in stack) -->
+        <div class="spawn-strip" id="spawn-strip"></div>
+
+        <!-- NOTIFICATION FEED (above cash) -->
+        <div class="notif-container" id="notifs"></div>
+
+        <!-- CASH PILL -->
         <div class="currency-pill pill-gold" id="pill-gold">
             <div class="gold-row">
                 <div class="icon-circle">
@@ -319,18 +284,12 @@
             <div class="gold-pending" id="gold-pending" style="display:none">+0 pending</div>
             <div class="gold-rate" id="gold-rate" style="display:none">0/s</div>
         </div>
+
+        <!-- CARRY BANNER (below cash) -->
+        <div class="carry-banner" id="carry-banner">
+            &#x1F9F8; Carrying <span id="carry-name">???</span> (<span id="carry-gold">0</span>g)
+        </div>
     </div>
-
-    <!-- SPAWN TIMERS -->
-    <div class="spawn-strip" id="spawn-strip"></div>
-
-    <!-- CARRY BANNER -->
-    <div class="carry-banner" id="carry-banner">
-        &#x1F9F8; Carrying <span id="carry-name">???</span> (<span id="carry-gold">0</span>g)
-    </div>
-
-    <!-- NOTIFICATION FEED -->
-    <div class="notif-container" id="notifs"></div>
 
     <!-- TOAST (legacy) -->
     <div class="toast-container" id="toasts"></div>
@@ -581,8 +540,22 @@
             updateGoldDisplay();
         }
 
-        const SPAWN_INTERVAL = 30; // seconds
+        const SPAWN_INTERVAL = 30; // default fallback
         const MAX_PER_ZONE = 3;
+        // Per-zone spawn intervals — higher tier zones = longer timers = rarer brainrots
+        const ZONE_SPAWN_INTERVALS = {
+            Beach: 15,           // Common — fast spawns
+            Meadow: 20,          // Common — slightly slower
+            Forest: 30,          // Rare tier starts
+            Jungle: 35,          // Rare
+            Cave: 45,            // Epic
+            Crystal_Cove: 50,    // Epic
+            Boss_Arena: 60,      // Legendary
+            Volcano: 75,         // Mythic
+            Ancient_Ruins: 90,   // Brainrot God
+            Sky_Platform: 105,   // Secret
+            The_Void: 120        // OG — rarest, 2 min spawns
+        };
         const ZONE_COLORS = {
             Beach: '#FFD700', Meadow: '#2ECC40', Forest: '#228B22', Jungle: '#32CD32',
             Cave: '#8B4513', Crystal_Cove: '#00CED1', Boss_Arena: '#E74C3C', Volcano: '#FF4500',
@@ -635,12 +608,14 @@
                 var z = zoneNames[i];
                 var col = ZONE_COLORS[z] || '#888';
                 var label = ZONE_LABELS[z] || z.substring(0, 3);
+                var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
                 html += '<div class="spawn-pip" id="pip-' + z + '">' +
-                    '<div class="pip-bg" style="background:' + col + ';opacity:0.7;"></div>' +
+                    '<div class="pip-bg" style="background:' + col + ';">' +
                     '<span class="pip-label">' + label + '</span>' +
-                    '<span class="pip-time" id="pip-time-' + z + '">30</span>' +
+                    '</div>' +
+                    '<span class="pip-time" id="pip-time-' + z + '">' + interval + 's</span>' +
                     '</div>';
-                spawnTimers[z] = SPAWN_INTERVAL;
+                spawnTimers[z] = interval;
             }
             strip.innerHTML = html;
         }
@@ -649,16 +624,23 @@
             var zoneNames = Object.keys(ZONES);
             for (var i = 0; i < zoneNames.length; i++) {
                 var z = zoneNames[i];
+                var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
                 var remaining = spawnTimers[z] || 0;
-                var pct = ((SPAWN_INTERVAL - remaining) / SPAWN_INTERVAL) * 100;
+                var pct = ((interval - remaining) / interval) * 100;
                 var col = ZONE_COLORS[z] || '#888';
-                var pip = document.getElementById('pip-' + z);
+                var pipBg = document.querySelector('#pip-' + z + ' .pip-bg');
                 var timeEl = document.getElementById('pip-time-' + z);
-                if (pip) {
-                    pip.style.background = 'conic-gradient(' + col + ' ' + pct + '%, rgba(0,0,0,0.4) ' + pct + '%)';
+                if (pipBg) {
+                    // Show progress ring on the pip circle
+                    pipBg.style.background = 'conic-gradient(' + col + ' ' + pct + '%, rgba(0,0,0,0.3) ' + pct + '%)';
+                    pipBg.style.borderRadius = '50%';
                 }
                 if (timeEl) {
-                    timeEl.textContent = remaining + 's';
+                    if ((spawnCounts[z] || 0) >= MAX_PER_ZONE) {
+                        timeEl.textContent = 'FULL';
+                    } else {
+                        timeEl.textContent = remaining + 's';
+                    }
                 }
             }
         }
@@ -669,23 +651,28 @@
             // Staggered initial spawn
             for (var i = 0; i < zoneNames.length; i++) {
                 (function(zone, delay) {
+                    var interval = ZONE_SPAWN_INTERVALS[zone] || SPAWN_INTERVAL;
                     spawnTimers[zone] = Math.ceil(delay / 1000);
                     setTimeout(function() {
                         spawnRandom(zone);
-                        spawnTimers[zone] = SPAWN_INTERVAL;
+                        spawnTimers[zone] = interval;
                     }, delay);
                 })(zoneNames[i], 1000 + i * 500);
             }
             // Tick every second: countdown + trigger spawns
+            // Timer PAUSES when zone is at max capacity, resumes when count drops
             setInterval(function() {
                 for (var i = 0; i < zoneNames.length; i++) {
                     var z = zoneNames[i];
+                    var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
+                    // Only tick down if zone is below max
+                    if ((spawnCounts[z] || 0) >= MAX_PER_ZONE) continue;
                     if (spawnTimers[z] > 0) {
                         spawnTimers[z]--;
                     }
                     if (spawnTimers[z] <= 0) {
                         spawnRandom(z);
-                        spawnTimers[z] = SPAWN_INTERVAL;
+                        spawnTimers[z] = interval;
                     }
                 }
                 updateTimerUI();
@@ -821,10 +808,41 @@
         setTimeout(_doFocusGame, 300);
         setTimeout(_doFocusGame, 600);
 
+        /* ---- RESET ALL BRAINROTS ON LOGIN ---- */
+        function resetAllBrainrots() {
+            if (!sdk) return;
+            // Collect all brainrot keys from all zones
+            var allBv = [];
+            var zNames = Object.keys(ZONES);
+            for (var i = 0; i < zNames.length; i++) {
+                var pool = ZONES[zNames[i]];
+                for (var j = 0; j < pool.length; j++) {
+                    allBv.push(pool[j]);
+                }
+            }
+            // Stagger to avoid flooding — 50ms apart
+            for (var k = 0; k < allBv.length; k++) {
+                (function(bvKey, delay) {
+                    setTimeout(function() {
+                        sdk.sendMessageToUnity(JSON.stringify({
+                            TaskName: bvKey,
+                            TaskTargetState: 'SetAnyToNotActive'
+                        }));
+                    }, delay);
+                })(allBv[k], k * 50);
+            }
+            // Reset all zone counts to 0
+            for (var zi = 0; zi < zNames.length; zi++) {
+                spawnCounts[zNames[zi]] = 0;
+            }
+        }
+
         /* ---- INIT ---- */
         updateDisplay();
         if (sdk) {
-            startSpawnTimers();
+            resetAllBrainrots();
+            // Start spawn timers after reset completes (~5s for 99 brainrots at 50ms each)
+            setTimeout(function() { startSpawnTimers(); }, 6000);
             startGoldAccumulator();
         } else {
             // Dev preview
