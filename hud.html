@@ -338,6 +338,22 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
+        // ---- SOUND SYSTEM ----
+        var _mp3Sounds = {};
+        (function() {
+            var files = {
+                purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3',
+                uipop: 'ui-pop.mp3', harvest: 'harvest.mp3', talent: 'talent.mp3',
+                xp: 'xp-gain.mp3', cropready: 'cropready.mp3',
+                cow: 'cow.mp3', chicken: 'chicken.mp3', sheep: 'sheep.mp3',
+                goat: 'goat.mp3', pig: 'pig.mp3', bee: 'bee.mp3'
+            };
+            for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
+        })();
+        function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
+        var _animalSounds = ['cow', 'chicken', 'sheep', 'goat', 'pig', 'bee'];
+        function playRandomAnimal() { playSound(_animalSounds[Math.floor(Math.random() * _animalSounds.length)]); }
+
         let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', rebirth: 0, pendingGold: 0, earningRate: 0 };
 
         const valGold = document.getElementById('val-gold');
@@ -544,6 +560,7 @@
             }
 
             // Show notification
+            playSound('xp');
             notify('+' + fmt(amount) + ' Gold collected!', 'gold');
             pop(document.getElementById('pill-gold'));
             updateGoldDisplay();
@@ -603,6 +620,7 @@
             // Check spawn cap — spawnCounts is synced from server ZC_ variables
             if ((spawnCounts[zone] || 0) >= MAX_PER_ZONE) return;
             var pick = pool[Math.floor(Math.random() * pool.length)];
+            playSound('cropready');
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
                     TaskName: pick,
@@ -744,8 +762,10 @@
                 } else if (msg.startsWith('pickup:')) {
                     if (state.carrying > 0) {
                         // Already carrying — show warning instead of fake pickup
+                        playSound('uipop');
                         notify('Already carrying a brainrot!', 'info');
                     } else {
+                        playRandomAnimal();
                         notify(msg.substring(7), 'pickup');
                         var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
                         if (pMatch) {
@@ -759,6 +779,7 @@
                     }
                 } else if (msg.startsWith('deposit:')) {
                     if (state.carrying > 0) {
+                        playSound('harvest');
                         notify(msg.substring(8), 'deposit');
                         // Increment owned brainrot count locally
                         if (state.carryBvKey) {
@@ -782,6 +803,7 @@
                 } else if (msg.startsWith('rebirth:')) {
                     state.rebirth = parseInt(msg.substring(8))||0; updateDisplay();
                 } else if (msg.startsWith('toast:')) {
+                    playSound('uipop');
                     showToast(msg.substring(6));
                 }
             });

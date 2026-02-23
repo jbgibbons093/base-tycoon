@@ -331,6 +331,14 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
+        // ---- SOUND SYSTEM ----
+        var _mp3Sounds = {};
+        (function() {
+            var files = { purchase: 'purchase.mp3', click: 'click.mp3', uipop: 'ui-pop.mp3', pig: 'pig.mp3' };
+            for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
+        })();
+        function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
+
         // ---- DATA ----
         const WEAPONS = [
             { id: 'pistol', name: 'Pistol', icon: '\u{1F52B}', stat: 'Fast \u2022 Low DMG' },
@@ -493,6 +501,7 @@
             state.equippedWeapon = id;
             render();
             renderWeaponDropup();
+            playSound('click');
             closeAllDropups();
             if (sdk && EQUIP_QUEST[id]) {
                 sdk.sendMessageToUnity(JSON.stringify({
@@ -519,6 +528,7 @@
 
             render();
             renderItemsDropup();
+            playSound('purchase');
             closeAllDropups();
 
             // Send quest activation to Portals (room-side deducts gold server-side)
@@ -543,6 +553,7 @@
                 closeAllDropups();
                 return;
             }
+            playSound('uipop');
             closeAllDropups();
             if (which === 'weapon') renderWeaponDropup();
             if (which === 'items') renderItemsDropup();

@@ -228,6 +228,14 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
+        // ---- SOUND SYSTEM ----
+        var _mp3Sounds = {};
+        (function() {
+            var files = { talent: 'talent.mp3', levelup: 'levelup.mp3', click: 'click.mp3', uipop: 'ui-pop.mp3', bee: 'bee.mp3' };
+            for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
+        })();
+        function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
+
         const REBIRTH_COSTS = [500000, 2000000, 10000000];
         const REBIRTH_BONUSES = ['1.5x Permanent Income', '2x Permanent + Ancient Ruins', '3x Permanent + Sky + Void'];
 
@@ -294,6 +302,7 @@
             state.gold -= cost;
             state.rebirth++;
             render();
+            playSound('talent');
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
                     TaskName: 'do_rebirth',
@@ -309,7 +318,7 @@
             document.body.appendChild(t); setTimeout(()=>{if(t.parentNode)t.remove();},2500);
         }
 
-        function closeShop() { if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
+        function closeShop() { playSound('click'); if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
 
         /** Parse a variable value from Portals |var| interpolation. */
         function parseVarValue(raw) {

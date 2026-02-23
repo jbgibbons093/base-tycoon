@@ -207,6 +207,14 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
+        // ---- SOUND SYSTEM ----
+        var _mp3Sounds = {};
+        (function() {
+            var files = { purchase: 'purchase.mp3', click: 'click.mp3', uipop: 'ui-pop.mp3', chicken: 'chicken.mp3' };
+            for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
+        })();
+        function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
+
         const ITEMS = [
             {
                 section: 'Consumables',
@@ -284,6 +292,7 @@
                 state.cooldowns[itemId] = Date.now() + (foundItem.cooldown * 1000);
             }
             render();
+            playSound('purchase');
 
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
@@ -314,7 +323,7 @@
             document.body.appendChild(t); setTimeout(()=>{if(t.parentNode)t.remove();},2500);
         }
 
-        function closeShop() { if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
+        function closeShop() { playSound('click'); if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
 
         /** Parse a variable value from Portals |var| interpolation. */
         function parseVarValue(raw) {

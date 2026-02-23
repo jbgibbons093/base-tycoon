@@ -222,6 +222,14 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
+        // ---- SOUND SYSTEM ----
+        var _mp3Sounds = {};
+        (function() {
+            var files = { purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3', uipop: 'ui-pop.mp3', sheep: 'sheep.mp3' };
+            for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
+        })();
+        function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
+
         const GEAR = [
             {
                 id: 'speed_boots', name: 'Speed Boots', icon: '\u{1F45F}', iconClass: 'icon-speed',
@@ -324,6 +332,7 @@
             state.gold -= next.cost;
             state.gearLevels[gearId] = level + 1;
             render();
+            playSound(state.gearLevels[gearId] >= g.maxLevel ? 'levelup' : 'purchase');
 
             if (sdk) {
                 var GEAR_BASE = {gear_speed:609, gear_carry:619, gear_armor:629};
@@ -343,7 +352,7 @@
             document.body.appendChild(t); setTimeout(()=>{if(t.parentNode)t.remove();},2500);
         }
 
-        function closeShop() { if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
+        function closeShop() { playSound('click'); if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
 
         /** Parse a variable value from Portals |var| interpolation. */
         function parseVarValue(raw) {

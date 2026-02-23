@@ -230,6 +230,14 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
+        // ---- SOUND SYSTEM ----
+        var _mp3Sounds = {};
+        (function() {
+            var files = { purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3', uipop: 'ui-pop.mp3', cow: 'cow.mp3' };
+            for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
+        })();
+        function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
+
         const WEAPONS = [
             { id:'pistol', name:'Pistol', icon:'\u{1F52B}', tier:'Standard', tierClass:'tier-standard', cost:0, dmg:30, spd:90, rng:50 },
             { id:'rifle', name:'Rifle', icon:'\u{1F3AF}', tier:'Premium', tierClass:'tier-premium', cost:5000, dmg:60, spd:55, rng:85 },
@@ -302,6 +310,7 @@
             state.owned.push(id);
             state.equipped = id;
             render();
+            playSound('purchase');
             var BUY_TASK_MAP = {pistol:'600_buy_pistol', rifle:'601_buy_rifle', shotgun:'602_buy_shotgun'};
             if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:BUY_TASK_MAP[id],TaskTargetState:'SetNotActiveToActive'}));
             toast('Bought '+w.name+'!');
@@ -311,12 +320,13 @@
             if (state.equipped===id) return;
             state.equipped = id;
             render();
+            playSound('click');
             var EQUIP_TASK_MAP = {pistol:'603_equip_pistol', rifle:'604_equip_rifle', shotgun:'605_equip_shotgun'};
             if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:EQUIP_TASK_MAP[id],TaskTargetState:'SetNotActiveToActive'}));
             toast('Equipped '+WEAPONS.find(x=>x.id===id).name+'!');
         }
 
-        function closeShop() { if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
+        function closeShop() { playSound('click'); if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
 
         function toast(text) {
             const old=document.querySelector('.toast'); if(old)old.remove();

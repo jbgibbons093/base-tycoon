@@ -273,6 +273,14 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
+        // ---- SOUND SYSTEM ----
+        var _mp3Sounds = {};
+        (function() {
+            var files = { purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3', talent: 'talent.mp3', uipop: 'ui-pop.mp3', goat: 'goat.mp3' };
+            for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
+        })();
+        function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
+
         const ZONES = [
             { id:'beach_zone', name:'Beach Zone', tier:'Common', tierClass:'tier-common', iconClass:'icon-beach', cost:0, icon:'\u{1F3D6}', gold:'1-3g', taskName:null },
             { id:'meadow', name:'Meadow', tier:'Common', tierClass:'tier-common', iconClass:'icon-meadow', cost:0, icon:'\u{1F33F}', gold:'1-3g', taskName:null },
@@ -309,6 +317,7 @@
         }
 
         function switchTab(tab) {
+            playSound('click');
             document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === tab));
             document.querySelectorAll('.panel').forEach(p => p.classList.toggle('active', p.id === 'panel-' + tab));
         }
@@ -391,6 +400,7 @@
             state.gold -= z.cost;
             state.unlockedZones.push(z.name);
             renderAll();
+            playSound('talent');
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
                     TaskName: z.taskName,
@@ -406,6 +416,7 @@
             state.gold -= f.cost;
             state.unlockedFloors.push(f.num);
             renderAll();
+            playSound('levelup');
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
                     TaskName: f.taskName,
@@ -421,7 +432,7 @@
             document.body.appendChild(t); setTimeout(()=>{if(t.parentNode)t.remove();},2500);
         }
 
-        function closeShop() { if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
+        function closeShop() { playSound('click'); if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
 
         /** Parse a variable value from Portals |var| interpolation. */
         function parseVarValue(raw) {
