@@ -125,7 +125,7 @@
             flex-shrink: 0;
         }
 
-        /* ---- DROP-UP MENU ---- */
+        /* ---- DROP-UP MENU (items) ---- */
         .dropup {
             position: absolute;
             bottom: calc(100% + 8px);
@@ -150,6 +150,32 @@
         @keyframes dropupIn {
             from { opacity: 0; transform: translateX(-50%) translateY(6px); }
             to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* ---- FLYOUT MENU (weapons - slides left) ---- */
+        .flyout-left {
+            position: absolute;
+            right: calc(100% + 8px);
+            bottom: 0;
+            background: rgba(25, 25, 35, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 6px;
+            min-width: 140px;
+            box-shadow: -6px 0 24px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            display: none;
+            z-index: 30;
+        }
+
+        .flyout-left.show {
+            display: block;
+            animation: flyoutLeftIn 0.15s ease;
+        }
+
+        @keyframes flyoutLeftIn {
+            from { opacity: 0; transform: translateX(6px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .dropup-title {
@@ -284,11 +310,18 @@
 
     <!-- ACTION BAR -->
     <div class="action-bar" id="action-bar">
-        <!-- Weapon slot -->
-        <div class="slot active" id="slot-weapon" onclick="toggleDropup('weapon')">
-            <span class="slot-key">1</span>
-            <span class="slot-icon" id="weapon-icon">&#x1F52B;</span>
-            <span class="slot-label" id="weapon-label">Pistol</span>
+        <!-- Weapon slot (with left flyout) -->
+        <div style="position:relative;">
+            <div class="slot active" id="slot-weapon" onclick="toggleDropup('weapon')">
+                <span class="slot-key">1</span>
+                <span class="slot-icon" id="weapon-icon">&#x1F52B;</span>
+                <span class="slot-label" id="weapon-label">Pistol</span>
+            </div>
+            <!-- WEAPON FLYOUT (slides left) -->
+            <div class="flyout-left" id="dropup-weapon">
+                <div class="dropup-title">Weapons</div>
+                <div id="weapon-list"></div>
+            </div>
         </div>
 
         <div class="bar-sep"></div>
@@ -313,12 +346,6 @@
             <span class="slot-key">5</span>
             <span class="slot-icon" id="item4-icon">&#x2795;</span>
             <span class="slot-label" id="item4-label">Empty</span>
-        </div>
-
-        <!-- WEAPON DROP-UP -->
-        <div class="dropup" id="dropup-weapon">
-            <div class="dropup-title">Weapons</div>
-            <div id="weapon-list"></div>
         </div>
 
         <!-- ITEMS DROP-UP -->
@@ -561,15 +588,16 @@
             if (which === 'weapon') renderWeaponDropup();
             if (which === 'items') renderItemsDropup();
 
-            // Position the dropup above the triggering slot
-            const slotMap = { weapon: 'slot-weapon', items: 'slot-item1' };
-            const slotEl = document.getElementById(slotMap[which]);
-            if (slotEl) {
-                const bar = document.getElementById('action-bar');
-                const slotRect = slotEl.getBoundingClientRect();
-                const barRect = bar.getBoundingClientRect();
-                const slotCenter = slotRect.left + slotRect.width / 2 - barRect.left;
-                el.style.left = slotCenter + 'px';
+            // Position items dropup above its slot (weapon flyout is CSS-positioned)
+            if (which === 'items') {
+                const slotEl = document.getElementById('slot-item1');
+                if (slotEl) {
+                    const bar = document.getElementById('action-bar');
+                    const slotRect = slotEl.getBoundingClientRect();
+                    const barRect = bar.getBoundingClientRect();
+                    const slotCenter = slotRect.left + slotRect.width / 2 - barRect.left;
+                    el.style.left = slotCenter + 'px';
+                }
             }
 
             el.classList.add('show');
@@ -577,13 +605,13 @@
         }
 
         function closeAllDropups() {
-            document.querySelectorAll('.dropup').forEach(d => d.classList.remove('show'));
+            document.querySelectorAll('.dropup, .flyout-left').forEach(d => d.classList.remove('show'));
             openDropup = null;
         }
 
         // Close dropups when clicking outside
         document.addEventListener('click', function(e) {
-            if (!e.target.closest('.dropup') && !e.target.closest('.slot')) {
+            if (!e.target.closest('.dropup') && !e.target.closest('.flyout-left') && !e.target.closest('.slot')) {
                 closeAllDropups();
             }
         });
