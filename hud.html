@@ -379,7 +379,7 @@
         document.addEventListener('touchstart', function() { _getAudioCtx(); }, { once: true });
         document.addEventListener('keydown', function() { _getAudioCtx(); }, { once: true });
 
-        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', rebirth: 0, pendingGold: 0, earningRate: 0 };
+        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0 };
 
         const valGold = document.getElementById('val-gold');
         const carryBanner = document.getElementById('carry-banner');
@@ -837,7 +837,9 @@
                             state.carryBvKey = bvKey;
                             state.carryName = bvKey.substring(3).replace(/_/g, ' ');
                             state.carryGold = GOLD_PER_SECOND[bvKey] || 0;
-                        } else {
+                        } else if (carryNum === 0) {
+                            // Save last name for deposit notification (sync may arrive before deposit: msg)
+                            state.lastCarryName = state.carryName || state.lastCarryName || '';
                             state.carrying = 0;
                             state.carryBvKey = '';
                             state.carryName = '';
@@ -921,8 +923,9 @@
                         notify('This is not your base!', 'error');
                     } else {
                         playSound('deposit');
-                        var depositName = state.carryName || 'brainrot';
+                        var depositName = state.carryName || state.lastCarryName || 'brainrot';
                         notify('Deposited ' + depositName + '!', 'deposit');
+                        state.lastCarryName = '';
                         // Increment owned brainrot count locally
                         if (state.carryBvKey) {
                             ownedBrainrots[state.carryBvKey] = (ownedBrainrots[state.carryBvKey] || 0) + 1;
