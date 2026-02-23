@@ -345,7 +345,8 @@
             unlockedZones: ['Beach Zone', 'Meadow'],
             unlockedFloors: [1],
             rebirth: 0,
-            hasBase: false
+            hasBase: false,
+            baseId: 0
         };
 
         function fmt(n) {
@@ -452,15 +453,17 @@
 
         function buyFloor(floorNum) {
             const f = FLOORS.find(x => x.num === floorNum);
-            if (!f || state.unlockedFloors.includes(f.num) || state.gold < f.cost) return;
+            if (!f || !state.hasBase || state.unlockedFloors.includes(f.num) || state.gold < f.cost) return;
             state.gold -= f.cost;
             state.unlockedFloors.push(f.num);
             renderAll();
             playSound('levelup');
             spawnSpendParticles(8);
             if (sdk) {
+                // Send base-specific floor unlock: unlock_floor_2_b3 for base 3
+                var taskName = f.taskName + '_b' + state.baseId;
                 sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: f.taskName,
+                    TaskName: taskName,
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
             }
@@ -516,7 +519,7 @@
                     const val = parseVarValue(pair.substring(eq + 1));
                     if (key === 'Gold') state.gold = val;
                     else if (key === 'Rebirth') state.rebirth = val;
-                    else if (key === 'My_Base_ID') state.hasBase = val > 0;
+                    else if (key === 'My_Base_ID') { state.baseId = val; state.hasBase = val > 0; }
                 }
                 // Sync unlock state from server variables
                 var ZONE_VAR_MAP = {
