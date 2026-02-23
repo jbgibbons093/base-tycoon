@@ -891,17 +891,19 @@
                         notify('Already carrying a brainrot!', 'info');
                     } else {
                         playSound('pickup');
-                        notify(msg.substring(7), 'pickup');
                         var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
                         if (pMatch) {
                             state.carrying = 1;
                             state.carryName = pMatch[1].replace(/_/g, ' ');
                             state.carryBvKey = 'bv_' + pMatch[1];
                             state.carryGold = parseFloat(pMatch[2]) || 0;
+                            notify('Picked up ' + state.carryName + '! (' + state.carryGold + ' cash/s)', 'pickup');
                             // Decrement zone spawn count
                             var pickupZone = BV_TO_ZONE[state.carryBvKey];
                             if (pickupZone && spawnCounts[pickupZone] > 0) spawnCounts[pickupZone]--;
                             updateDisplay();
+                        } else {
+                            notify(msg.substring(7), 'pickup');
                         }
                     }
                 } else if (msg.startsWith('deposit:')) {
@@ -919,7 +921,8 @@
                         notify('This is not your base!', 'error');
                     } else {
                         playSound('deposit');
-                        notify(msg.substring(8), 'deposit');
+                        var depositName = state.carryName || 'brainrot';
+                        notify('Deposited ' + depositName + '!', 'deposit');
                         // Increment owned brainrot count locally
                         if (state.carryBvKey) {
                             ownedBrainrots[state.carryBvKey] = (ownedBrainrots[state.carryBvKey] || 0) + 1;
