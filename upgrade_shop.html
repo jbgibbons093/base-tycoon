@@ -526,6 +526,35 @@
                     else if (key === 'IncomeLevel') state.incomeLevel = val;
                     else if (key === 'HasBase') state.hasBase = val > 0;
                 }
+                // Sync unlock state from server variables
+                var ZONE_VAR_MAP = {
+                    'Zone_Forest_Zone_Unlocked': 'Forest Zone',
+                    'Zone_Jungle_Zone_Unlocked': 'Jungle Zone',
+                    'Zone_Cave_Zone_Unlocked': 'Cave Zone',
+                    'Zone_Crystal_Cove_Unlocked': 'Crystal Cove',
+                    'Zone_Boss_Arena_Unlocked': 'Boss Arena',
+                    'Zone_Volcano_Zone_Unlocked': 'Volcano Zone',
+                    'Zone_Ancient_Ruins_Unlocked': 'Ancient Ruins',
+                    'Zone_Sky_Platform_Unlocked': 'Sky Platform',
+                    'Zone_The_Void_Unlocked': 'The Void'
+                };
+                var FLOOR_VAR_MAP = {
+                    'Floor_2_Unlocked': 2,
+                    'Floor_3_Unlocked': 3,
+                    'Floor_4_Unlocked': 4
+                };
+                for (const pair of pairs) {
+                    const eq = pair.indexOf('=');
+                    if (eq < 0) continue;
+                    const key = pair.substring(0, eq).trim();
+                    const val = parseVarValue(pair.substring(eq + 1));
+                    if (ZONE_VAR_MAP[key] && val >= 1 && !state.unlockedZones.includes(ZONE_VAR_MAP[key])) {
+                        state.unlockedZones.push(ZONE_VAR_MAP[key]);
+                    }
+                    if (FLOOR_VAR_MAP[key] && val >= 1 && !state.unlockedFloors.includes(FLOOR_VAR_MAP[key])) {
+                        state.unlockedFloors.push(FLOOR_VAR_MAP[key]);
+                    }
+                }
                 renderAll();
                 return;
             }
