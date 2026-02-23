@@ -867,16 +867,23 @@
                     allBv.push(pool[j]);
                 }
             }
-            // Stagger to avoid flooding — 50ms apart
+            // Stagger to avoid flooding — send two resets per brainrot
+            // (Active->NotActive and Completed->NotActive) since SetAnyToNotActive doesn't exist
             for (var k = 0; k < allBv.length; k++) {
                 (function(bvKey, delay) {
                     setTimeout(function() {
                         sdk.sendMessageToUnity(JSON.stringify({
                             TaskName: bvKey,
-                            TaskTargetState: 'SetAnyToNotActive'
+                            TaskTargetState: 'SetActiveToNotActive'
                         }));
                     }, delay);
-                })(allBv[k], k * 50);
+                    setTimeout(function() {
+                        sdk.sendMessageToUnity(JSON.stringify({
+                            TaskName: bvKey,
+                            TaskTargetState: 'SetCompletedToNotActive'
+                        }));
+                    }, delay + 25);
+                })(allBv[k], k * 60);
             }
             // Reset all zone counts to 0
             for (var zi = 0; zi < zNames.length; zi++) {
@@ -888,8 +895,8 @@
         updateDisplay();
         if (sdk) {
             resetAllBrainrots();
-            // Start spawn timers after reset completes (~5s for 99 brainrots at 50ms each)
-            setTimeout(function() { startSpawnTimers(); }, 6000);
+            // Start spawn timers after reset completes (~6s for 99 brainrots at 60ms each)
+            setTimeout(function() { startSpawnTimers(); }, 7000);
             startGoldAccumulator();
         } else {
             // Dev preview
