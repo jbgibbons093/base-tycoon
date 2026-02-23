@@ -70,7 +70,9 @@
             font-size: 18px; color: white;
             text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
         }
-        .close-x:active { transform: translateY(2px); box-shadow: none; }
+        .close-x { transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        .close-x:hover { transform: scale(1.15); }
+        .close-x:active { transform: scale(0.85); transition-duration: 0.05s; }
 
         .shop-body {
             flex: 1;
@@ -150,11 +152,12 @@
             font-family: 'Luckiest Guy', cursive;
             font-size: 13px;
             cursor: pointer;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.12);
-            transition: all 0.1s;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
             text-shadow: 1px 1px 0 rgba(0,0,0,0.15);
         }
-        .i-btn:active { transform: translateY(2px); box-shadow: none; }
+        .i-btn:hover { transform: scale(1.05) translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.2); }
+        .i-btn:active { transform: scale(0.92) translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); transition-duration: 0.05s; }
         .btn-buy {
             background: linear-gradient(180deg, #FFE44D, #FFB800);
             border-color: #CC8800;
@@ -192,6 +195,18 @@
         }
         @keyframes pop { 0%{transform:translateX(-50%) scale(0.5);opacity:0} 70%{transform:translateX(-50%) scale(1.1)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
         @keyframes fadeOut { to{opacity:0} }
+        .spend-particle {
+            position: absolute;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px; font-weight: 900; color: #E74C3C;
+            pointer-events: none; z-index: 100;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            animation: spendFly 1s ease-out forwards;
+        }
+        @keyframes spendFly {
+            0% { opacity: 1; transform: translate(0,0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--dx),var(--dy)) scale(0.5); }
+        }
     </style>
 </head>
 <body>
@@ -214,6 +229,29 @@
             for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
         })();
         function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
+        function spawnSpendParticles(count) {
+            count = count || 6;
+            var badge = document.getElementById('gold-display');
+            if (!badge) return;
+            badge.style.position = 'relative';
+            for (var i = 0; i < count; i++) {
+                (function(idx) {
+                    setTimeout(function() {
+                        var p = document.createElement('div');
+                        p.className = 'spend-particle';
+                        p.textContent = '-$';
+                        var dx = (Math.random() - 0.5) * 80;
+                        var dy = -(20 + Math.random() * 50);
+                        p.style.setProperty('--dx', dx + 'px');
+                        p.style.setProperty('--dy', dy + 'px');
+                        p.style.left = (Math.random() * 60) + '%';
+                        p.style.top = '0px';
+                        badge.appendChild(p);
+                        setTimeout(function() { if (p.parentNode) p.remove(); }, 1100);
+                    }, idx * 50);
+                })(i);
+            }
+        }
 
         const ITEMS = [
             {
@@ -293,6 +331,7 @@
             }
             render();
             playSound('purchase');
+            spawnSpendParticles(8);
 
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
