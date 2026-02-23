@@ -38,8 +38,8 @@
         /* ---- SLOT ---- */
         .slot {
             position: relative;
-            width: 52px;
-            height: 52px;
+            width: 60px;
+            height: 60px;
             border-radius: 12px;
             background: rgba(255, 255, 255, 0.06);
             border: 2px solid rgba(255, 255, 255, 0.1);
@@ -74,18 +74,22 @@
         }
 
         .slot-icon {
-            font-size: 22px;
+            font-size: 24px;
             line-height: 1;
         }
 
         .slot-label {
-            font-size: 8px;
+            font-size: 7px;
             font-weight: 900;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
+            letter-spacing: 0.3px;
             opacity: 0.6;
             margin-top: 2px;
-            white-space: nowrap;
+            text-align: center;
+            line-height: 1.2;
+            max-width: 56px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
         }
 
         .slot.active .slot-label {
@@ -114,7 +118,7 @@
         /* ---- SEPARATOR ---- */
         .bar-sep {
             width: 1px;
-            height: 36px;
+            height: 42px;
             background: rgba(255, 255, 255, 0.1);
             margin: 0 4px;
             align-self: center;
@@ -230,7 +234,7 @@
         /* ---- CARRY INDICATOR ---- */
         .carry-indicator {
             position: fixed;
-            bottom: 72px;
+            bottom: 82px;
             left: 50%;
             transform: translateX(-50%);
             padding: 4px 14px;
@@ -347,10 +351,10 @@
         ];
 
         const CONSUMABLES = [
-            { id: 'health_pack', name: 'Health Pack', icon: '\u{1FA79}', stat: 'Heal to full HP', cost: 800, task: '640_use_health_pack' },
-            { id: 'speed_potion', name: 'Speed Potion', icon: '\u{26A1}', stat: '2x speed 2min', cost: 2000, task: '641_use_speed_potion', cooldown: 120 },
-            { id: 'base_teleport', name: 'Base TP', icon: '\u{1F300}', stat: 'Teleport to base', cost: 1000, task: '642_use_base_teleport' },
-            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Immune 30s', cost: 3000, task: '643_use_shield', cooldown: 60 }
+            { id: 'health_pack', name: 'Health\nPack', icon: '\u{1FA79}', stat: 'Heal to full HP', cost: 800, task: '640_use_health_pack', varName: 'Inv_Health_Pack' },
+            { id: 'speed_potion', name: 'Speed\nPotion', icon: '\u{26A1}', stat: '2x speed 2min', cost: 2000, task: '641_use_speed_potion', cooldown: 120, varName: 'Inv_Speed_Potion' },
+            { id: 'base_teleport', name: 'Base TP', icon: '\u{1F300}', stat: 'Teleport to base', cost: 1000, task: '642_use_base_teleport', varName: 'Inv_Base_Teleport' },
+            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Immune 30s', cost: 3000, task: '643_use_shield', cooldown: 60, varName: 'Inv_Shield' }
         ];
 
         // ---- STATE ----
@@ -360,6 +364,7 @@
             ownedWeapons: ['pistol'],
             equippedItems: ['health_pack', 'speed_potion', 'shield'],   // 3 consumable slots (pre-assigned)
             cooldowns: {},
+            itemCounts: {},   // e.g. { health_pack: 3, speed_potion: 1, ... }
             pet: null,
             carrying: 0,
             carryGold: 0
@@ -402,11 +407,20 @@
                         const onCd = item.cooldown && state.cooldowns[itemId] && state.cooldowns[itemId] > Date.now();
                         if (onCd) {
                             const cdSec = Math.ceil((state.cooldowns[itemId] - Date.now()) / 1000);
-                            labelEl.textContent = cdSec + 's';
+                            labelEl.innerHTML = cdSec + 's';
                             slotEl.style.opacity = '0.5';
                         } else {
-                            labelEl.textContent = item.name;
+                            labelEl.innerHTML = item.name.replace(/\n/g, '<br>');
                             slotEl.style.opacity = state.gold >= item.cost ? '1' : '0.5';
+                        }
+
+                        // Show count badge
+                        const qty = state.itemCounts[itemId] || 0;
+                        if (qty > 0) {
+                            const badge = document.createElement('div');
+                            badge.className = 'slot-qty';
+                            badge.textContent = qty;
+                            slotEl.appendChild(badge);
                         }
                     }
                 } else {
@@ -639,6 +653,10 @@
             return result;
         }
 
+        // Map Portals variable names to consumable IDs
+        const VAR_TO_ITEM = {};
+        CONSUMABLES.forEach(function(c) { if (c.varName) VAR_TO_ITEM[c.varName] = c.id; });
+
         /**
          * Apply parsed inventory variables to action bar state.
          */
@@ -661,8 +679,15 @@
                 state.equippedWeapon = EQUIPPED_WEAPON_MAP[vars['Equipped_Weapon']];
             }
 
+            // Update item counts
+            for (const [varName, itemId] of Object.entries(VAR_TO_ITEM)) {
+                if (vars[varName] !== undefined) {
+                    state.itemCounts[itemId] = Math.floor(vars[varName]);
+                }
+            }
+
             render();
-            console.log('[ActionBar] Updated: gold=' + state.gold + ' weapons=' + state.ownedWeapons + ' equipped=' + state.equippedWeapon);
+            console.log('[ActionBar] Updated: gold=' + state.gold + ' weapons=' + state.ownedWeapons + ' items=' + JSON.stringify(state.itemCounts));
         }
 
         // ---- SDK MESSAGE LISTENER ----
