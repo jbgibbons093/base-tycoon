@@ -780,11 +780,24 @@
                     // Sync zone counts from server ZC_ variables
                     var zoneNames = Object.keys(ZONES);
                     for (var zi = 0; zi < zoneNames.length; zi++) {
-                        var zk = 'ZC_' + zoneNames[zi];
+                        var z = zoneNames[zi];
+                        var zk = 'ZC_' + z;
                         if (params[zk] !== undefined) {
-                            spawnCounts[zoneNames[zi]] = parseInt(params[zk]) || 0;
+                            var oldCount = spawnCounts[z] || 0;
+                            var newCount = parseInt(params[zk]) || 0;
+                            spawnCounts[z] = newCount;
+                            var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
+                            // Zone went from full to not full — restart timer
+                            if (oldCount >= MAX_PER_ZONE && newCount < MAX_PER_ZONE) {
+                                spawnTimers[z] = interval;
+                            }
+                            // Zone dropped count — reset timer to full interval
+                            if (newCount < oldCount && newCount < MAX_PER_ZONE) {
+                                spawnTimers[z] = interval;
+                            }
                         }
                     }
+                    updateTimerUI();
                     updateDisplay();
                 } else if (msg === 'collect:go') {
                     // Player stepped on collect trigger — check base ownership first
