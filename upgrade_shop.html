@@ -224,7 +224,7 @@
         .icon-sky { background: linear-gradient(180deg, #C0A8FF, #9370DB); border-color: #6A40B0; }
         .icon-void { background: linear-gradient(180deg, #9933FF, #6600CC); border-color: #4400AA; }
         .icon-floor { background: linear-gradient(180deg, #A8D8EA, #74B9FF); border-color: #4A90C0; }
-        .icon-income { background: linear-gradient(180deg, #FFE44D, #FFB800); border-color: #CC8800; }
+
 
         /* Toast */
         .toast {
@@ -262,15 +262,11 @@
             <div class="tab" data-tab="floors" onclick="switchTab('floors')">
                 <span class="tab-icon">&#x1F3E2;</span>Floors
             </div>
-            <div class="tab" data-tab="income" onclick="switchTab('income')">
-                <span class="tab-icon">&#x1F4B0;</span>Income
-            </div>
         </div>
 
         <div class="shop-body">
             <div class="panel active" id="panel-zones"></div>
             <div class="panel" id="panel-floors"></div>
-            <div class="panel" id="panel-income"></div>
         </div>
     </div>
 
@@ -297,19 +293,10 @@
             { num:4, cost:20000, slots:10, bonus:'+15% Legendary+ gold', taskName:'102_unlock_floor_4' },
         ];
 
-        const INCOME_UPGRADES = [
-            { level:1, cost:10000, multiplier:1.1, desc:'+10% Income' },
-            { level:2, cost:50000, multiplier:1.25, desc:'+25% Income' },
-            { level:3, cost:200000, multiplier:1.5, desc:'+50% Income' },
-            { level:4, cost:500000, multiplier:2.0, desc:'2x Income' },
-            { level:5, cost:1500000, multiplier:3.0, desc:'3x Income' },
-        ];
-
         let state = {
             gold: 0,
             unlockedZones: ['Beach Zone', 'Meadow'],
             unlockedFloors: [1],
-            incomeLevel: 0,
             rebirth: 0,
             hasBase: false
         };
@@ -391,41 +378,10 @@
             });
         }
 
-        function renderIncome() {
-            const el = document.getElementById('panel-income');
-            el.innerHTML = '';
-            INCOME_UPGRADES.forEach(u => {
-                const owned = state.incomeLevel >= u.level;
-                const isNext = state.incomeLevel === u.level - 1;
-                const canBuy = isNext && state.gold >= u.cost;
-
-                let btnClass, btnText;
-                if (owned) { btnClass = 'btn-done'; btnText = 'OWNED'; }
-                else if (canBuy) { btnClass = 'btn-buy'; btnText = fmt(u.cost) + 'g'; }
-                else { btnClass = 'btn-locked'; btnText = fmt(u.cost) + 'g'; }
-
-                const card = document.createElement('div');
-                card.className = 'upgrade-card' + (owned ? ' owned' : '');
-                card.innerHTML = `
-                    <div class="u-icon icon-income">&#x1F4B0;</div>
-                    <div class="u-info">
-                        <div class="u-name">Income Lv.${u.level} <span style="font-family:Luckiest Guy,cursive;font-size:12px;color:#CC8800;margin-left:4px">${u.multiplier}x</span></div>
-                        <div class="u-desc">${u.desc} &bull; All base income multiplied</div>
-                    </div>
-                    <button class="u-btn ${btnClass}" data-level="${u.level}">${btnText}</button>
-                `;
-                el.appendChild(card);
-            });
-            el.querySelectorAll('.u-btn.btn-buy').forEach(btn => {
-                btn.addEventListener('click', () => buyIncome(parseInt(btn.dataset.level)));
-            });
-        }
-
         function renderAll() {
             document.getElementById('gold-display').innerHTML = '&#x1F4B0; ' + fmt(state.gold);
             renderZones();
             renderFloors();
-            renderIncome();
         }
 
         function buyZone(zoneName) {
@@ -457,21 +413,6 @@
                 }));
             }
             toast('Floor ' + f.num + ' Unlocked!');
-        }
-
-        function buyIncome(level) {
-            const u = INCOME_UPGRADES.find(x => x.level === level);
-            if (!u || state.incomeLevel >= level || state.gold < u.cost) return;
-            state.gold -= u.cost;
-            state.incomeLevel = level;
-            renderAll();
-            if (sdk) {
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: 'income_upgrade_' + level,
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-            }
-            toast('Income Lv.' + level + ' - ' + u.multiplier + 'x!');
         }
 
         function toast(text) {
@@ -523,7 +464,6 @@
                     const val = parseVarValue(pair.substring(eq + 1));
                     if (key === 'Gold') state.gold = val;
                     else if (key === 'Rebirth') state.rebirth = val;
-                    else if (key === 'IncomeLevel') state.incomeLevel = val;
                     else if (key === 'HasBase') state.hasBase = val > 0;
                 }
                 // Sync unlock state from server variables
@@ -572,7 +512,6 @@
                 if (data.gold !== undefined) state.gold = parseFloat(data.gold) || 0;
                 if (data.unlockedZones) state.unlockedZones = data.unlockedZones;
                 if (data.unlockedFloors) state.unlockedFloors = data.unlockedFloors;
-                if (data.incomeLevel !== undefined) state.incomeLevel = parseInt(data.incomeLevel) || 0;
                 if (data.rebirth !== undefined) state.rebirth = parseInt(data.rebirth) || 0;
                 if (data.hasBase !== undefined) state.hasBase = data.hasBase;
                 renderAll();
@@ -630,7 +569,6 @@
             state.gold = 150000;
             state.unlockedZones = ['Beach Zone', 'Meadow', 'Forest Zone', 'Jungle Zone'];
             state.unlockedFloors = [1, 2];
-            state.incomeLevel = 1;
             state.rebirth = 0;
             state.hasBase = true;
             renderAll();

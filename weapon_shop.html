@@ -302,7 +302,8 @@
             state.owned.push(id);
             state.equipped = id;
             render();
-            if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:'buy_'+id,TaskTargetState:'SetNotActiveToActive'}));
+            var BUY_TASK_MAP = {pistol:'600_buy_pistol', rifle:'601_buy_rifle', shotgun:'602_buy_shotgun'};
+            if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:BUY_TASK_MAP[id],TaskTargetState:'SetNotActiveToActive'}));
             toast('Bought '+w.name+'!');
         }
 
@@ -310,7 +311,8 @@
             if (state.equipped===id) return;
             state.equipped = id;
             render();
-            if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:'equip_'+id,TaskTargetState:'SetNotActiveToActive'}));
+            var EQUIP_TASK_MAP = {pistol:'603_equip_pistol', rifle:'604_equip_rifle', shotgun:'605_equip_shotgun'};
+            if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:EQUIP_TASK_MAP[id],TaskTargetState:'SetNotActiveToActive'}));
             toast('Equipped '+WEAPONS.find(x=>x.id===id).name+'!');
         }
 

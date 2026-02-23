@@ -290,17 +290,17 @@
         <div class="bar-sep"></div>
 
         <!-- Consumable slots -->
-        <div class="slot empty" id="slot-item1" onclick="toggleDropup('items')">
+        <div class="slot" id="slot-item1" onclick="useSlotItem(0)">
             <span class="slot-key">2</span>
             <span class="slot-icon" id="item1-icon">&#x2795;</span>
             <span class="slot-label" id="item1-label">Empty</span>
         </div>
-        <div class="slot empty" id="slot-item2">
+        <div class="slot" id="slot-item2" onclick="useSlotItem(1)">
             <span class="slot-key">3</span>
             <span class="slot-icon" id="item2-icon">&#x2795;</span>
             <span class="slot-label" id="item2-label">Empty</span>
         </div>
-        <div class="slot empty" id="slot-item3">
+        <div class="slot" id="slot-item3" onclick="useSlotItem(2)">
             <span class="slot-key">4</span>
             <span class="slot-icon" id="item3-icon">&#x2795;</span>
             <span class="slot-label" id="item3-label">Empty</span>
@@ -339,18 +339,19 @@
         ];
 
         const CONSUMABLES = [
-            { id: 'health_potion', name: 'Health Potion', icon: '\u{2764}\u{FE0F}', stat: 'Restore 50 HP' },
-            { id: 'speed_boost', name: 'Speed Boost', icon: '\u{26A1}', stat: '+50% speed 30s' },
-            { id: 'gold_magnet', name: 'Gold Magnet', icon: '\u{1F9F2}', stat: '2x pickup range 60s' },
-            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Block 3 hits' }
+            { id: 'health_pack', name: 'Health Pack', icon: '\u{1FA79}', stat: 'Heal to full HP', cost: 800, task: '640_use_health_pack' },
+            { id: 'speed_potion', name: 'Speed Potion', icon: '\u{26A1}', stat: '2x speed 2min', cost: 2000, task: '641_use_speed_potion', cooldown: 120 },
+            { id: 'base_teleport', name: 'Base TP', icon: '\u{1F300}', stat: 'Teleport to base', cost: 1000, task: '642_use_base_teleport' },
+            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Immune 30s', cost: 3000, task: '643_use_shield', cooldown: 60 }
         ];
 
         // ---- STATE ----
         let state = {
+            gold: 0,
             equippedWeapon: 'pistol',
             ownedWeapons: ['pistol'],
-            equippedItems: [null, null, null],   // 3 consumable slots
-            itemQuantities: {},                  // { 'health_potion': 5, ... }
+            equippedItems: ['health_pack', 'speed_potion', 'shield'],   // 3 consumable slots (pre-assigned)
+            cooldowns: {},
             pet: null,
             carrying: 0,
             carryGold: 0
@@ -379,7 +380,7 @@
                 const iconEl = document.getElementById('item' + (i + 1) + '-icon');
                 const labelEl = document.getElementById('item' + (i + 1) + '-label');
 
-                // Remove old quantity badges
+                // Remove old badges
                 const oldQty = slotEl.querySelector('.slot-qty');
                 if (oldQty) oldQty.remove();
 
@@ -389,19 +390,22 @@
                     if (item) {
                         slotEl.classList.remove('empty');
                         iconEl.innerHTML = item.icon;
-                        labelEl.textContent = item.name;
-                        const qty = state.itemQuantities[itemId] || 0;
-                        if (qty > 0) {
-                            const badge = document.createElement('span');
-                            badge.className = 'slot-qty';
-                            badge.textContent = qty;
-                            slotEl.appendChild(badge);
+                        // Show cooldown or cost
+                        const onCd = item.cooldown && state.cooldowns[itemId] && state.cooldowns[itemId] > Date.now();
+                        if (onCd) {
+                            const cdSec = Math.ceil((state.cooldowns[itemId] - Date.now()) / 1000);
+                            labelEl.textContent = cdSec + 's';
+                            slotEl.style.opacity = '0.5';
+                        } else {
+                            labelEl.textContent = item.name;
+                            slotEl.style.opacity = state.gold >= item.cost ? '1' : '0.5';
                         }
                     }
                 } else {
                     slotEl.classList.add('empty');
                     iconEl.innerHTML = '\u2795';
                     labelEl.textContent = 'Empty';
+                    slotEl.style.opacity = '';
                 }
             }
 
@@ -456,42 +460,33 @@
         function renderItemsDropup() {
             itemsList.innerHTML = '';
             CONSUMABLES.forEach(c => {
-                const qty = state.itemQuantities[c.id] || 0;
-                const slotted = state.equippedItems.includes(c.id);
-                if (qty <= 0 && !slotted) return; // hide items we don't own
+                const canAfford = state.gold >= c.cost;
+                const onCd = c.cooldown && state.cooldowns[c.id] && state.cooldowns[c.id] > Date.now();
                 const div = document.createElement('div');
-                div.className = 'dropup-item' + (slotted ? ' equipped' : '');
+                div.className = 'dropup-item' + (!canAfford || onCd ? ' locked' : '');
+                var costFmt = c.cost >= 1000 ? (c.cost/1000).toFixed(0)+'K' : c.cost;
                 div.innerHTML =
                     '<span class="di-icon">' + c.icon + '</span>' +
                     '<div class="di-info">' +
                         '<span class="di-name">' + c.name + '</span>' +
                         '<span class="di-stat">' + c.stat + '</span>' +
                     '</div>' +
-                    (qty > 0 ? '<span class="di-tag tag-equipped">x' + qty + '</span>' : '');
-                div.onclick = function(e) {
-                    e.stopPropagation();
-                    useItem(c.id);
-                };
+                    (onCd ? '<span class="di-tag tag-locked">' + Math.ceil((state.cooldowns[c.id] - Date.now()) / 1000) + 's</span>' :
+                     '<span class="di-tag tag-equipped">' + costFmt + 'g</span>');
+                if (canAfford && !onCd) {
+                    div.onclick = function(e) {
+                        e.stopPropagation();
+                        useItem(c.id);
+                    };
+                }
                 itemsList.appendChild(div);
             });
-            if (itemsList.children.length === 0) {
-                const empty = document.createElement('div');
-                empty.className = 'dropup-item locked';
-                empty.innerHTML = '<span class="di-icon">\u{1F6D2}</span><div class="di-info"><span class="di-name">No Items</span><span class="di-stat">Buy from the shop!</span></div>';
-                itemsList.appendChild(empty);
-            }
         }
 
         // ---- ACTIONS ----
         // Quest names for iframe → Portals communication
         // These must exactly match quest Names in the room
-        const EQUIP_QUEST = { pistol: 'equip_pistol', rifle: 'equip_rifle', shotgun: 'equip_shotgun' };
-        const CONSUME_QUEST = {
-            health_potion: 'consume_health_potion',
-            speed_boost: 'consume_speed_boost',
-            gold_magnet: 'consume_gold_magnet',
-            shield: 'consume_shield'
-        };
+        const EQUIP_QUEST = { pistol: '603_equip_pistol', rifle: '604_equip_rifle', shotgun: '605_equip_shotgun' };
 
         function equipWeapon(id) {
             if (!state.ownedWeapons.includes(id)) return;
@@ -509,39 +504,36 @@
         }
 
         function useItem(id) {
-            const qty = state.itemQuantities[id] || 0;
-            if (qty <= 0) return;
+            const item = CONSUMABLES.find(c => c.id === id);
+            if (!item || !item.task) return;
+            if (state.gold < item.cost) return;
 
-            // Optimistic UI update (server will confirm via inv: message)
-            state.itemQuantities[id] = qty - 1;
+            // Check cooldown
+            if (item.cooldown && state.cooldowns[id] && state.cooldowns[id] > Date.now()) return;
 
-            // Auto-slot into first empty slot if not already slotted
-            if (!state.equippedItems.includes(id)) {
-                const emptyIdx = state.equippedItems.indexOf(null);
-                if (emptyIdx !== -1) {
-                    state.equippedItems[emptyIdx] = id;
-                }
-            }
-
-            // Remove from slot if quantity hits 0
-            if (state.itemQuantities[id] <= 0) {
-                const idx = state.equippedItems.indexOf(id);
-                if (idx !== -1) state.equippedItems[idx] = null;
+            // Optimistic gold deduction
+            state.gold -= item.cost;
+            if (item.cooldown) {
+                state.cooldowns[id] = Date.now() + (item.cooldown * 1000);
             }
 
             render();
             renderItemsDropup();
             closeAllDropups();
 
-            // Send consume quest activation to Portals
-            // Room-side task will: decrement variable, then send updated inv: message back
-            if (sdk && CONSUME_QUEST[id]) {
+            // Send quest activation to Portals (room-side deducts gold server-side)
+            if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: CONSUME_QUEST[id],
+                    TaskName: item.task,
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
                 sdk.focusGameKeyboard();
             }
+        }
+
+        function useSlotItem(slotIdx) {
+            const itemId = state.equippedItems[slotIdx];
+            if (itemId) useItem(itemId);
         }
 
         // ---- DROP-UP TOGGLE ----
@@ -582,30 +574,7 @@
             }
         });
 
-        // ============================================================
-        // VARIABLE PARSER SYSTEM
-        // Receives Portals variable messages via SendMessageToIframes
-        // and updates action bar state from ownership variables.
-        //
-        // Variable naming convention (Portals player variables):
-        //   Own_Pistol, Own_Rifle, Own_Shotgun  (0/1)
-        //   Inv_HealthPotion, Inv_SpeedBoost, Inv_GoldMagnet, Inv_Shield (counts)
-        //
-        // Message format from Portals (SendMessageToIframes with |var| interpolation):
-        //   "inv:Own_Pistol=|Own_Pistol|&Own_Rifle=|Own_Rifle|&Own_Shotgun=|Own_Shotgun|
-        //    &Inv_HealthPotion=|Inv_HealthPotion|&Inv_SpeedBoost=|Inv_SpeedBoost|
-        //    &Inv_GoldMagnet=|Inv_GoldMagnet|&Inv_Shield=|Inv_Shield|"
-        //
-        // After Portals resolves |var| interpolation, iframe receives:
-        //   "inv:Own_Pistol=1&Own_Rifle=0&Inv_HealthPotion=3..." (raw numbers)
-        //   or "inv:Own_Pistol={"Player":1}&..." (object keyed by player)
-        //
-        // Send-back to Portals (consume/equip):
-        //   sdk.sendMessageToUnity(JSON.stringify({
-        //     TaskName: "consume_health_potion",  // quest name
-        //     TaskTargetState: "SetNotActiveToActive"
-        //   }))
-        // ============================================================
+        // ---- VARIABLE PARSER (from inv: sync messages) ----
 
         // Map Portals variable names to action bar state
         const VAR_TO_WEAPON = {
@@ -613,12 +582,7 @@
             'Own_Rifle': 'rifle',
             'Own_Shotgun': 'shotgun'
         };
-        const VAR_TO_ITEM = {
-            'Inv_HealthPotion': 'health_potion',
-            'Inv_SpeedBoost': 'speed_boost',
-            'Inv_GoldMagnet': 'gold_magnet',
-            'Inv_Shield': 'shield'
-        };
+        const EQUIPPED_WEAPON_MAP = { 1: 'pistol', 2: 'rifle', 3: 'shotgun' };
 
         /**
          * Parse a value from Portals variable interpolation.
@@ -668,42 +632,26 @@
          * Apply parsed inventory variables to action bar state.
          */
         function applyInventoryUpdate(vars) {
+            // Update gold
+            if (vars['Gold'] !== undefined) state.gold = vars['Gold'];
+
             // Update weapon ownership
             for (const [varName, weaponId] of Object.entries(VAR_TO_WEAPON)) {
                 if (vars[varName] !== undefined) {
                     const owned = vars[varName] > 0;
                     if (owned && !state.ownedWeapons.includes(weaponId)) {
                         state.ownedWeapons.push(weaponId);
-                    } else if (!owned) {
-                        state.ownedWeapons = state.ownedWeapons.filter(w => w !== weaponId);
-                        // Pistol always stays owned as starter weapon
-                        if (!state.ownedWeapons.includes('pistol')) {
-                            state.ownedWeapons.push('pistol');
-                        }
                     }
                 }
             }
 
-            // Update item quantities
-            for (const [varName, itemId] of Object.entries(VAR_TO_ITEM)) {
-                if (vars[varName] !== undefined) {
-                    const qty = Math.max(0, Math.floor(vars[varName]));
-                    state.itemQuantities[itemId] = qty;
-                    // Auto-slot items with qty > 0 into empty slots
-                    if (qty > 0 && !state.equippedItems.includes(itemId)) {
-                        const emptyIdx = state.equippedItems.indexOf(null);
-                        if (emptyIdx !== -1) state.equippedItems[emptyIdx] = itemId;
-                    }
-                    // Remove from slot if qty drops to 0
-                    if (qty <= 0) {
-                        const idx = state.equippedItems.indexOf(itemId);
-                        if (idx !== -1) state.equippedItems[idx] = null;
-                    }
-                }
+            // Update equipped weapon
+            if (vars['Equipped_Weapon'] !== undefined && EQUIPPED_WEAPON_MAP[vars['Equipped_Weapon']]) {
+                state.equippedWeapon = EQUIPPED_WEAPON_MAP[vars['Equipped_Weapon']];
             }
 
             render();
-            console.log('[ActionBar] Inventory updated:', JSON.stringify(state.itemQuantities), 'Weapons:', state.ownedWeapons);
+            console.log('[ActionBar] Updated: gold=' + state.gold + ' weapons=' + state.ownedWeapons + ' equipped=' + state.equippedWeapon);
         }
 
         // ---- SDK MESSAGE LISTENER ----
@@ -757,21 +705,7 @@
                     const d = JSON.parse(message);
                     if (d.weapon) state.equippedWeapon = d.weapon;
                     if (d.ownedWeapons) state.ownedWeapons = d.ownedWeapons;
-                    if (d.items) {
-                        state.itemQuantities = d.items;
-                        // Re-slot items
-                        CONSUMABLES.forEach(c => {
-                            const qty = state.itemQuantities[c.id] || 0;
-                            if (qty > 0 && !state.equippedItems.includes(c.id)) {
-                                const emptyIdx = state.equippedItems.indexOf(null);
-                                if (emptyIdx !== -1) state.equippedItems[emptyIdx] = c.id;
-                            }
-                            if (qty <= 0) {
-                                const idx = state.equippedItems.indexOf(c.id);
-                                if (idx !== -1) state.equippedItems[idx] = null;
-                            }
-                        });
-                    }
+                    if (d.gold !== undefined) state.gold = parseFloat(d.gold) || 0;
                     if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying) || 0;
                     if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold) || 0;
                     if (d.pet) state.pet = d.pet;
@@ -811,12 +745,18 @@
         // ---- INIT ----
         render();
 
+        // Cooldown refresh timer
+        setInterval(function() {
+            var hasActive = Object.values(state.cooldowns).some(function(v) { return v > Date.now(); });
+            if (hasActive) render();
+        }, 1000);
+
         // Dev preview
         if (!sdk) {
+            state.gold = 25000;
             state.ownedWeapons = ['pistol', 'rifle'];
             state.equippedWeapon = 'rifle';
-            state.itemQuantities = { health_potion: 3, speed_boost: 1 };
-            state.equippedItems = ['health_potion', 'speed_boost', null];
+            state.equippedItems = ['health_pack', 'speed_potion', 'shield'];
             state.carrying = 1;
             state.carryGold = 14.6;
             render();

@@ -326,8 +326,11 @@
             render();
 
             if (sdk) {
+                var GEAR_BASE = {gear_speed:609, gear_carry:619, gear_armor:629};
+                var taskNum = GEAR_BASE[g.taskPrefix] + (level + 1);
+                var taskName = taskNum + '_' + g.taskPrefix + '_' + (level + 1);
                 sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: g.taskPrefix + '_' + (level + 1),
+                    TaskName: taskName,
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
             }
