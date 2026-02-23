@@ -258,6 +258,24 @@
             50% { transform: scale(1.15); }
             100% { transform: scale(1); }
         }
+
+        /* Cash particle animation */
+        .cash-particle {
+            position: absolute;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 16px;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 100;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            animation: cashFly 1s ease-out forwards;
+        }
+        .cash-particle.earn { color: #2ECC40; }
+        .cash-particle.spend { color: #E74C3C; }
+        @keyframes cashFly {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.5); }
+        }
     </style>
 </head>
 <body>
@@ -303,7 +321,9 @@
             var files = {
                 purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3',
                 uipop: 'ui-pop.mp3', harvest: 'harvest.mp3', talent: 'talent.mp3',
-                xp: 'xp-gain.mp3', cropready: 'cropready.mp3'
+                xp: 'xp-gain.mp3', cropready: 'cropready.mp3',
+                notification: 'notification.mp3', pickup: 'brainrot-collect.mp3',
+                deposit: 'deposit-brainrot.mp3'
             };
             for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
         })();
@@ -342,6 +362,32 @@
             el.classList.remove('pop');
             void el.offsetWidth;
             el.classList.add('pop');
+        }
+
+        /* ---- CASH PARTICLE BURST ---- */
+        function spawnCashParticles(type, count) {
+            // type: 'earn' (green $) or 'spend' (red -$)
+            count = count || 6;
+            var pill = document.getElementById('pill-gold');
+            if (!pill) return;
+            for (var i = 0; i < count; i++) {
+                (function(idx) {
+                    setTimeout(function() {
+                        var p = document.createElement('div');
+                        p.className = 'cash-particle ' + type;
+                        p.textContent = type === 'earn' ? '$' : '-$';
+                        // Random direction — mostly upward
+                        var dx = (Math.random() - 0.5) * 80;
+                        var dy = -(30 + Math.random() * 60);
+                        p.style.setProperty('--dx', dx + 'px');
+                        p.style.setProperty('--dy', dy + 'px');
+                        p.style.left = (10 + Math.random() * 30) + 'px';
+                        p.style.top = '0px';
+                        pill.appendChild(p);
+                        setTimeout(function() { if (p.parentNode) p.remove(); }, 1100);
+                    }, idx * 60);
+                })(i);
+            }
         }
 
         /* ---- NOTIFICATION SYSTEM ---- */
@@ -514,10 +560,11 @@
                 })(tasks[t], t * 200);
             }
 
-            // Show notification
+            // Show notification + cash burst
             playSound('xp');
             notify('+' + fmt(amount) + ' Gold collected!', 'gold');
             pop(document.getElementById('pill-gold'));
+            spawnCashParticles('earn', 8);
             updateGoldDisplay();
         }
 
@@ -748,7 +795,7 @@
                         playSound('uipop');
                         notify('Already carrying a brainrot!', 'info');
                     } else {
-                        playSound('uipop');
+                        playSound('pickup');
                         notify(msg.substring(7), 'pickup');
                         var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
                         if (pMatch) {
@@ -764,7 +811,7 @@
                     }
                 } else if (msg.startsWith('deposit:')) {
                     if (state.carrying > 0) {
-                        playSound('harvest');
+                        playSound('deposit');
                         notify(msg.substring(8), 'deposit');
                         // Increment owned brainrot count locally
                         if (state.carryBvKey) {
@@ -788,7 +835,7 @@
                 } else if (msg.startsWith('rebirth:')) {
                     state.rebirth = parseInt(msg.substring(8))||0; updateDisplay();
                 } else if (msg.startsWith('toast:')) {
-                    playSound('uipop');
+                    playSound('notification');
                     showToast(msg.substring(6));
                 }
             });
