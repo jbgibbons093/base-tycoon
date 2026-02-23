@@ -320,19 +320,64 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
-        // ---- SOUND SYSTEM ----
+        // ---- SOUND SYSTEM (Web Audio API + HTML5 Audio fallback) ----
+        var _audioCtx = null;
+        var _audioBuffers = {};
         var _mp3Sounds = {};
+        var _soundFiles = {
+            purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3',
+            uipop: 'ui-pop.mp3', harvest: 'harvest.mp3', talent: 'talent.mp3',
+            xp: 'xp-gain.mp3', cropready: 'cropready.mp3',
+            notification: 'notification.mp3', pickup: 'brainrot-collect.mp3',
+            deposit: 'deposit-brainrot.mp3'
+        };
+        function _getAudioCtx() {
+            if (!_audioCtx) {
+                try { _audioCtx = new (window.AudioContext || window.webkitAudioContext)(); } catch(e) {}
+            }
+            if (_audioCtx && _audioCtx.state === 'suspended') _audioCtx.resume();
+            return _audioCtx;
+        }
+        // Pre-load buffers via Web Audio API
         (function() {
-            var files = {
-                purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3',
-                uipop: 'ui-pop.mp3', harvest: 'harvest.mp3', talent: 'talent.mp3',
-                xp: 'xp-gain.mp3', cropready: 'cropready.mp3',
-                notification: 'notification.mp3', pickup: 'brainrot-collect.mp3',
-                deposit: 'deposit-brainrot.mp3'
-            };
-            for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
+            var ctx = _getAudioCtx();
+            for (var k in _soundFiles) {
+                // HTML5 Audio fallback
+                var a = new Audio(_soundFiles[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a;
+                // Web Audio API buffer
+                if (ctx) {
+                    (function(key, url) {
+                        fetch(url).then(function(r) { return r.arrayBuffer(); })
+                            .then(function(b) { return ctx.decodeAudioData(b); })
+                            .then(function(buf) { _audioBuffers[key] = buf; })
+                            .catch(function() {});
+                    })(k, _soundFiles[k]);
+                }
+            }
         })();
-        function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
+        function playSound(type) {
+            // Try Web Audio API first (works better in iframes with autoplay restrictions)
+            var ctx = _getAudioCtx();
+            if (ctx && _audioBuffers[type]) {
+                try {
+                    var src = ctx.createBufferSource();
+                    var gain = ctx.createGain();
+                    src.buffer = _audioBuffers[type];
+                    gain.gain.value = (type === 'click') ? 0.5 : 0.3;
+                    src.connect(gain);
+                    gain.connect(ctx.destination);
+                    src.start(0);
+                    return;
+                } catch(e) {}
+            }
+            // Fallback to HTML5 Audio
+            var s = _mp3Sounds[type];
+            if (s) { s.currentTime = 0; s.play().catch(function(){}); }
+        }
+        // Resume AudioContext on any user gesture (unlocks autoplay)
+        document.addEventListener('click', function() { _getAudioCtx(); }, { once: true });
+        document.addEventListener('touchstart', function() { _getAudioCtx(); }, { once: true });
+        document.addEventListener('keydown', function() { _getAudioCtx(); }, { once: true });
 
         let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', rebirth: 0, pendingGold: 0, earningRate: 0 };
 
@@ -647,8 +692,8 @@
                     TaskName: pick,
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
-                // Optimistic increment — server will confirm via ZC_ sync
-                spawnCounts[zone] = (spawnCounts[zone] || 0) + 1;
+                // Don't optimistically increment — let server ZC_ sync be source of truth
+                // The timer will pause on next ZC sync if zone reaches MAX
             }
         }
 
@@ -668,6 +713,7 @@
                     '<span class="pip-time" id="pip-time-' + z + '">' + interval + 's</span>' +
                     '</div>';
                 spawnTimers[z] = interval;
+                spawnCounts[z] = 0; // Start at 0 — server ZC_ sync is source of truth
             }
             strip.innerHTML = html;
         }
