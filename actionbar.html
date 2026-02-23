@@ -15,6 +15,7 @@
             font-family: 'Nunito', sans-serif;
             color: white;
             user-select: none;
+            pointer-events: none;
         }
 
         /* ---- ACTION BAR CONTAINER ---- */
@@ -33,6 +34,7 @@
             box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(8px);
             z-index: 10;
+            pointer-events: auto;
         }
 
         /* ---- SLOT ---- */
@@ -248,6 +250,7 @@
             z-index: 10;
             display: none;
             white-space: nowrap;
+            pointer-events: auto;
         }
 
         .carry-indicator.show {
@@ -310,15 +313,6 @@
             <span class="slot-label" id="item3-label">Empty</span>
         </div>
 
-        <div class="bar-sep"></div>
-
-        <!-- Pet/companion slot -->
-        <div class="slot empty" id="slot-pet">
-            <span class="slot-key">5</span>
-            <span class="slot-icon" id="pet-icon">&#x1F43E;</span>
-            <span class="slot-label" id="pet-label">Pet</span>
-        </div>
-
         <!-- WEAPON DROP-UP -->
         <div class="dropup" id="dropup-weapon">
             <div class="dropup-title">Weapons</div>
@@ -351,10 +345,10 @@
         ];
 
         const CONSUMABLES = [
-            { id: 'health_pack', name: 'Health\nPack', icon: '\u{1FA79}', stat: 'Heal to full HP', cost: 800, task: 'use_health_pack', varName: 'Inv_Health_Pack' },
-            { id: 'speed_potion', name: 'Speed\nPotion', icon: '\u{26A1}', stat: '2x speed 2min', cost: 2000, task: 'use_speed_potion', cooldown: 120, varName: 'Inv_Speed_Potion' },
-            { id: 'base_teleport', name: 'Base TP', icon: '\u{1F300}', stat: 'Teleport to base', cost: 1000, task: 'use_base_teleport', varName: 'Inv_Base_Teleport' },
-            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Immune 30s', cost: 3000, task: 'use_shield', cooldown: 60, varName: 'Inv_Shield' }
+            { id: 'health_pack', name: 'Health\nPack', icon: '\u{1FA79}', stat: 'Heal to full HP', task: 'use_health_pack', varName: 'Inv_Health_Pack' },
+            { id: 'speed_potion', name: 'Speed\nPotion', icon: '\u{26A1}', stat: '2x speed 2min', task: 'use_speed_potion', cooldown: 120, varName: 'Inv_Speed_Potion' },
+            { id: 'base_teleport', name: 'Base TP', icon: '\u{1F300}', stat: 'Teleport to base', task: 'use_base_teleport', varName: 'Inv_Base_Teleport' },
+            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Immune 30s', task: 'use_shield', cooldown: 60, varName: 'Inv_Shield' }
         ];
 
         // ---- STATE ----
@@ -365,7 +359,6 @@
             equippedItems: ['health_pack', 'speed_potion', 'shield'],   // 3 consumable slots (pre-assigned)
             cooldowns: {},
             itemCounts: {},   // e.g. { health_pack: 3, speed_potion: 1, ... }
-            pet: null,
             carrying: 0,
             carryGold: 0
         };
@@ -416,7 +409,7 @@
                             slotEl.style.opacity = '0.5';
                         } else {
                             labelEl.innerHTML = item.name.replace(/\n/g, '<br>');
-                            slotEl.style.opacity = state.gold >= item.cost ? '1' : '0.5';
+                            slotEl.style.opacity = (state.itemCounts[itemId] || 0) > 0 ? '1' : '0.5';
                         }
 
                         // Show count badge
@@ -434,20 +427,6 @@
                     labelEl.textContent = 'Empty';
                     slotEl.style.opacity = '';
                 }
-            }
-
-            // Pet slot
-            const petSlot = document.getElementById('slot-pet');
-            const petIcon = document.getElementById('pet-icon');
-            const petLabel = document.getElementById('pet-label');
-            if (state.pet) {
-                petSlot.classList.remove('empty');
-                petIcon.innerHTML = state.pet.icon || '\u{1F43E}';
-                petLabel.textContent = state.pet.name || 'Pet';
-            } else {
-                petSlot.classList.add('empty');
-                petIcon.innerHTML = '\u{1F43E}';
-                petLabel.textContent = 'Pet';
             }
 
             // Carry indicator
@@ -487,11 +466,11 @@
         function renderItemsDropup() {
             itemsList.innerHTML = '';
             CONSUMABLES.forEach(c => {
-                const canAfford = state.gold >= c.cost;
+                const count = state.itemCounts[c.id] || 0;
                 const onCd = c.cooldown && state.cooldowns[c.id] && state.cooldowns[c.id] > Date.now();
+                const canUse = count > 0 && !onCd;
                 const div = document.createElement('div');
-                div.className = 'dropup-item' + (!canAfford || onCd ? ' locked' : '');
-                var costFmt = c.cost >= 1000 ? (c.cost/1000).toFixed(0)+'K' : c.cost;
+                div.className = 'dropup-item' + (!canUse ? ' locked' : '');
                 div.innerHTML =
                     '<span class="di-icon">' + c.icon + '</span>' +
                     '<div class="di-info">' +
@@ -499,8 +478,8 @@
                         '<span class="di-stat">' + c.stat + '</span>' +
                     '</div>' +
                     (onCd ? '<span class="di-tag tag-locked">' + Math.ceil((state.cooldowns[c.id] - Date.now()) / 1000) + 's</span>' :
-                     '<span class="di-tag tag-equipped">' + costFmt + 'g</span>');
-                if (canAfford && !onCd) {
+                     '<span class="di-tag tag-equipped">x' + count + '</span>');
+                if (canUse) {
                     div.onclick = function(e) {
                         e.stopPropagation();
                         useItem(c.id);
@@ -534,23 +513,26 @@
         function useItem(id) {
             const item = CONSUMABLES.find(c => c.id === id);
             if (!item || !item.task) return;
-            if (state.gold < item.cost) return;
 
             // Check cooldown
             if (item.cooldown && state.cooldowns[id] && state.cooldowns[id] > Date.now()) return;
 
-            // Optimistic gold deduction
-            state.gold -= item.cost;
+            // Check inventory count
+            const count = state.itemCounts[id] || 0;
+            if (count <= 0) return;
+
+            // Optimistic inventory deduction
+            state.itemCounts[id] = count - 1;
             if (item.cooldown) {
                 state.cooldowns[id] = Date.now() + (item.cooldown * 1000);
             }
 
             render();
             renderItemsDropup();
-            playSound('purchase');
+            playSound('click');
             closeAllDropups();
 
-            // Send quest activation to Portals (room-side deducts gold server-side)
+            // Send quest activation to Portals (room-side handles the effect)
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
                     TaskName: item.task,
@@ -732,15 +714,6 @@
                     return;
                 }
 
-                // ---- PET UPDATE ----
-                // Format: "pet:name,icon"
-                if (message.startsWith('pet:')) {
-                    const parts = message.substring(4).split(',');
-                    state.pet = { name: parts[0], icon: parts[1] || '\u{1F43E}' };
-                    render();
-                    return;
-                }
-
                 // ---- JSON FORMAT (fallback) ----
                 try {
                     const d = JSON.parse(message);
@@ -749,7 +722,6 @@
                     if (d.gold !== undefined) state.gold = parseFloat(d.gold) || 0;
                     if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying) || 0;
                     if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold) || 0;
-                    if (d.pet) state.pet = d.pet;
                     render();
                 } catch(e) {}
             });
