@@ -187,6 +187,11 @@
             border: 3px solid #95A5A6;
             color: #2C3E50;
         }
+        .notif-error {
+            background: linear-gradient(180deg, #FF6B6B, #E74C3C);
+            border: 3px solid #C0392B;
+            color: #FFFFFF;
+        }
         @keyframes notifSlide {
             0% { transform: translateX(-80px); opacity: 0; }
             70% { transform: translateX(3px); }
@@ -782,8 +787,16 @@
                     }
                     updateDisplay();
                 } else if (msg === 'collect:go') {
-                    // Player stepped on collect trigger — collect accumulated gold
-                    collectGold();
+                    // Player stepped on collect trigger — check base ownership first
+                    if (state.baseId <= 0) {
+                        playSound('uipop');
+                        notify('Claim a base first!', 'error');
+                    } else if (state.pendingGold < 1) {
+                        playSound('uipop');
+                        notify('No gold to collect yet!', 'info');
+                    } else {
+                        collectGold();
+                    }
                 } else if (msg.startsWith('gold:')) {
                     var v = parseFloat(msg.substring(5))||0;
                     var diff = v - state.gold;
@@ -810,7 +823,19 @@
                         }
                     }
                 } else if (msg.startsWith('deposit:')) {
-                    if (state.carrying > 0) {
+                    // Parse base number from message: "Deposited brainrot at Base N!"
+                    var baseMatch = msg.match(/Base (\d+)/);
+                    var depositBase = baseMatch ? parseInt(baseMatch[1]) : 0;
+                    if (state.carrying <= 0) {
+                        playSound('uipop');
+                        notify('You\'re not carrying a brainrot!', 'error');
+                    } else if (state.baseId <= 0) {
+                        playSound('uipop');
+                        notify('Claim a base first!', 'error');
+                    } else if (depositBase > 0 && state.baseId !== depositBase) {
+                        playSound('uipop');
+                        notify('This is not your base!', 'error');
+                    } else {
                         playSound('deposit');
                         notify(msg.substring(8), 'deposit');
                         // Increment owned brainrot count locally
