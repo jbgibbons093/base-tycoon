@@ -321,17 +321,17 @@
         }
 
         const ZONES = [
-            { id:'beach_zone', name:'Beach Zone', tier:'Common', tierClass:'tier-common', iconClass:'icon-beach', cost:0, icon:'\u{1F3D6}', gold:'1-3g', taskName:null },
-            { id:'meadow', name:'Meadow', tier:'Common', tierClass:'tier-common', iconClass:'icon-meadow', cost:0, icon:'\u{1F33F}', gold:'1-3g', taskName:null },
-            { id:'forest_zone', name:'Forest Zone', tier:'Rare', tierClass:'tier-rare', iconClass:'icon-forest', cost:2000, icon:'\u{1F332}', gold:'5-10g', taskName:'unlock_forest_zone' },
-            { id:'jungle_zone', name:'Jungle Zone', tier:'Rare', tierClass:'tier-rare', iconClass:'icon-jungle', cost:2000, icon:'\u{1F334}', gold:'5-10g', taskName:'unlock_jungle_zone' },
-            { id:'cave_zone', name:'Cave Zone', tier:'Epic', tierClass:'tier-epic', iconClass:'icon-cave', cost:8000, icon:'\u{1FAA8}', gold:'10-20g', taskName:'unlock_cave_zone' },
-            { id:'crystal_cove', name:'Crystal Cove', tier:'Epic', tierClass:'tier-epic', iconClass:'icon-crystal', cost:8000, icon:'\u{1F48E}', gold:'10-20g', taskName:'unlock_crystal_cove' },
-            { id:'boss_arena', name:'Boss Arena', tier:'Legendary', tierClass:'tier-legendary', iconClass:'icon-boss', cost:25000, icon:'\u{2694}', gold:'20-40g', taskName:'unlock_boss_arena' },
-            { id:'volcano_zone', name:'Volcano Zone', tier:'Mythic', tierClass:'tier-mythic', iconClass:'icon-volcano', cost:75000, icon:'\u{1F30B}', gold:'40-80g', taskName:'unlock_volcano_zone' },
-            { id:'ancient_ruins', name:'Ancient Ruins', tier:'Brainrot God', tierClass:'tier-god', iconClass:'icon-ruins', cost:200000, icon:'\u{1F3DB}', gold:'80-150g', rebirth:1, taskName:'unlock_ancient_ruins' },
-            { id:'sky_platform', name:'Sky Platform', tier:'Secret', tierClass:'tier-secret', iconClass:'icon-sky', cost:500000, icon:'\u{2601}', gold:'150-300g', rebirth:2, taskName:'unlock_sky_platform' },
-            { id:'the_void', name:'The Void', tier:'OG', tierClass:'tier-og', iconClass:'icon-void', cost:1000000, icon:'\u{1F573}', gold:'300-500g', rebirth:3, taskName:'unlock_the_void' },
+            { id:'beach_zone', name:'Beach Zone', tier:'Common', tierClass:'tier-common', iconClass:'icon-beach', cost:0, icon:'\u{1F3D6}', gold:'1-3g', reqFloor:1, taskName:null },
+            { id:'meadow', name:'Meadow', tier:'Common', tierClass:'tier-common', iconClass:'icon-meadow', cost:0, icon:'\u{1F33F}', gold:'1-3g', reqFloor:1, taskName:null },
+            { id:'forest_zone', name:'Forest Zone', tier:'Rare', tierClass:'tier-rare', iconClass:'icon-forest', cost:2000, icon:'\u{1F332}', gold:'5-10g', reqFloor:2, taskName:'unlock_forest_zone' },
+            { id:'jungle_zone', name:'Jungle Zone', tier:'Rare', tierClass:'tier-rare', iconClass:'icon-jungle', cost:2000, icon:'\u{1F334}', gold:'5-10g', reqFloor:2, taskName:'unlock_jungle_zone' },
+            { id:'cave_zone', name:'Cave Zone', tier:'Epic', tierClass:'tier-epic', iconClass:'icon-cave', cost:8000, icon:'\u{1FAA8}', gold:'10-20g', reqFloor:3, taskName:'unlock_cave_zone' },
+            { id:'crystal_cove', name:'Crystal Cove', tier:'Epic', tierClass:'tier-epic', iconClass:'icon-crystal', cost:8000, icon:'\u{1F48E}', gold:'10-20g', reqFloor:3, taskName:'unlock_crystal_cove' },
+            { id:'boss_arena', name:'Boss Arena', tier:'Legendary', tierClass:'tier-legendary', iconClass:'icon-boss', cost:25000, icon:'\u{2694}', gold:'20-40g', reqFloor:3, taskName:'unlock_boss_arena' },
+            { id:'volcano_zone', name:'Volcano Zone', tier:'Mythic', tierClass:'tier-mythic', iconClass:'icon-volcano', cost:75000, icon:'\u{1F30B}', gold:'40-80g', reqFloor:4, taskName:'unlock_volcano_zone' },
+            { id:'ancient_ruins', name:'Ancient Ruins', tier:'Brainrot God', tierClass:'tier-god', iconClass:'icon-ruins', cost:200000, icon:'\u{1F3DB}', gold:'80-150g', reqFloor:4, rebirth:1, taskName:'unlock_ancient_ruins' },
+            { id:'sky_platform', name:'Sky Platform', tier:'Secret', tierClass:'tier-secret', iconClass:'icon-sky', cost:500000, icon:'\u{2601}', gold:'150-300g', reqFloor:4, rebirth:2, taskName:'unlock_sky_platform' },
+            { id:'the_void', name:'The Void', tier:'OG', tierClass:'tier-og', iconClass:'icon-void', cost:1000000, icon:'\u{1F573}', gold:'300-500g', reqFloor:4, rebirth:3, taskName:'unlock_the_void' },
         ];
 
         const FLOORS = [
@@ -367,15 +367,21 @@
             el.innerHTML = '';
             ZONES.forEach(z => {
                 const unlocked = state.unlockedZones.includes(z.name);
-                const canBuy = !unlocked && state.gold >= z.cost && z.cost > 0;
                 const isFree = z.cost === 0;
+                const needsFloor = z.reqFloor && !state.unlockedFloors.includes(z.reqFloor);
                 const needsRebirth = z.rebirth && state.rebirth < z.rebirth;
+                const canBuy = !unlocked && !isFree && !needsFloor && !needsRebirth && state.gold >= z.cost;
 
                 let btnClass, btnText;
                 if (unlocked || isFree) { btnClass = 'btn-done'; btnText = 'UNLOCKED'; }
+                else if (needsFloor) { btnClass = 'btn-locked'; btnText = 'Floor ' + z.reqFloor; }
                 else if (needsRebirth) { btnClass = 'btn-locked'; btnText = 'Rebirth ' + z.rebirth; }
                 else if (canBuy) { btnClass = 'btn-buy'; btnText = fmt(z.cost) + 'g'; }
                 else { btnClass = 'btn-locked'; btnText = fmt(z.cost) + 'g'; }
+
+                let reqText = '';
+                if (z.reqFloor > 1) reqText += 'Requires Floor ' + z.reqFloor;
+                if (z.rebirth) reqText += (reqText ? ' &bull; ' : '') + 'Requires Rebirth ' + z.rebirth;
 
                 const card = document.createElement('div');
                 card.className = 'upgrade-card' + (unlocked || isFree ? ' owned' : '');
@@ -383,7 +389,7 @@
                     <div class="u-icon ${z.iconClass}">${z.icon}</div>
                     <div class="u-info">
                         <div class="u-name">${z.name} <span class="u-tier ${z.tierClass}">${z.tier}</span></div>
-                        <div class="u-desc">Brainrots: ${z.gold}/cycle${z.rebirth ? ' &bull; Requires Rebirth '+z.rebirth : ''}</div>
+                        <div class="u-desc">Brainrots: ${z.gold}/cycle${reqText ? ' &bull; ' + reqText : ''}</div>
                     </div>
                     <button class="u-btn ${btnClass}" data-zone="${z.name}">${btnText}</button>
                 `;
@@ -436,6 +442,7 @@
         function buyZone(zoneName) {
             const z = ZONES.find(x => x.name === zoneName);
             if (!z || !z.taskName || state.unlockedZones.includes(z.name) || state.gold < z.cost) return;
+            if (z.reqFloor && !state.unlockedFloors.includes(z.reqFloor)) return;
             if (z.rebirth && state.rebirth < z.rebirth) return;
             state.gold -= z.cost;
             state.unlockedZones.push(z.name);
