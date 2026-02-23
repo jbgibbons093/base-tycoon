@@ -600,7 +600,7 @@
         function spawnRandom(zone) {
             var pool = ZONES[zone];
             if (!pool || pool.length === 0) return;
-            // Check spawn cap
+            // Check spawn cap — spawnCounts is synced from server ZC_ variables
             if ((spawnCounts[zone] || 0) >= MAX_PER_ZONE) return;
             var pick = pool[Math.floor(Math.random() * pool.length)];
             if (sdk) {
@@ -608,6 +608,7 @@
                     TaskName: pick,
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
+                // Optimistic increment — server will confirm via ZC_ sync
                 spawnCounts[zone] = (spawnCounts[zone] || 0) + 1;
             }
         }
@@ -723,6 +724,14 @@
                     }
                     // Parse owned brainrot counts
                     parseOwnedBrainrots(params);
+                    // Sync zone counts from server ZC_ variables
+                    var zoneNames = Object.keys(ZONES);
+                    for (var zi = 0; zi < zoneNames.length; zi++) {
+                        var zk = 'ZC_' + zoneNames[zi];
+                        if (params[zk] !== undefined) {
+                            spawnCounts[zoneNames[zi]] = parseInt(params[zk]) || 0;
+                        }
+                    }
                     updateDisplay();
                 } else if (msg === 'collect:go') {
                     // Player stepped on collect trigger — collect accumulated gold
@@ -745,11 +754,7 @@
                             state.carryBvKey = 'bv_' + pMatch[1];
                             state.carryGold = parseFloat(pMatch[2]) || 0;
                             updateDisplay();
-                            var bvKey = 'bv_' + pMatch[1];
-                            var pZone = BV_TO_ZONE[bvKey];
-                            if (pZone && spawnCounts[pZone] > 0) {
-                                spawnCounts[pZone]--;
-                            }
+                            // Zone count decrement handled server-side via ZC_ variables
                         }
                     }
                 } else if (msg.startsWith('deposit:')) {
