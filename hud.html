@@ -106,6 +106,27 @@
         }
         .carry-banner.show { display: block; }
 
+        /* ---- CLAIM BASE BANNER ---- */
+        .claim-banner {
+            padding: 4px 14px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #74B9FF 0%, #0984E3 100%);
+            border: 3px solid #0660A0;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            display: none;
+            white-space: nowrap;
+            animation: claimPulse 2s ease-in-out infinite;
+        }
+        .claim-banner.show { display: block; }
+        @keyframes claimPulse {
+            0%, 100% { box-shadow: 0 3px 0 rgba(0,0,0,0.2); }
+            50% { box-shadow: 0 3px 0 rgba(0,0,0,0.2), 0 0 12px rgba(9,132,227,0.4); }
+        }
+
         /* ---- SPAWN TIMERS (vertical, above notifs) ---- */
         .spawn-strip {
             display: flex;
@@ -312,6 +333,11 @@
         <div class="carry-banner" id="carry-banner">
             &#x1F9F8; Carrying <span id="carry-name">???</span> ($<span id="carry-gold">0</span>/s)
         </div>
+
+        <!-- CLAIM BASE BANNER -->
+        <div class="claim-banner" id="claim-banner">
+            &#x1F3E0; Find a base and claim it!
+        </div>
     </div>
 
     <!-- TOAST (legacy) -->
@@ -388,6 +414,13 @@
                 carryGoldEl.textContent = state.carryGold;
             } else {
                 carryBanner.classList.remove('show');
+            }
+            // Show claim banner when no base owned (hide carry banner takes priority)
+            var claimBanner = document.getElementById('claim-banner');
+            if (state.baseId <= 0 && state.carrying <= 0) {
+                claimBanner.classList.add('show');
+            } else {
+                claimBanner.classList.remove('show');
             }
         }
 
