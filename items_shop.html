@@ -198,7 +198,7 @@
     <div class="shop-frame">
         <div class="shop-header">
             <h1>ITEMS</h1>
-            <div class="gold-badge" id="gold-display">&#x1F4B0; 0</div>
+            <div class="gold-badge" id="gold-display">$0</div>
             <div class="close-x" onclick="closeShop()">X</div>
         </div>
         <div class="shop-body" id="items-list"></div>
@@ -237,7 +237,7 @@
         }
 
         function render() {
-            document.getElementById('gold-display').innerHTML = '&#x1F4B0; ' + fmt(state.gold);
+            document.getElementById('gold-display').innerHTML = '$' + fmt(state.gold);
             const list = document.getElementById('items-list');
             list.innerHTML = '';
 

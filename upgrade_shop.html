@@ -251,7 +251,7 @@
     <div class="shop-frame">
         <div class="shop-header">
             <h1>UPGRADES</h1>
-            <div class="gold-badge" id="gold-display">&#x1F4B0; 0</div>
+            <div class="gold-badge" id="gold-display">$0</div>
             <div class="close-x" onclick="closeShop()">X</div>
         </div>
 
@@ -388,7 +388,7 @@
         }
 
         function renderAll() {
-            document.getElementById('gold-display').innerHTML = '&#x1F4B0; ' + fmt(state.gold);
+            document.getElementById('gold-display').innerHTML = '$' + fmt(state.gold);
             renderZones();
             renderFloors();
         }

@@ -769,8 +769,10 @@
                             state.carryName = pMatch[1].replace(/_/g, ' ');
                             state.carryBvKey = 'bv_' + pMatch[1];
                             state.carryGold = parseFloat(pMatch[2]) || 0;
+                            // Decrement zone spawn count
+                            var pickupZone = BV_TO_ZONE[state.carryBvKey];
+                            if (pickupZone && spawnCounts[pickupZone] > 0) spawnCounts[pickupZone]--;
                             updateDisplay();
-                            // Zone count decrement handled server-side via ZC_ variables
                         }
                     }
                 } else if (msg.startsWith('deposit:')) {
