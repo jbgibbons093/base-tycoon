@@ -101,6 +101,52 @@
         }
         .carry-banner.show { display: block; }
 
+        /* ---- SPAWN TIMERS ---- */
+        .spawn-strip {
+            position: fixed;
+            top: 56px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 4px;
+            z-index: 10;
+        }
+        .spawn-pip {
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 9px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+            position: relative;
+            background: conic-gradient(rgba(255,255,255,0.25) 0%, transparent 0%);
+            border: 2px solid rgba(255,255,255,0.2);
+        }
+        .spawn-pip .pip-bg {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            z-index: -1;
+        }
+        .spawn-pip .pip-label {
+            position: relative;
+            z-index: 1;
+        }
+        .spawn-pip .pip-time {
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 7px;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 800;
+            color: rgba(255,255,255,0.7);
+            white-space: nowrap;
+        }
+
         /* ---- SIDE BUTTONS ---- */
         .side-buttons {
             position: fixed;
@@ -352,6 +398,9 @@
         </div>
     </div>
 
+    <!-- SPAWN TIMERS -->
+    <div class="spawn-strip" id="spawn-strip"></div>
+
     <!-- CARRY BANNER -->
     <div class="carry-banner" id="carry-banner">
         &#x1F9F8; Carrying: <span id="carry-gold">0</span>g
@@ -492,7 +541,20 @@
             The_Void: ["bv_Chicleteira","bv_TralaleroTralala","bv_Strawberryelephant","bv_Magi Ribbitini","bv_Meowl","bv_Money_money_puggy"]
         };
 
-        const SPAWN_INTERVAL = 30000; // 30 seconds per zone
+        const SPAWN_INTERVAL = 30; // seconds
+        const ZONE_COLORS = {
+            Beach: '#FFD700', Meadow: '#2ECC40', Forest: '#228B22', Jungle: '#32CD32',
+            Cave: '#8B4513', Crystal_Cove: '#00CED1', Boss_Arena: '#E74C3C', Volcano: '#FF4500',
+            Ancient_Ruins: '#DAA520', Sky_Platform: '#87CEEB', The_Void: '#9B59B6'
+        };
+        const ZONE_LABELS = {
+            Beach: 'BCH', Meadow: 'MDW', Forest: 'FOR', Jungle: 'JNG',
+            Cave: 'CAV', Crystal_Cove: 'CRC', Boss_Arena: 'BOS', Volcano: 'VOL',
+            Ancient_Ruins: 'RUN', Sky_Platform: 'SKY', The_Void: 'VID'
+        };
+
+        // Track remaining seconds per zone
+        var spawnTimers = {};
 
         function spawnRandom(zone) {
             var pool = ZONES[zone];
@@ -506,18 +568,69 @@
             }
         }
 
-        function startSpawnTimers() {
+        function buildTimerUI() {
+            var strip = document.getElementById('spawn-strip');
+            var html = '';
             var zoneNames = Object.keys(ZONES);
             for (var i = 0; i < zoneNames.length; i++) {
+                var z = zoneNames[i];
+                var col = ZONE_COLORS[z] || '#888';
+                var label = ZONE_LABELS[z] || z.substring(0, 3);
+                html += '<div class="spawn-pip" id="pip-' + z + '">' +
+                    '<div class="pip-bg" style="background:' + col + ';opacity:0.7;"></div>' +
+                    '<span class="pip-label">' + label + '</span>' +
+                    '<span class="pip-time" id="pip-time-' + z + '">30</span>' +
+                    '</div>';
+                spawnTimers[z] = SPAWN_INTERVAL;
+            }
+            strip.innerHTML = html;
+        }
+
+        function updateTimerUI() {
+            var zoneNames = Object.keys(ZONES);
+            for (var i = 0; i < zoneNames.length; i++) {
+                var z = zoneNames[i];
+                var remaining = spawnTimers[z] || 0;
+                var pct = ((SPAWN_INTERVAL - remaining) / SPAWN_INTERVAL) * 100;
+                var col = ZONE_COLORS[z] || '#888';
+                var pip = document.getElementById('pip-' + z);
+                var timeEl = document.getElementById('pip-time-' + z);
+                if (pip) {
+                    pip.style.background = 'conic-gradient(' + col + ' ' + pct + '%, rgba(0,0,0,0.4) ' + pct + '%)';
+                }
+                if (timeEl) {
+                    timeEl.textContent = remaining + 's';
+                }
+            }
+        }
+
+        function startSpawnTimers() {
+            buildTimerUI();
+            var zoneNames = Object.keys(ZONES);
+            // Staggered initial spawn
+            for (var i = 0; i < zoneNames.length; i++) {
                 (function(zone, delay) {
-                    // Initial spawn after staggered delay
+                    spawnTimers[zone] = Math.ceil(delay / 1000);
                     setTimeout(function() {
                         spawnRandom(zone);
-                        // Then repeat every SPAWN_INTERVAL
-                        setInterval(function() { spawnRandom(zone); }, SPAWN_INTERVAL);
+                        spawnTimers[zone] = SPAWN_INTERVAL;
                     }, delay);
                 })(zoneNames[i], 1000 + i * 500);
             }
+            // Tick every second: countdown + trigger spawns
+            setInterval(function() {
+                for (var i = 0; i < zoneNames.length; i++) {
+                    var z = zoneNames[i];
+                    if (spawnTimers[z] > 0) {
+                        spawnTimers[z]--;
+                    }
+                    if (spawnTimers[z] <= 0) {
+                        spawnRandom(z);
+                        spawnTimers[z] = SPAWN_INTERVAL;
+                    }
+                }
+                updateTimerUI();
+            }, 1000);
         }
 
         /* ---- MESSAGE DEDUP ---- */
