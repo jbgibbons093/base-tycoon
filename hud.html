@@ -403,7 +403,7 @@
 
     <!-- CARRY BANNER -->
     <div class="carry-banner" id="carry-banner">
-        &#x1F9F8; Carrying: <span id="carry-gold">0</span>g
+        &#x1F9F8; Carrying <span id="carry-name">???</span> (<span id="carry-gold">0</span>g)
     </div>
 
     <!-- SIDE BUTTON: Weapon selector only -->
@@ -446,13 +446,14 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
 
-        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, weapon: 'none', rebirth: 0 };
+        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', weapon: 'none', rebirth: 0 };
 
         const valGold = document.getElementById('val-gold');
         const valBase = document.getElementById('val-base');
         const valRebirth = document.getElementById('val-rebirth');
         const carryBanner = document.getElementById('carry-banner');
         const carryGoldEl = document.getElementById('carry-gold');
+        const carryNameEl = document.getElementById('carry-name');
         const weaponPanel = document.getElementById('weapon-panel');
         const toastContainer = document.getElementById('toasts');
         const notifContainer = document.getElementById('notifs');
@@ -472,6 +473,7 @@
             valRebirth.textContent = state.rebirth;
             if (state.carrying > 0) {
                 carryBanner.classList.add('show');
+                carryNameEl.textContent = state.carryName || '???';
                 carryGoldEl.textContent = state.carryGold;
             } else {
                 carryBanner.classList.remove('show');
@@ -542,6 +544,7 @@
         };
 
         const SPAWN_INTERVAL = 30; // seconds
+        const MAX_PER_ZONE = 3;
         const ZONE_COLORS = {
             Beach: '#FFD700', Meadow: '#2ECC40', Forest: '#228B22', Jungle: '#32CD32',
             Cave: '#8B4513', Crystal_Cove: '#00CED1', Boss_Arena: '#E74C3C', Volcano: '#FF4500',
@@ -553,18 +556,34 @@
             Ancient_Ruins: 'RUN', Sky_Platform: 'SKY', The_Void: 'VID'
         };
 
-        // Track remaining seconds per zone
+        // Reverse lookup: brainrot name -> zone
+        var BV_TO_ZONE = {};
+        (function() {
+            var zoneNames = Object.keys(ZONES);
+            for (var i = 0; i < zoneNames.length; i++) {
+                var z = zoneNames[i];
+                for (var j = 0; j < ZONES[z].length; j++) {
+                    BV_TO_ZONE[ZONES[z][j]] = z;
+                }
+            }
+        })();
+
+        // Track remaining seconds per zone and active count per zone
         var spawnTimers = {};
+        var spawnCounts = {};
 
         function spawnRandom(zone) {
             var pool = ZONES[zone];
             if (!pool || pool.length === 0) return;
+            // Check spawn cap
+            if ((spawnCounts[zone] || 0) >= MAX_PER_ZONE) return;
             var pick = pool[Math.floor(Math.random() * pool.length)];
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
                     TaskName: pick,
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
+                spawnCounts[zone] = (spawnCounts[zone] || 0) + 1;
             }
         }
 
@@ -669,10 +688,28 @@
                     state.gold = v; updateDisplay(); pop(document.getElementById('pill-gold'));
                     if (diff > 0) notify('+' + fmt(diff) + ' Gold', 'gold');
                 } else if (msg.startsWith('pickup:')) {
-                    // Format: pickup:Name (Xg)
+                    // Format: pickup:Picked up SuffixName! (Xg/2min)
                     notify(msg.substring(7), 'pickup');
+                    // Parse name and gold, update carrying state
+                    var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
+                    if (pMatch) {
+                        state.carrying = 1;
+                        state.carryName = pMatch[1].replace(/_/g, ' ');
+                        state.carryGold = parseFloat(pMatch[2]) || 0;
+                        updateDisplay();
+                        // Decrement spawn count for the brainrot's zone
+                        var bvKey = 'bv_' + pMatch[1];
+                        var pZone = BV_TO_ZONE[bvKey];
+                        if (pZone && spawnCounts[pZone] > 0) {
+                            spawnCounts[pZone]--;
+                        }
+                    }
                 } else if (msg.startsWith('deposit:')) {
                     notify(msg.substring(8), 'deposit');
+                    state.carrying = 0;
+                    state.carryName = '';
+                    state.carryGold = 0;
+                    updateDisplay();
                 } else if (msg.startsWith('carry:')) {
                     var p = msg.substring(6).split(',');
                     state.carrying = parseFloat(p[0])||0;
