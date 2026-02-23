@@ -56,29 +56,38 @@
             letter-spacing: 0.5px;
         }
 
-        /* Gold pill */
+        /* Cash pill */
         .pill-gold {
-            background: linear-gradient(180deg, #FFE44D 0%, #FFB800 100%);
-            border-color: #CC8800;
+            background: linear-gradient(180deg, #5BDB5B 0%, #2EAA2E 100%);
+            border-color: #1E8A1E;
         }
-        .pill-gold .icon-circle { background: #FFA500; border-color: #CC7700; }
-        .pill-gold .val { color: #4A2800; }
+        .pill-gold .icon-circle { background: #228B22; border-color: #1A6B1A; }
+        .pill-gold .val { color: #0A2A0A; }
 
-        /* Base pill */
-        .pill-base {
-            background: linear-gradient(180deg, #6EF06E 0%, #2ECC40 100%);
-            border-color: #1FA030;
+        /* Cash stack icon (CSS-drawn) */
+        .cash-icon {
+            width: 26px; height: 20px;
+            position: relative;
         }
-        .pill-base .icon-circle { background: #22AA22; border-color: #188818; }
-        .pill-base .val { color: #0A3A0A; }
-
-        /* Rebirth pill */
-        .pill-rebirth {
-            background: linear-gradient(180deg, #FF7B7B 0%, #FF3B3B 100%);
-            border-color: #CC2222;
+        .cash-bill {
+            position: absolute;
+            width: 22px; height: 10px;
+            border-radius: 2px;
+            border: 1.5px solid rgba(0,0,0,0.3);
+            left: 50%; transform: translateX(-50%);
         }
-        .pill-rebirth .icon-circle { background: #DD2222; border-color: #AA1111; }
-        .pill-rebirth .val { color: #3A0000; }
+        .cash-bill:nth-child(1) { background: #1B5E20; bottom: 0; }
+        .cash-bill:nth-child(2) { background: #2E7D32; bottom: 4px; }
+        .cash-bill:nth-child(3) { background: #43A047; bottom: 8px; }
+        .cash-bill .dollar {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8px;
+            font-weight: 900;
+            color: rgba(255,255,255,0.8);
+            font-family: 'Nunito', sans-serif;
+        }
 
         /* ---- CARRY BANNER ---- */
         .carry-banner {
@@ -298,19 +307,17 @@
     <div class="top-bar">
         <div class="currency-pill pill-gold" id="pill-gold">
             <div class="gold-row">
-                <div class="icon-circle">&#x1F4B0;</div>
+                <div class="icon-circle">
+                    <div class="cash-icon">
+                        <div class="cash-bill"><span class="dollar">$</span></div>
+                        <div class="cash-bill"></div>
+                        <div class="cash-bill"><span class="dollar">$</span></div>
+                    </div>
+                </div>
                 <span class="val" id="val-gold">0</span>
             </div>
             <div class="gold-pending" id="gold-pending" style="display:none">+0 pending</div>
             <div class="gold-rate" id="gold-rate" style="display:none">0/s</div>
-        </div>
-        <div class="currency-pill pill-base" id="pill-base">
-            <div class="icon-circle">&#x1F3E0;</div>
-            <span class="val" id="val-base">---</span>
-        </div>
-        <div class="currency-pill pill-rebirth" id="pill-rebirth">
-            <div class="icon-circle">&#x1F525;</div>
-            <span class="val" id="val-rebirth">0</span>
         </div>
     </div>
 
@@ -334,8 +341,6 @@
         let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', rebirth: 0, pendingGold: 0, earningRate: 0 };
 
         const valGold = document.getElementById('val-gold');
-        const valBase = document.getElementById('val-base');
-        const valRebirth = document.getElementById('val-rebirth');
         const carryBanner = document.getElementById('carry-banner');
         const carryGoldEl = document.getElementById('carry-gold');
         const carryNameEl = document.getElementById('carry-name');
@@ -353,8 +358,6 @@
         /* ---- DISPLAY ---- */
         function updateDisplay() {
             valGold.textContent = fmt(state.gold);
-            valBase.textContent = state.baseId > 0 ? '#' + state.baseId : '---';
-            valRebirth.textContent = state.rebirth;
             if (state.carrying > 0) {
                 carryBanner.classList.add('show');
                 carryNameEl.textContent = state.carryName || '???';
