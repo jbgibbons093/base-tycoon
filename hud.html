@@ -705,11 +705,13 @@
                         }
                     }
                 } else if (msg.startsWith('deposit:')) {
-                    notify(msg.substring(8), 'deposit');
-                    state.carrying = 0;
-                    state.carryName = '';
-                    state.carryGold = 0;
-                    updateDisplay();
+                    if (state.carrying > 0) {
+                        notify(msg.substring(8), 'deposit');
+                        state.carrying = 0;
+                        state.carryName = '';
+                        state.carryGold = 0;
+                        updateDisplay();
+                    }
                 } else if (msg.startsWith('carry:')) {
                     var p = msg.substring(6).split(',');
                     state.carrying = parseFloat(p[0])||0;
