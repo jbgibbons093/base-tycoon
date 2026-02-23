@@ -225,7 +225,7 @@
         // ---- SOUND SYSTEM ----
         var _mp3Sounds = {};
         (function() {
-            var files = { purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3', uipop: 'ui-pop.mp3', sheep: 'sheep.mp3' };
+            var files = { purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3', uipop: 'ui-pop.mp3' };
             for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
         })();
         function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
