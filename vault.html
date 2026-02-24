@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Vault</title>
+    <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0; padding: 0;
+            background: transparent !important;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            user-select: none;
+        }
+
+        .shop-frame {
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 420px;
+            background: white;
+            border: 5px solid #B8860B;
+            border-radius: 24px;
+            box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
+            overflow: hidden;
+        }
+
+        .shop-header {
+            background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%);
+            padding: 14px 20px;
+            text-align: center;
+            position: relative;
+        }
+        .shop-header h1 {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 36px;
+            color: white;
+            margin: 0;
+            text-shadow: 3px 3px 0 rgba(0,0,0,0.25);
+        }
+        .balances {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 8px;
+        }
+        .balance-badge {
+            display: inline-block;
+            padding: 4px 14px;
+            border-radius: 20px;
+            border: 3px solid;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px;
+        }
+        .badge-wallet {
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border-color: #CC8800;
+            color: #4A2800;
+        }
+        .badge-vault {
+            background: linear-gradient(180deg, #7DD3FC, #38BDF8);
+            border-color: #0284C7;
+            color: #0C4A6E;
+        }
+        .close-x {
+            position: absolute;
+            top: 8px; right: 12px;
+            width: 32px; height: 32px;
+            border-radius: 50%;
+            background: linear-gradient(180deg, #FBBF24, #B45309);
+            border: 3px solid #78350F;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 18px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+        }
+        .close-x:active { transform: translateY(2px); box-shadow: none; }
+
+        .shop-body {
+            padding: 16px;
+            background: #F8F6F0;
+        }
+
+        .info-text {
+            text-align: center;
+            font-size: 13px;
+            font-weight: 800;
+            color: #92400E;
+            background: linear-gradient(180deg, #FEF3C7, #FDE68A);
+            border: 2px solid #F59E0B;
+            border-radius: 12px;
+            padding: 8px 12px;
+            margin-bottom: 14px;
+        }
+
+        .section-label {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 18px;
+            color: #78350F;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.08);
+            margin-bottom: 8px;
+        }
+
+        .btn-row {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 14px;
+        }
+
+        .vault-btn {
+            flex: 1;
+            padding: 12px 8px;
+            border-radius: 14px;
+            border: 3px solid;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 16px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+            cursor: pointer;
+            transition: transform 0.1s;
+            text-align: center;
+        }
+        .vault-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 rgba(0,0,0,0.15);
+        }
+        .vault-btn.disabled {
+            opacity: 0.45;
+            cursor: default;
+            filter: grayscale(0.4);
+        }
+        .vault-btn.disabled:active {
+            transform: none;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
+        }
+
+        .btn-deposit {
+            background: linear-gradient(180deg, #34D399, #059669);
+            border-color: #047857;
+        }
+        .btn-withdraw {
+            background: linear-gradient(180deg, #F97316, #EA580C);
+            border-color: #C2410C;
+        }
+
+        .btn-sub {
+            display: block;
+            font-family: 'Nunito', sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            opacity: 0.85;
+            margin-top: 2px;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 10px 24px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border: 3px solid #CC8800;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 16px;
+            color: #4A2800;
+            animation: pop 0.3s ease, fadeOut 0.3s ease 2s forwards;
+            z-index: 30;
+        }
+        @keyframes pop { 0%{transform:translateX(-50%) scale(0.5);opacity:0} 70%{transform:translateX(-50%) scale(1.1)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
+        @keyframes fadeOut { to{opacity:0} }
+    </style>
+</head>
+<body>
+    <div class="shop-frame">
+        <div class="shop-header">
+            <h1>VAULT</h1>
+            <div class="balances">
+                <div class="balance-badge badge-wallet" id="wallet-display">Wallet: 0g</div>
+                <div class="balance-badge badge-vault" id="vault-display">Vaulted: 0g</div>
+            </div>
+            <div class="close-x" onclick="closeVault()">X</div>
+        </div>
+        <div class="shop-body">
+            <div class="info-text">Vaulted gold is safe from death!</div>
+
+            <div class="section-label">DEPOSIT</div>
+            <div class="btn-row" id="deposit-row"></div>
+
+            <div class="section-label">WITHDRAW</div>
+            <div class="btn-row" id="withdraw-row"></div>
+        </div>
+    </div>
+
+    <script>
+        const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+
+        let state = { gold: 0, vaultGold: 0 };
+        let _cooldown = false;
+
+        function fmt(n) {
+            n = Math.floor(n);
+            if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
+            if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+            if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+            return n.toLocaleString();
+        }
+
+        function parseVarValue(raw) {
+            if (raw === undefined || raw === null || raw === '') return 0;
+            raw = String(raw).trim();
+            const num = Number(raw);
+            if (!isNaN(num)) return num;
+            try {
+                const parsed = JSON.parse(raw);
+                if (typeof parsed === 'number') return parsed;
+                if (typeof parsed === 'object' && parsed !== null) {
+                    const vals = Object.values(parsed);
+                    return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
+                }
+            } catch(e) {}
+            return 0;
+        }
+
+        const TIERS = [
+            { pct: 0.25, label: '25%' },
+            { pct: 0.50, label: '50%' },
+            { pct: 1.00, label: 'ALL' }
+        ];
+
+        function render() {
+            document.getElementById('wallet-display').textContent = 'Wallet: ' + fmt(state.gold) + 'g';
+            document.getElementById('vault-display').textContent = 'Vaulted: ' + fmt(state.vaultGold) + 'g';
+
+            const dRow = document.getElementById('deposit-row');
+            dRow.innerHTML = '';
+            TIERS.forEach((tier, idx) => {
+                const amt = Math.floor(state.gold * tier.pct);
+                const canDo = amt > 0 && !_cooldown;
+                const btn = document.createElement('button');
+                btn.className = 'vault-btn btn-deposit' + (canDo ? '' : ' disabled');
+                btn.innerHTML = tier.label + '<span class="btn-sub">' + fmt(amt) + 'g</span>';
+                if (canDo) btn.onclick = function() { doDeposit(idx); };
+                dRow.appendChild(btn);
+            });
+
+            const wRow = document.getElementById('withdraw-row');
+            wRow.innerHTML = '';
+            TIERS.forEach((tier, idx) => {
+                const amt = Math.floor(state.vaultGold * tier.pct);
+                const canDo = amt > 0 && !_cooldown;
+                const btn = document.createElement('button');
+                btn.className = 'vault-btn btn-withdraw' + (canDo ? '' : ' disabled');
+                btn.innerHTML = tier.label + '<span class="btn-sub">' + fmt(amt) + 'g</span>';
+                if (canDo) btn.onclick = function() { doWithdraw(idx); };
+                wRow.appendChild(btn);
+            });
+        }
+
+        function doDeposit(tierIdx) {
+            if (_cooldown) return;
+            const questNames = ['vault_deposit_25', 'vault_deposit_50', 'vault_deposit_100'];
+            const pct = TIERS[tierIdx].pct;
+            const amt = Math.floor(state.gold * pct);
+            if (amt <= 0) return;
+
+            _cooldown = true;
+            // Optimistically update UI
+            state.gold -= amt;
+            state.vaultGold += amt;
+            render();
+            toast('Deposited ' + fmt(amt) + 'g!');
+
+            if (sdk) sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: questNames[tierIdx],
+                TaskTargetState: 'SetNotActiveToActive'
+            }));
+
+            setTimeout(function() { _cooldown = false; render(); }, 1000);
+        }
+
+        function doWithdraw(tierIdx) {
+            if (_cooldown) return;
+            const questNames = ['vault_withdraw_25', 'vault_withdraw_50', 'vault_withdraw_100'];
+            const pct = TIERS[tierIdx].pct;
+            const amt = Math.floor(state.vaultGold * pct);
+            if (amt <= 0) return;
+
+            _cooldown = true;
+            state.vaultGold -= amt;
+            state.gold += amt;
+            render();
+            toast('Withdrew ' + fmt(amt) + 'g!');
+
+            if (sdk) sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: questNames[tierIdx],
+                TaskTargetState: 'SetNotActiveToActive'
+            }));
+
+            setTimeout(function() { _cooldown = false; render(); }, 1000);
+        }
+
+        function closeVault() { if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
+
+        function toast(text) {
+            const old = document.querySelector('.toast'); if(old) old.remove();
+            const t = document.createElement('div'); t.className = 'toast'; t.textContent = text;
+            document.body.appendChild(t); setTimeout(function(){if(t.parentNode)t.remove();}, 2500);
+        }
+
+        // --- Message deduplication ---
+        let _lastMsgId = '', _lastMsgTime = 0;
+        function processMessage(msg) {
+            const now = Date.now();
+            const msgId = msg + '_' + Math.floor(now / 100);
+            if (msgId === _lastMsgId && now - _lastMsgTime < 200) return;
+            _lastMsgId = msgId; _lastMsgTime = now;
+            handleMessage(msg);
+        }
+
+        function handleMessage(msg) {
+            console.log('[Vault] Received:', msg);
+
+            if (msg.startsWith('inv:')) {
+                const payload = msg.substring(4);
+                const pairs = payload.split('&');
+                for (const pair of pairs) {
+                    const eq = pair.indexOf('=');
+                    if (eq < 0) continue;
+                    const key = pair.substring(0, eq).trim();
+                    const val = parseVarValue(pair.substring(eq + 1));
+                    if (key === 'Gold') state.gold = val;
+                    else if (key === 'Vault_Gold') state.vaultGold = val;
+                }
+                render();
+                return;
+            }
+
+            if (msg.startsWith('gold:')) {
+                state.gold = parseFloat(msg.substring(5)) || 0;
+                render();
+                return;
+            }
+
+            try {
+                const d = JSON.parse(msg);
+                if (d.gold !== undefined) state.gold = parseFloat(d.gold) || 0;
+                if (d.vaultGold !== undefined) state.vaultGold = parseFloat(d.vaultGold) || 0;
+                render();
+            } catch(e) {}
+        }
+
+        // --- SDK message listener ---
+        if (sdk) {
+            sdk.setMessageListener(function(msg) { processMessage(msg); });
+        }
+        window.addEventListener('message', function(event) {
+            if (event.data && typeof event.data === 'string') processMessage(event.data);
+            else if (event.data && event.data.portalsMessage) processMessage(event.data.portalsMessage);
+        });
+
+        // --- Keyboard refocus ---
+        function _doFocusGame() {
+            if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+        }
+        document.addEventListener('click', function(e) {
+            if (document.hidden) return;
+            if (e && e.target) {
+                var tag = e.target.tagName;
+                if (tag === 'BUTTON' || tag === 'SELECT' || tag === 'INPUT') return;
+                if (e.target.closest && e.target.closest('button, select')) return;
+            }
+            _doFocusGame();
+        });
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') { e.preventDefault(); closeVault(); return; }
+            if (!document.hidden) _doFocusGame();
+        });
+        document.addEventListener('mouseup', function(e) {
+            if (e && e.target) {
+                var tag = e.target.tagName;
+                if (tag === 'BUTTON' || tag === 'SELECT' || tag === 'INPUT') return;
+                if (e.target.closest && e.target.closest('button, select')) return;
+            }
+            setTimeout(_doFocusGame, 50);
+        });
+        _doFocusGame();
+        setTimeout(_doFocusGame, 100);
+        setTimeout(_doFocusGame, 300);
+
+        render();
+        if (!sdk) { state.gold = 12500; state.vaultGold = 8000; render(); }
+    </script>
+</body>
+</html>
