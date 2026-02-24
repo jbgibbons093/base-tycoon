@@ -585,14 +585,14 @@
             }
 
             // HP bar
-            var maxHp = ARMOR_MAX_HP[state.armorLevel] || 100;
-            var hp = Math.min(state.health, maxHp);
-            var pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+            var maxHp = Math.max(ARMOR_MAX_HP[state.armorLevel] || 100, state.health);
+            var hp = state.health;
+            var pct = maxHp > 0 ? Math.max(0, Math.min(100, (hp / maxHp) * 100)) : 100;
             var hpFill = document.getElementById('hp-bar-fill');
             var hpText = document.getElementById('hp-bar-text');
             hpFill.style.width = pct + '%';
             hpFill.className = 'hp-bar-fill' + (pct <= 25 ? ' low' : pct <= 50 ? ' mid' : '');
-            hpText.textContent = Math.round(hp) + ' / ' + maxHp;
+            hpText.textContent = Math.round(hp) + ' / ' + Math.round(maxHp);
 
             // Buff panel
             var buffPanel = document.getElementById('buff-panel');
