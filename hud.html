@@ -610,8 +610,13 @@
             showScreenFlash('death');
             showCenterAlert('YOU DIED', 'death');
             playSound('death');
+            // Wipe uncollected pending gold on death
+            var lostPending = Math.floor(state.pendingGold);
+            state.pendingGold = 0;
+            updateGoldDisplay();
             if (goldLost) {
-                notify('Lost ' + goldLost + ' gold!', 'error');
+                var totalLost = parseInt(goldLost) + (lostPending > 0 ? lostPending : 0);
+                notify('Lost ' + fmt(totalLost) + ' gold!', 'error');
             } else {
                 notify('You died! Lost 50% gold.', 'error');
             }
