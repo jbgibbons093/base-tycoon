@@ -28,7 +28,7 @@
         }
 
         .shop-header {
-            background: linear-gradient(180deg, #FFD700 0%, #B8860B 100%);
+            background: linear-gradient(180deg, #5BDB5B 0%, #2EAA2E 100%);
             padding: 14px 20px;
             text-align: center;
             position: relative;
@@ -56,9 +56,9 @@
             font-size: 14px;
         }
         .badge-wallet {
-            background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border-color: #CC8800;
-            color: #4A2800;
+            background: linear-gradient(180deg, #5BDB5B, #2EAA2E);
+            border-color: #1E8A1E;
+            color: #0A2A0A;
         }
         .badge-vault {
             background: linear-gradient(180deg, #7DD3FC, #38BDF8);
@@ -192,7 +192,7 @@
             <div class="close-x" onclick="closeVault()">X</div>
         </div>
         <div class="shop-body">
-            <div class="info-text">Vaulted gold is safe from death!</div>
+            <div class="info-text">Vaulted cash is safe from death!</div>
 
             <div class="section-label">DEPOSIT</div>
             <div class="btn-row" id="deposit-row"></div>
@@ -239,8 +239,8 @@
         ];
 
         function render() {
-            document.getElementById('wallet-display').textContent = 'Wallet: ' + fmt(state.gold) + 'g';
-            document.getElementById('vault-display').textContent = 'Vaulted: ' + fmt(state.vaultGold) + 'g';
+            document.getElementById('wallet-display').textContent = 'Wallet: $' + fmt(state.gold);
+            document.getElementById('vault-display').textContent = 'Vaulted: $' + fmt(state.vaultGold);
 
             const dRow = document.getElementById('deposit-row');
             dRow.innerHTML = '';

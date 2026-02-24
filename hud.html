@@ -616,18 +616,18 @@
             updateGoldDisplay();
             if (goldLost) {
                 var totalLost = parseInt(goldLost) + (lostPending > 0 ? lostPending : 0);
-                notify('Lost ' + fmt(totalLost) + ' gold!', 'error');
+                notify('Lost $' + fmt(totalLost) + ' cash!', 'error');
             } else {
-                notify('You died! Lost 50% gold.', 'error');
+                notify('You died! Lost 50% cash.', 'error');
             }
             spawnCashParticles('spend', 6);
         }
 
         function showKillAlert(goldGained) {
             showScreenFlash('kill');
-            showCenterAlert('KILL! +' + (goldGained || '?') + 'g', 'kill');
+            showCenterAlert('KILL! +$' + (goldGained || '?'), 'kill');
             playSound('kill');
-            notify('+' + (goldGained || '?') + ' gold from kill!', 'kill');
+            notify('+$' + (goldGained || '?') + ' cash from kill!', 'kill');
             spawnCashParticles('earn', 8);
             pop(document.getElementById('pill-gold'));
         }
@@ -789,7 +789,7 @@
 
             // Show notification + cash burst
             playSound('xp');
-            notify('+' + fmt(amount) + ' Gold collected!', 'gold');
+            notify('+$' + fmt(amount) + ' Cash collected!', 'gold');
             pop(document.getElementById('pill-gold'));
             spawnCashParticles('earn', 8);
             updateGoldDisplay();
@@ -1082,7 +1082,7 @@
                         notify('Claim a base first!', 'error');
                     } else if (state.pendingGold < 1) {
                         playSound('uipop');
-                        notify('No gold to collect yet!', 'info');
+                        notify('No cash to collect yet!', 'info');
                     } else {
                         collectGold();
                     }
@@ -1090,7 +1090,7 @@
                     var v = parseFloat(msg.substring(5))||0;
                     var diff = v - state.gold;
                     state.gold = v; updateDisplay(); pop(document.getElementById('pill-gold'));
-                    if (diff > 0) notify('+' + fmt(diff) + ' Gold', 'gold');
+                    if (diff > 0) notify('+$' + fmt(diff) + ' Cash', 'gold');
                 } else if (msg.startsWith('pickup:')) {
                     if (state.carrying > 0) {
                         // Already carrying — show warning instead of fake pickup

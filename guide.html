@@ -408,11 +408,11 @@
         <p class="guide-text">
           <strong>Brainrot Tycoon</strong> is a multiplayer tycoon game where you <a class="xref" onclick="navigateTo('bases')">claim a base</a>,
           <a class="xref" onclick="navigateTo('brainrots')">collect brainrot creatures</a>,
-          earn gold, <a class="xref" onclick="navigateTo('shops')">buy upgrades</a>,
+          earn cash, <a class="xref" onclick="navigateTo('shops')">buy upgrades</a>,
           and <a class="xref" onclick="navigateTo('combat')">fight other players</a> for their loot!
         </p>
         <p class="guide-text">
-          Brainrots spawn across <a class="xref" onclick="navigateTo('zones')">11 unique zones</a> and generate gold passively once deposited at your base.
+          Brainrots spawn across <a class="xref" onclick="navigateTo('zones')">11 unique zones</a> and generate cash passively once deposited at your base.
           Higher-tier zones have rarer and more valuable brainrots, but you'll need to unlock them first.
         </p>
 
@@ -420,8 +420,8 @@
           <div class="subsection-title">Quick Links</div>
           <p class="guide-text">
             <a class="xref" onclick="navigateTo('getting-started')">Getting Started</a> &mdash; New player? Start here<br>
-            <a class="xref" onclick="navigateTo('brainrots')">Brainrots</a> &mdash; How collecting and gold generation works<br>
-            <a class="xref" onclick="navigateTo('zones')">Zones</a> &mdash; All 11 zones with unlock costs and gold ranges<br>
+            <a class="xref" onclick="navigateTo('brainrots')">Brainrots</a> &mdash; How collecting and cash generation works<br>
+            <a class="xref" onclick="navigateTo('zones')">Zones</a> &mdash; All 11 zones with unlock costs and $/s ranges<br>
             <a class="xref" onclick="navigateTo('combat')">Combat & PVP</a> &mdash; Weapons, death penalties, and strategy<br>
             <a class="xref" onclick="navigateTo('controls')">Controls</a> &mdash; All keybinds at a glance
           </p>
@@ -435,12 +435,12 @@
           Your first few minutes in Brainrot Tycoon set the pace for everything. Here's what to do:
         </p>
         <ol class="guide-list numbered">
-          <li><strong>Claim a base</strong> &mdash; Walk to an unclaimed base pad and step on it. This is your home where you deposit brainrots and store gold. See <a class="xref" onclick="navigateTo('bases')">Bases</a>.</li>
+          <li><strong>Claim a base</strong> &mdash; Walk to an unclaimed base pad and step on it. This is your home where you deposit brainrots and store cash. See <a class="xref" onclick="navigateTo('bases')">Bases</a>.</li>
           <li><strong>Explore Beach or Meadow</strong> &mdash; These two <a class="xref" onclick="navigateTo('zones')">zones</a> are free and always unlocked. Brainrots spawn here every 30 seconds.</li>
           <li><strong>Walk over a brainrot to pick it up</strong> &mdash; You can only carry one at a time. Carry it back to your base deposit zone.</li>
-          <li><strong>Deposit at your base</strong> &mdash; Walk into the deposit area to drop it off. The brainrot is now yours and earns gold passively!</li>
-          <li><strong>Collect your gold</strong> &mdash; Your brainrots generate gold per second. Watch the HUD to see your income growing, then collect it.</li>
-          <li><strong>Spend gold at the <a class="xref" onclick="navigateTo('shops')">Marketplace</a></strong> &mdash; Buy zones, weapons, gear, floors, and consumables.</li>
+          <li><strong>Deposit at your base</strong> &mdash; Walk into the deposit area to drop it off. The brainrot is now yours and earns cash passively!</li>
+          <li><strong>Collect your cash</strong> &mdash; Your brainrots generate $/s. Watch the HUD to see your income growing, then collect it.</li>
+          <li><strong>Spend cash at the <a class="xref" onclick="navigateTo('shops')">Marketplace</a></strong> &mdash; Buy zones, weapons, gear, floors, and consumables.</li>
         </ol>
 
         <div class="guide-tip">
@@ -469,14 +469,14 @@
           <div class="subsection-title">Base Floors</div>
           <p class="guide-text">
             Each base starts with <strong>Floor 1</strong> (10 brainrot slots). Unlock additional floors at the
-            <a class="xref" onclick="navigateTo('shops')">Upgrades shop</a> to hold more brainrots and earn more gold per second.
+            <a class="xref" onclick="navigateTo('shops')">Upgrades shop</a> to hold more brainrots and earn more $/s.
           </p>
           <table class="guide-table">
             <tr><th>Floor</th><th>Cost</th><th>Slots</th><th>Bonus</th></tr>
             <tr><td>Floor 1</td><td>Free</td><td>10</td><td>&mdash;</td></tr>
-            <tr><td>Floor 2</td><td>1,000g</td><td>+10</td><td>+10% Rare gold</td></tr>
-            <tr><td>Floor 3</td><td>5,000g</td><td>+10</td><td>+10% Epic gold</td></tr>
-            <tr><td>Floor 4</td><td>20,000g</td><td>+10</td><td>+15% Legendary+ gold</td></tr>
+            <tr><td>Floor 2</td><td>$1,000</td><td>+10</td><td>+10% Rare cash</td></tr>
+            <tr><td>Floor 3</td><td>$5,000</td><td>+10</td><td>+10% Epic cash</td></tr>
+            <tr><td>Floor 4</td><td>$20,000</td><td>+10</td><td>+15% Legendary+ cash</td></tr>
           </table>
         </div>
 
@@ -484,7 +484,7 @@
           <div class="subsection-title">Depositing Brainrots</div>
           <p class="guide-text">
             Walk into your base's deposit zone while carrying a brainrot. The brainrot is added to your collection
-            and immediately starts generating gold per second. You can check your collection in the
+            and immediately starts generating $/s. You can check your collection in the
             <strong>Inventory</strong> (press <span class="guide-key">E</span>).
           </p>
         </div>
@@ -494,7 +494,7 @@
       <div class="guide-section" id="brainrots">
         <div class="section-title">&#x1F9E0; Brainrots</div>
         <p class="guide-text">
-          Brainrots are collectible creatures that generate <strong>gold per second</strong> once deposited at your
+          Brainrots are collectible creatures that generate <strong>$/s (cash per second)</strong> once deposited at your
           <a class="xref" onclick="navigateTo('bases')">base</a>. There are <strong>99 unique brainrots</strong> spread across
           <a class="xref" onclick="navigateTo('zones')">11 zones</a>.
         </p>
@@ -515,29 +515,29 @@
             Brainrots are organized by zone tier. Higher-tier zones have more valuable creatures:
           </p>
           <table class="guide-table">
-            <tr><th>Rarity</th><th>Gold/s Range</th><th>Zones</th></tr>
-            <tr><td><span class="rarity-common">Common</span></td><td>1-3g/s</td><td>Beach, Meadow</td></tr>
-            <tr><td><span class="rarity-rare">Rare</span></td><td>5-10g/s</td><td>Forest, Jungle</td></tr>
-            <tr><td><span class="rarity-epic">Epic</span></td><td>10-20g/s</td><td>Cave, Crystal Cove</td></tr>
-            <tr><td><span class="rarity-legendary">Legendary</span></td><td>20-40g/s</td><td>Boss Arena</td></tr>
-            <tr><td><span class="rarity-mythic">Mythic</span></td><td>40-80g/s</td><td>Volcano</td></tr>
-            <tr><td><span class="rarity-god">Brainrot God</span></td><td>80-150g/s</td><td>Ancient Ruins</td></tr>
-            <tr><td><span class="rarity-secret">Secret</span></td><td>150-300g/s</td><td>Sky Platform</td></tr>
-            <tr><td><span class="rarity-og">OG</span></td><td>300-500g/s</td><td>The Void</td></tr>
+            <tr><th>Rarity</th><th>$/s Range</th><th>Zones</th></tr>
+            <tr><td><span class="rarity-common">Common</span></td><td>$1-3/s</td><td>Beach, Meadow</td></tr>
+            <tr><td><span class="rarity-rare">Rare</span></td><td>$5-10/s</td><td>Forest, Jungle</td></tr>
+            <tr><td><span class="rarity-epic">Epic</span></td><td>$10-20/s</td><td>Cave, Crystal Cove</td></tr>
+            <tr><td><span class="rarity-legendary">Legendary</span></td><td>$20-40/s</td><td>Boss Arena</td></tr>
+            <tr><td><span class="rarity-mythic">Mythic</span></td><td>$40-80/s</td><td>Volcano</td></tr>
+            <tr><td><span class="rarity-god">Brainrot God</span></td><td>$80-150/s</td><td>Ancient Ruins</td></tr>
+            <tr><td><span class="rarity-secret">Secret</span></td><td>$150-300/s</td><td>Sky Platform</td></tr>
+            <tr><td><span class="rarity-og">OG</span></td><td>$300-500/s</td><td>The Void</td></tr>
           </table>
         </div>
 
         <div class="subsection">
           <div class="subsection-title">Collecting Duplicates</div>
           <p class="guide-text">
-            You can collect multiple copies of the same brainrot. Each copy generates gold independently.
+            You can collect multiple copies of the same brainrot. Each copy generates cash independently.
             Stacking common brainrots early is a solid income strategy!
           </p>
         </div>
 
         <div class="guide-tip">
           <span class="guide-tip-icon">&#x1F4A1;</span>
-          <span class="guide-tip-text"><strong>Tip:</strong> Press <span class="guide-key">E</span> to open your Inventory. The Brainrots tab shows every brainrot by zone, how much gold each earns, and how many you own.</span>
+          <span class="guide-tip-text"><strong>Tip:</strong> Press <span class="guide-key">E</span> to open your Inventory. The Brainrots tab shows every brainrot by zone, how much $/s each earns, and how many you own.</span>
         </div>
       </div>
 
@@ -552,18 +552,18 @@
         </p>
 
         <table class="guide-table">
-          <tr><th>Zone</th><th>Rarity</th><th>Cost</th><th>Requires</th><th>Gold/s</th><th>Brainrots</th></tr>
-          <tr><td>Beach</td><td><span class="rarity-common">Common</span></td><td>Free</td><td>Floor 1</td><td>1-3g</td><td>10</td></tr>
-          <tr><td>Meadow</td><td><span class="rarity-common">Common</span></td><td>Free</td><td>Floor 1</td><td>1-3g</td><td>8</td></tr>
-          <tr><td>Forest</td><td><span class="rarity-rare">Rare</span></td><td>2,000g</td><td>Floor 2</td><td>5-10g</td><td>9</td></tr>
-          <tr><td>Jungle</td><td><span class="rarity-rare">Rare</span></td><td>2,000g</td><td>Floor 2</td><td>5-10g</td><td>10</td></tr>
-          <tr><td>Cave</td><td><span class="rarity-epic">Epic</span></td><td>8,000g</td><td>Floor 3</td><td>10-20g</td><td>6</td></tr>
-          <tr><td>Crystal Cove</td><td><span class="rarity-epic">Epic</span></td><td>8,000g</td><td>Floor 3</td><td>10-20g</td><td>6</td></tr>
-          <tr><td>Boss Arena</td><td><span class="rarity-legendary">Legendary</span></td><td>25,000g</td><td>Floor 3</td><td>20-40g</td><td>12</td></tr>
-          <tr><td>Volcano</td><td><span class="rarity-mythic">Mythic</span></td><td>75,000g</td><td>Floor 4</td><td>40-80g</td><td>12</td></tr>
-          <tr><td>Ancient Ruins</td><td><span class="rarity-god">Brainrot God</span></td><td>200,000g</td><td>Floor 4 + Rebirth 1</td><td>80-150g</td><td>9</td></tr>
-          <tr><td>Sky Platform</td><td><span class="rarity-secret">Secret</span></td><td>500,000g</td><td>Floor 4 + Rebirth 2</td><td>150-300g</td><td>11</td></tr>
-          <tr><td>The Void</td><td><span class="rarity-og">OG</span></td><td>1,000,000g</td><td>Floor 4 + Rebirth 3</td><td>300-500g</td><td>6</td></tr>
+          <tr><th>Zone</th><th>Rarity</th><th>Cost</th><th>Requires</th><th>$/s</th><th>Brainrots</th></tr>
+          <tr><td>Beach</td><td><span class="rarity-common">Common</span></td><td>Free</td><td>Floor 1</td><td>$1-3/s</td><td>10</td></tr>
+          <tr><td>Meadow</td><td><span class="rarity-common">Common</span></td><td>Free</td><td>Floor 1</td><td>$1-3/s</td><td>8</td></tr>
+          <tr><td>Forest</td><td><span class="rarity-rare">Rare</span></td><td>$2,000</td><td>Floor 2</td><td>$5-10/s</td><td>9</td></tr>
+          <tr><td>Jungle</td><td><span class="rarity-rare">Rare</span></td><td>$2,000</td><td>Floor 2</td><td>$5-10/s</td><td>10</td></tr>
+          <tr><td>Cave</td><td><span class="rarity-epic">Epic</span></td><td>$8,000</td><td>Floor 3</td><td>$10-20/s</td><td>6</td></tr>
+          <tr><td>Crystal Cove</td><td><span class="rarity-epic">Epic</span></td><td>$8,000</td><td>Floor 3</td><td>$10-20/s</td><td>6</td></tr>
+          <tr><td>Boss Arena</td><td><span class="rarity-legendary">Legendary</span></td><td>$25,000</td><td>Floor 3</td><td>$20-40/s</td><td>12</td></tr>
+          <tr><td>Volcano</td><td><span class="rarity-mythic">Mythic</span></td><td>$75,000</td><td>Floor 4</td><td>$40-80/s</td><td>12</td></tr>
+          <tr><td>Ancient Ruins</td><td><span class="rarity-god">Brainrot God</span></td><td>$200,000</td><td>Floor 4 + Rebirth 1</td><td>$80-150/s</td><td>9</td></tr>
+          <tr><td>Sky Platform</td><td><span class="rarity-secret">Secret</span></td><td>$500,000</td><td>Floor 4 + Rebirth 2</td><td>$150-300/s</td><td>11</td></tr>
+          <tr><td>The Void</td><td><span class="rarity-og">OG</span></td><td>$1,000,000</td><td>Floor 4 + Rebirth 3</td><td>$300-500/s</td><td>6</td></tr>
         </table>
 
         <div class="guide-warning">
@@ -576,7 +576,7 @@
       <div class="guide-section" id="combat">
         <div class="section-title">&#x2694;&#xFE0F; Combat & PVP</div>
         <p class="guide-text">
-          Brainrot Tycoon is a PVP game. Other players can kill you to steal your gold.
+          Brainrot Tycoon is a PVP game. Other players can kill you to steal your cash.
           Buy <a class="xref" onclick="navigateTo('shops')">weapons and gear</a> to fight back!
         </p>
 
@@ -584,9 +584,9 @@
           <div class="subsection-title">Weapons</div>
           <table class="guide-table">
             <tr><th>Weapon</th><th>Cost</th><th>Damage</th><th>Speed</th><th>Range</th></tr>
-            <tr><td>Pistol</td><td>1,000g</td><td>30</td><td>Fast</td><td>Medium</td></tr>
-            <tr><td>Rifle</td><td>5,000g</td><td>60</td><td>Medium</td><td>Long</td></tr>
-            <tr><td>Shotgun</td><td>15,000g</td><td>95</td><td>Slow</td><td>Short</td></tr>
+            <tr><td>Pistol</td><td>$1,000</td><td>30</td><td>Fast</td><td>Medium</td></tr>
+            <tr><td>Rifle</td><td>$5,000</td><td>60</td><td>Medium</td><td>Long</td></tr>
+            <tr><td>Shotgun</td><td>$15,000</td><td>95</td><td>Slow</td><td>Short</td></tr>
           </table>
         </div>
 
@@ -602,8 +602,8 @@
         <div class="subsection">
           <div class="subsection-title">What Happens on Death</div>
           <ul class="guide-list">
-            <li><strong>Lose 50% of your wallet gold</strong> &mdash; the killer steals it as a bounty</li>
-            <li><strong>Lose all uncollected pending gold</strong> &mdash; gold that was accumulating but not yet collected is wiped</li>
+            <li><strong>Lose 50% of your wallet cash</strong> &mdash; the killer steals it as a bounty</li>
+            <li><strong>Lose all uncollected pending cash</strong> &mdash; cash that was accumulating but not yet collected is wiped</li>
             <li><strong>Drop your carried brainrot</strong> &mdash; if you were carrying one, it's gone</li>
             <li><strong>Teleport to your base</strong> &mdash; or to the hub if you don't have a base</li>
           </ul>
@@ -611,7 +611,7 @@
 
         <div class="guide-tip">
           <span class="guide-tip-icon">&#x1F4A1;</span>
-          <span class="guide-tip-text"><strong>Protect your gold:</strong> Use the <a class="xref" onclick="navigateTo('vault')">Vault</a> to store gold safely. Vaulted gold is immune to death penalties!</span>
+          <span class="guide-tip-text"><strong>Protect your cash:</strong> Use the <a class="xref" onclick="navigateTo('vault')">Vault</a> to store cash safely. Vaulted cash is immune to death penalties!</span>
         </div>
 
         <div class="subsection">
@@ -619,10 +619,10 @@
           <p class="guide-text">Buy these at the <a class="xref" onclick="navigateTo('shops')">Items shop</a> for combat advantages:</p>
           <table class="guide-table">
             <tr><th>Item</th><th>Cost</th><th>Effect</th></tr>
-            <tr><td>Health Pack</td><td>800g</td><td>Heal to full HP</td></tr>
-            <tr><td>Speed Potion</td><td>2,000g</td><td>2x speed for 2 minutes</td></tr>
-            <tr><td>Base Teleport</td><td>1,000g</td><td>Instant teleport to your base</td></tr>
-            <tr><td>Shield Bubble</td><td>3,000g</td><td>Immune to damage for 30s</td></tr>
+            <tr><td>Health Pack</td><td>$800</td><td>Heal to full HP</td></tr>
+            <tr><td>Speed Potion</td><td>$2,000</td><td>2x speed for 2 minutes</td></tr>
+            <tr><td>Base Teleport</td><td>$1,000</td><td>Instant teleport to your base</td></tr>
+            <tr><td>Shield Bubble</td><td>$3,000</td><td>Immune to damage for 30s</td></tr>
           </table>
         </div>
       </div>
@@ -639,7 +639,7 @@
           <div class="subsection-title">Upgrades Shop</div>
           <p class="guide-text">
             Buy <a class="xref" onclick="navigateTo('zones')">zone unlocks</a> and
-            <a class="xref" onclick="navigateTo('bases')">base floors</a>. This is where most of your early gold goes.
+            <a class="xref" onclick="navigateTo('bases')">base floors</a>. This is where most of your early cash goes.
             Zones require specific floors to be unlocked first.
           </p>
         </div>
@@ -673,22 +673,22 @@
       <div class="guide-section" id="vault">
         <div class="section-title">&#x1F512; Vault</div>
         <p class="guide-text">
-          The <strong>Vault</strong> is located next to the marketplace (the golden pedestal). Walk onto the stand pad
-          to open it. The vault lets you protect your gold from <a class="xref" onclick="navigateTo('combat')">death penalties</a>.
+          The <strong>Vault</strong> is located next to the marketplace. Walk onto the stand pad
+          to open it. The vault lets you protect your cash from <a class="xref" onclick="navigateTo('combat')">death penalties</a>.
         </p>
 
         <div class="subsection">
           <div class="subsection-title">How It Works</div>
           <ul class="guide-list">
-            <li><strong>Deposit</strong> gold from your wallet into the vault (25%, 50%, or 100%)</li>
-            <li><strong>Withdraw</strong> gold from the vault back to your wallet (25%, 50%, or 100%)</li>
-            <li><strong>Vaulted gold is safe from death</strong> &mdash; when you die, only wallet gold is affected</li>
+            <li><strong>Deposit</strong> cash from your wallet into the vault (25%, 50%, or 100%)</li>
+            <li><strong>Withdraw</strong> cash from the vault back to your wallet (25%, 50%, or 100%)</li>
+            <li><strong>Vaulted cash is safe from death</strong> &mdash; when you die, only wallet cash is affected</li>
           </ul>
         </div>
 
         <div class="guide-tip">
           <span class="guide-tip-icon">&#x1F4A1;</span>
-          <span class="guide-tip-text"><strong>Strategy:</strong> Before entering dangerous zones like Volcano or The Void, deposit most of your gold in the vault. If you die, you only lose what's in your wallet!</span>
+          <span class="guide-tip-text"><strong>Strategy:</strong> Before entering dangerous zones like Volcano or The Void, deposit most of your cash in the vault. If you die, you only lose what's in your wallet!</span>
         </div>
       </div>
 
@@ -700,16 +700,16 @@
           <a class="xref" onclick="navigateTo('zones')">zones</a> in the game. The top 3 zones require rebirths:
         </p>
         <table class="guide-table">
-          <tr><th>Zone</th><th>Rebirth Required</th><th>Gold/s Range</th></tr>
-          <tr><td><span class="rarity-god">Ancient Ruins</span></td><td>Rebirth 1</td><td>80-150g/s</td></tr>
-          <tr><td><span class="rarity-secret">Sky Platform</span></td><td>Rebirth 2</td><td>150-300g/s</td></tr>
-          <tr><td><span class="rarity-og">The Void</span></td><td>Rebirth 3</td><td>300-500g/s</td></tr>
+          <tr><th>Zone</th><th>Rebirth Required</th><th>$/s Range</th></tr>
+          <tr><td><span class="rarity-god">Ancient Ruins</span></td><td>Rebirth 1</td><td>$80-150/s</td></tr>
+          <tr><td><span class="rarity-secret">Sky Platform</span></td><td>Rebirth 2</td><td>$150-300/s</td></tr>
+          <tr><td><span class="rarity-og">The Void</span></td><td>Rebirth 3</td><td>$300-500/s</td></tr>
         </table>
 
         <div class="subsection">
           <div class="subsection-title">What Gets Reset</div>
           <ul class="guide-list">
-            <li><strong>Gold &amp; Vault Gold</strong> &mdash; back to 0</li>
+            <li><strong>Cash &amp; Vault Cash</strong> &mdash; back to 0</li>
             <li><strong>All brainrots</strong> &mdash; your collection is cleared</li>
             <li><strong>Zone unlocks</strong> &mdash; must re-purchase them</li>
             <li><strong>Base floors</strong> &mdash; reset to Floor 1</li>
@@ -758,32 +758,32 @@
         <div class="section-title">&#x1F4A1; Tips & Tricks</div>
 
         <div class="subsection">
-          <div class="subsection-title">Early Game (0 - 5,000g)</div>
+          <div class="subsection-title">Early Game ($0 - $5,000)</div>
           <ul class="guide-list">
             <li><strong>Claim a base immediately</strong> &mdash; you need it to deposit brainrots</li>
             <li><strong>Farm Beach and Meadow</strong> &mdash; they're free and safe (fewer PVP players)</li>
             <li><strong>Deposit fast, don't hoard</strong> &mdash; a dead player drops their carried brainrot</li>
-            <li><strong>Buy Floor 2 (1,000g)</strong> &mdash; unlocks Forest and Jungle zones</li>
+            <li><strong>Buy Floor 2 ($1,000)</strong> &mdash; unlocks Forest and Jungle zones</li>
           </ul>
         </div>
 
         <div class="subsection">
-          <div class="subsection-title">Mid Game (5K - 50Kg)</div>
+          <div class="subsection-title">Mid Game ($5K - $50K)</div>
           <ul class="guide-list">
-            <li><strong>Buy a Pistol (1,000g)</strong> &mdash; cheap defense against other players</li>
-            <li><strong>Unlock Cave or Crystal Cove (8,000g each)</strong> &mdash; big gold/s jump to Epic tier</li>
-            <li><strong>Vault your gold</strong> &mdash; before going to dangerous zones, deposit in the <a class="xref" onclick="navigateTo('vault')">Vault</a></li>
-            <li><strong>Speed Boots level 1 (3,000g)</strong> &mdash; huge quality of life for running between zones and base</li>
-            <li><strong>Floor 3 (5,000g)</strong> &mdash; unlocks Boss Arena which has Legendary brainrots</li>
+            <li><strong>Buy a Pistol ($1,000)</strong> &mdash; cheap defense against other players</li>
+            <li><strong>Unlock Cave or Crystal Cove ($8,000 each)</strong> &mdash; big $/s jump to Epic tier</li>
+            <li><strong>Vault your cash</strong> &mdash; before going to dangerous zones, deposit in the <a class="xref" onclick="navigateTo('vault')">Vault</a></li>
+            <li><strong>Speed Boots level 1 ($3,000)</strong> &mdash; huge quality of life for running between zones and base</li>
+            <li><strong>Floor 3 ($5,000)</strong> &mdash; unlocks Boss Arena which has Legendary brainrots</li>
           </ul>
         </div>
 
         <div class="subsection">
-          <div class="subsection-title">Late Game (50K+)</div>
+          <div class="subsection-title">Late Game ($50K+)</div>
           <ul class="guide-list">
             <li><strong>Upgrade to Rifle or Shotgun</strong> &mdash; much better for PVP in contested zones</li>
             <li><strong>Invest in Armor</strong> &mdash; survivability is key when everyone has weapons</li>
-            <li><strong>Floor 4 (20,000g)</strong> &mdash; unlocks Volcano, Ancient Ruins, Sky Platform, and The Void</li>
+            <li><strong>Floor 4 ($20,000)</strong> &mdash; unlocks Volcano, Ancient Ruins, Sky Platform, and The Void</li>
             <li><strong>Vault aggressively before rebirth</strong> &mdash; you lose everything, so spend it all first</li>
             <li><strong>Use Shield + Base Teleport combo</strong> &mdash; shield up, grab a valuable brainrot, teleport home</li>
           </ul>
@@ -792,10 +792,10 @@
         <div class="subsection">
           <div class="subsection-title">PVP Tips</div>
           <ul class="guide-list">
-            <li><strong>Press <span class="guide-key">E</span> to check the Players tab</strong> &mdash; see who's carrying a brainrot and how much gold they have</li>
+            <li><strong>Press <span class="guide-key">E</span> to check the Players tab</strong> &mdash; see who's carrying a brainrot and how much cash they have</li>
             <li><strong>Target players carrying brainrots</strong> &mdash; they're worth killing because they drop the brainrot</li>
             <li><strong>Shotgun is king up close</strong> &mdash; 95 damage can two-shot most players</li>
-            <li><strong>Always keep a Health Pack</strong> &mdash; 800g to heal to full can save thousands in death penalties</li>
+            <li><strong>Always keep a Health Pack</strong> &mdash; $800 to heal to full can save thousands in death penalties</li>
           </ul>
         </div>
       </div>

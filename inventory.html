@@ -222,7 +222,7 @@
 
                     zoneHtml += '<div class="br-row' + (count > 0 ? ' owned' : '') + '">';
                     zoneHtml += '<div class="br-name">' + prettyName(bv) + '</div>';
-                    zoneHtml += '<div class="br-gps">' + gps.toFixed(1) + 'g/s</div>';
+                    zoneHtml += '<div class="br-gps">$' + gps.toFixed(1) + '/s</div>';
                     zoneHtml += '<div class="br-owned ' + (count > 0 ? 'has' : 'none') + '">' + count + '</div>';
                     zoneHtml += '</div>';
                 }
@@ -235,7 +235,7 @@
             document.getElementById('summary-bar').innerHTML =
                 '<span>' + totalTypes + '/' + totalBrainrots + ' types collected</span>' +
                 '<span>' + totalOwned + ' total owned</span>' +
-                '<span>' + totalRate.toFixed(1) + 'g/s income</span>';
+                '<span>$' + totalRate.toFixed(1) + '/s income</span>';
         }
 
         function renderPlayers() {
@@ -260,7 +260,7 @@
 
                 if (isActive) {
                     html += '<div class="p-label">Base ' + p.baseId + (isMe ? ' (YOU)' : '') + '</div>';
-                    html += '<div class="p-gold">' + fmt(p.gold) + 'g</div>';
+                    html += '<div class="p-gold">$' + fmt(p.gold) + '</div>';
                     if (carryName) {
                         html += '<div class="p-carry">Carrying: ' + carryName + '</div>';
                     }

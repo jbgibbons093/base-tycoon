@@ -53,8 +53,8 @@
             display: inline-block;
             padding: 4px 16px;
             border-radius: 20px;
-            background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border: 3px solid #CC8800;
+            background: linear-gradient(180deg, #5BDB5B, #2EAA2E);
+            border: 3px solid #1E8A1E;
             box-shadow: 0 2px 0 rgba(0,0,0,0.15);
             font-family: 'Luckiest Guy', cursive;
             font-size: 15px;
@@ -217,7 +217,7 @@
         <div class="shop-header">
             <h1>REBIRTH</h1>
             <div class="header-badges">
-                <div class="gold-badge" id="gold-display">Gold: 0</div>
+                <div class="gold-badge" id="gold-display">Cash: $0</div>
                 <div class="rebirth-badge" id="rebirth-display">Rebirth: 0</div>
             </div>
             <div class="close-x" onclick="closeShop()">X</div>
@@ -239,12 +239,12 @@
         var myUsername = '';
         const REBIRTH_COSTS = [500000, 2000000, 10000000];
         const REBIRTH_BONUSES = [
-            '1.5x Permanent Gold Income',
-            '2x Permanent Gold Income\n+ Unlock Ancient Ruins zone',
-            '3x Permanent Gold Income\n+ Unlock Sky Platform & The Void zones\n+ Exclusive Night Skybox'
+            '1.5x Permanent Cash Income',
+            '2x Permanent Cash Income\n+ Unlock Ancient Ruins zone',
+            '3x Permanent Cash Income\n+ Unlock Sky Platform & The Void zones\n+ Exclusive Night Skybox'
         ];
         const REBIRTH_KEEPS = 'Your base, floors, and base upgrades are kept.';
-        const REBIRTH_RESETS = 'Gold, brainrots, zone unlocks, weapons, gear, and items are reset.';
+        const REBIRTH_RESETS = 'Cash, brainrots, zone unlocks, weapons, gear, and items are reset.';
 
         let state = { gold: 0, rebirth: 0 };
 
@@ -256,7 +256,7 @@
         }
 
         function render() {
-            document.getElementById('gold-display').textContent = 'Gold: ' + fmt(state.gold);
+            document.getElementById('gold-display').textContent = 'Cash: $' + fmt(state.gold);
             document.getElementById('rebirth-display').textContent = 'Rebirth: ' + state.rebirth;
             const el = document.getElementById('rebirth-content');
             const nextRebirth = state.rebirth + 1;
@@ -292,14 +292,14 @@
                     <div class="sub" style="margin-top:8px;color:#2ECC40;font-weight:900">${REBIRTH_KEEPS}</div>
                     <div class="sub" style="margin-top:4px;color:#D63031;font-weight:900">${REBIRTH_RESETS}</div>
                     <div class="rebirth-progress">
-                        ${fmt(state.gold)} / ${fmt(cost)} gold
+                        $${fmt(state.gold)} / $${fmt(cost)}
                     </div>
                     <div class="rebirth-bar-track">
                         <div class="rebirth-bar-fill" style="width:${progress}%"></div>
                     </div>
                     <button class="rebirth-btn ${canRebirth ? 'ready' : 'not-ready'}"
                             onclick="doRebirth()" ${canRebirth ? '' : 'disabled'}>
-                        ${canRebirth ? 'REBIRTH NOW!' : 'NEED ' + fmt(cost) + 'g'}
+                        ${canRebirth ? 'REBIRTH NOW!' : 'NEED $' + fmt(cost)}
                     </button>
                 </div>
             `;
