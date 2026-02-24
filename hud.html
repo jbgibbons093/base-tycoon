@@ -131,38 +131,63 @@
         .spawn-strip {
             display: flex;
             flex-direction: column;
-            gap: 6px;
+            gap: 4px;
             align-items: flex-start;
         }
         .spawn-pip {
             display: flex;
             align-items: center;
-            gap: 4px;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 10px;
-            color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+            gap: 6px;
             position: relative;
         }
-        .spawn-pip .pip-bg {
-            width: 28px; height: 28px;
-            border-radius: 50%;
+        .spawn-pip .pip-name {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 11px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+            white-space: nowrap;
+            min-width: 90px;
+            text-align: right;
+        }
+        .spawn-pip .pip-ring {
+            position: relative;
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+        .spawn-pip .pip-ring svg {
+            width: 28px;
+            height: 28px;
+            transform: rotate(-90deg);
+        }
+        .spawn-pip .pip-ring-bg {
+            fill: none;
+            stroke: rgba(0,0,0,0.3);
+            stroke-width: 3;
+        }
+        .spawn-pip .pip-ring-fill {
+            fill: none;
+            stroke-width: 3.5;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.9s linear;
+        }
+        .spawn-pip .pip-secs {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
             display: flex;
             align-items: center;
             justify-content: center;
-            flex-shrink: 0;
-        }
-        .spawn-pip .pip-label {
-            font-size: 8px;
-            position: relative;
-            z-index: 1;
-        }
-        .spawn-pip .pip-time {
-            font-size: 9px;
             font-family: 'Nunito', sans-serif;
-            font-weight: 800;
-            color: rgba(255,255,255,0.8);
-            white-space: nowrap;
+            font-weight: 900;
+            font-size: 9px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+        }
+        .spawn-pip.full .pip-name {
+            opacity: 0.4;
+        }
+        .spawn-pip.full .pip-ring {
+            opacity: 0.4;
         }
 
         /* ---- NOTIFICATION FEED (above cash in stack) ---- */
@@ -675,9 +700,9 @@
             Ancient_Ruins: '#DAA520', Sky_Platform: '#87CEEB', The_Void: '#9B59B6'
         };
         const ZONE_LABELS = {
-            Beach: 'BCH', Meadow: 'MDW', Forest: 'FOR', Jungle: 'JNG',
-            Cave: 'CAV', Crystal_Cove: 'CRC', Boss_Arena: 'BOS', Volcano: 'VOL',
-            Ancient_Ruins: 'RUN', Sky_Platform: 'SKY', The_Void: 'VID'
+            Beach: 'Beach', Meadow: 'Meadow', Forest: 'Forest', Jungle: 'Jungle',
+            Cave: 'Cave', Crystal_Cove: 'Crystal Cove', Boss_Arena: 'Boss Arena', Volcano: 'Volcano',
+            Ancient_Ruins: 'Ancient Ruins', Sky_Platform: 'Sky Platform', The_Void: 'The Void'
         };
 
         /* ---- QUEST NUMBER -> BV NAME (for My_Carrying_Brainrot variable) ---- */
@@ -716,6 +741,8 @@
             }
         }
 
+        var RING_CIRCUMFERENCE = 2 * Math.PI * 10; // r=10 for SVG circle
+
         function buildTimerUI() {
             var strip = document.getElementById('spawn-strip');
             var html = '';
@@ -723,16 +750,24 @@
             for (var i = 0; i < zoneNames.length; i++) {
                 var z = zoneNames[i];
                 var col = ZONE_COLORS[z] || '#888';
-                var label = ZONE_LABELS[z] || z.substring(0, 3);
+                var label = ZONE_LABELS[z] || z;
                 var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
                 html += '<div class="spawn-pip" id="pip-' + z + '">' +
-                    '<div class="pip-bg" style="background:' + col + ';">' +
-                    '<span class="pip-label">' + label + '</span>' +
+                    '<span class="pip-name" style="color:' + col + '">' + label + '</span>' +
+                    '<div class="pip-ring">' +
+                        '<svg viewBox="0 0 28 28">' +
+                            '<circle class="pip-ring-bg" cx="14" cy="14" r="10"/>' +
+                            '<circle class="pip-ring-fill" id="pip-fill-' + z + '" cx="14" cy="14" r="10" ' +
+                                'stroke="' + col + '" ' +
+                                'stroke-dasharray="' + RING_CIRCUMFERENCE.toFixed(1) + '" ' +
+                                'stroke-dashoffset="0" ' +
+                                'style="filter:drop-shadow(0 0 3px ' + col + '80)"/>' +
+                        '</svg>' +
+                        '<div class="pip-secs" id="pip-secs-' + z + '">' + interval + '</div>' +
                     '</div>' +
-                    '<span class="pip-time" id="pip-time-' + z + '">' + interval + 's</span>' +
                     '</div>';
                 spawnTimers[z] = interval;
-                spawnCounts[z] = 0; // Start at 0 — server ZC_ sync is source of truth
+                spawnCounts[z] = 0;
             }
             strip.innerHTML = html;
         }
@@ -743,21 +778,20 @@
                 var z = zoneNames[i];
                 var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
                 var remaining = spawnTimers[z] || 0;
-                var pct = ((interval - remaining) / interval) * 100;
-                var col = ZONE_COLORS[z] || '#888';
-                var pipBg = document.querySelector('#pip-' + z + ' .pip-bg');
-                var timeEl = document.getElementById('pip-time-' + z);
-                if (pipBg) {
-                    // Show progress ring on the pip circle
-                    pipBg.style.background = 'conic-gradient(' + col + ' ' + pct + '%, rgba(0,0,0,0.3) ' + pct + '%)';
-                    pipBg.style.borderRadius = '50%';
+                var pct = (interval - remaining) / interval; // 0 to 1
+                var pipEl = document.getElementById('pip-' + z);
+                var fillEl = document.getElementById('pip-fill-' + z);
+                var secsEl = document.getElementById('pip-secs-' + z);
+                var isFull = (spawnCounts[z] || 0) >= MAX_PER_ZONE;
+                if (pipEl) {
+                    if (isFull) { pipEl.classList.add('full'); } else { pipEl.classList.remove('full'); }
                 }
-                if (timeEl) {
-                    if ((spawnCounts[z] || 0) >= MAX_PER_ZONE) {
-                        timeEl.textContent = 'FULL';
-                    } else {
-                        timeEl.textContent = remaining + 's';
-                    }
+                if (fillEl) {
+                    var offset = RING_CIRCUMFERENCE * (1 - pct);
+                    fillEl.setAttribute('stroke-dashoffset', offset.toFixed(1));
+                }
+                if (secsEl) {
+                    secsEl.textContent = isFull ? '\u2713' : remaining;
                 }
             }
         }
