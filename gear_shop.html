@@ -115,7 +115,7 @@
             box-shadow: 0 2px 0 rgba(0,0,0,0.1);
         }
         .icon-speed { background: linear-gradient(180deg, #74B9FF, #3498DB); border-color: #2176AA; }
-        .icon-carry { background: linear-gradient(180deg, #FFB347, #FF8C00); border-color: #CC6600; }
+
         .icon-armor { background: linear-gradient(180deg, #95A5A6, #636E72); border-color: #4A4A4A; }
 
         .g-info { flex: 1; min-width: 0; }
@@ -282,18 +282,6 @@
                 ]
             },
             {
-                id: 'carry_pack', name: 'Carry Pack', icon: '\u{1F392}', iconClass: 'icon-carry',
-                maxLevel: 5,
-                taskPrefix: 'gear_carry',
-                levels: [
-                    { cost: 2000, effect: 'Carry 2 brainrots', desc: 'Haul more per trip' },
-                    { cost: 8000, effect: 'Carry 3 brainrots', desc: 'Triple carry' },
-                    { cost: 25000, effect: 'Carry 4 brainrots', desc: 'Quad loader' },
-                    { cost: 80000, effect: 'Carry 5 brainrots', desc: 'Heavy hauler' },
-                    { cost: 250000, effect: 'Carry 6 brainrots', desc: 'Max payload' }
-                ]
-            },
-            {
                 id: 'armor', name: 'Battle Armor', icon: '\u{1F6E1}', iconClass: 'icon-armor',
                 maxLevel: 4,
                 taskPrefix: 'gear_armor',
@@ -432,7 +420,7 @@
                     const val = parseVarValue(pair.substring(eq + 1));
                     if (key === 'Gold') state.gold = val;
                     else if (key === 'Gear_SpeedBoots') state.gearLevels.speed_boots = val;
-                    else if (key === 'Gear_CarryPack') state.gearLevels.carry_pack = val;
+
                     else if (key === 'Gear_Armor') state.gearLevels.armor = val;
                 }
                 render();
@@ -501,7 +489,7 @@
         if (params.get('gold')) state.gold = parseFloat(params.get('gold')) || 0;
 
         render();
-        if (!sdk) { state.gold = 50000; state.gearLevels = {speed_boots:2, carry_pack:1, armor:0}; render(); }
+        if (!sdk) { state.gold = 50000; state.gearLevels = {speed_boots:2, armor:0}; render(); }
     </script>
 </body>
 </html>
