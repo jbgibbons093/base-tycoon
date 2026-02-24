@@ -531,6 +531,20 @@
             weaponList.innerHTML = '';
             weaponList.style.display = 'flex';
             weaponList.style.gap = '4px';
+
+            // "None" option (unequip)
+            var noneActive = state.equippedWeapon === null;
+            var noneDiv = document.createElement('div');
+            noneDiv.style.cssText = 'width:56px;height:56px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:' + (noneActive ? 'default' : 'pointer') + ';border:2px solid ' + (noneActive ? 'rgba(255,215,0,0.5)' : 'rgba(255,255,255,0.1)') + ';background:' + (noneActive ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.06)') + ';transition:background 0.1s;';
+            noneDiv.innerHTML = '<span style="font-size:22px;line-height:1">\u2014</span>' +
+                '<span style="font-size:7px;font-weight:900;text-transform:uppercase;margin-top:2px;color:' + (noneActive ? '#FFD700' : 'rgba(255,255,255,0.6)') + '">None</span>';
+            if (!noneActive) {
+                noneDiv.onmouseenter = function() { noneDiv.style.background = 'rgba(255,255,255,0.12)'; };
+                noneDiv.onmouseleave = function() { noneDiv.style.background = 'rgba(255,255,255,0.06)'; };
+                noneDiv.onclick = function(e) { e.stopPropagation(); unequipWeapon(); };
+            }
+            weaponList.appendChild(noneDiv);
+
             WEAPONS.forEach(w => {
                 const owned = state.ownedWeapons.includes(w.id);
                 const equipped = state.equippedWeapon === w.id;
@@ -544,6 +558,14 @@
                     div.onclick = function(e) {
                         e.stopPropagation();
                         equipWeapon(w.id);
+                    };
+                } else if (owned && equipped) {
+                    div.style.cursor = 'pointer';
+                    div.onmouseenter = function() { div.style.background = 'rgba(255,100,100,0.15)'; div.style.borderColor = 'rgba(255,100,100,0.5)'; };
+                    div.onmouseleave = function() { div.style.background = 'rgba(255,215,0,0.12)'; div.style.borderColor = 'rgba(255,215,0,0.5)'; };
+                    div.onclick = function(e) {
+                        e.stopPropagation();
+                        unequipWeapon();
                     };
                 }
                 weaponList.appendChild(div);
@@ -591,6 +613,21 @@
             if (sdk && EQUIP_QUEST[id]) {
                 sdk.sendMessageToUnity(JSON.stringify({
                     TaskName: EQUIP_QUEST[id],
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+                sdk.focusGameKeyboard();
+            }
+        }
+
+        function unequipWeapon() {
+            state.equippedWeapon = null;
+            render();
+            renderWeaponDropup();
+            playSound('click');
+            closeAllDropups();
+            if (sdk) {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: 'unequip_weapon',
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
                 sdk.focusGameKeyboard();
@@ -750,8 +787,8 @@
             }
 
             // Update equipped weapon
-            if (vars['Equipped_Weapon'] !== undefined && EQUIPPED_WEAPON_MAP[vars['Equipped_Weapon']]) {
-                state.equippedWeapon = EQUIPPED_WEAPON_MAP[vars['Equipped_Weapon']];
+            if (vars['Equipped_Weapon'] !== undefined) {
+                state.equippedWeapon = EQUIPPED_WEAPON_MAP[vars['Equipped_Weapon']] || null;
             }
 
             // Update health and armor
@@ -860,7 +897,7 @@
         if (!sdk) {
             state.gold = 25000;
             state.ownedWeapons = ['pistol', 'rifle'];
-            state.equippedWeapon = 'rifle';
+            state.equippedWeapon = null;
             state.equippedItems = ['health_pack', 'speed_potion', 'base_teleport', 'shield'];
             state.carrying = 1;
             state.carryGold = 14.6;
