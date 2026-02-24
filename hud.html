@@ -487,12 +487,14 @@
                 }
                 return parseFloat(raw) || 0;
             } catch(e) {}
-            // Fallback: parse Portals format {"name"="val", "name2"="val2"}
+            // Fallback: parse Portals format {"name"="val"&"name2"="val2"} or comma-separated
             try {
                 var inner = raw.substring(1, raw.length - 1).trim();
-                var entries = inner.split(',');
+                // Split on & or , (Portals may use either as separator inside braces)
+                var entries = inner.split(/[&,]/);
                 for (var j = 0; j < entries.length; j++) {
                     var entry = entries[j].trim();
+                    if (!entry) continue;
                     // Split on first = or :
                     var sep = entry.indexOf('=');
                     if (sep < 0) sep = entry.indexOf(':');
@@ -989,9 +991,20 @@
                 } catch(e) {}
                 // String-based messages
                 if (msg.startsWith('inv:')) {
-                    // Parse key=value pairs: inv:username=bob&Gold=123&health={"bob":100}...
-                    // Split on first = only per pair to handle JSON values with = inside
-                    var pairs = msg.substring(4).split('&');
+                    // Parse key=value pairs: inv:username=bob&Gold=123&health={"bob"=100&"Hugh"=175}
+                    // Bracket-aware split: don't split on & inside {} braces
+                    var raw = msg.substring(4);
+                    var pairs = [];
+                    var depth = 0, start = 0;
+                    for (var ci = 0; ci < raw.length; ci++) {
+                        if (raw.charAt(ci) === '{') depth++;
+                        else if (raw.charAt(ci) === '}') depth--;
+                        else if (raw.charAt(ci) === '&' && depth === 0) {
+                            pairs.push(raw.substring(start, ci));
+                            start = ci + 1;
+                        }
+                    }
+                    if (start < raw.length) pairs.push(raw.substring(start));
                     var params = {};
                     for (var pi = 0; pi < pairs.length; pi++) {
                         var eq = pairs[pi].indexOf('=');
