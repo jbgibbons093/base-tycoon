@@ -295,8 +295,8 @@
 
                     let btnClass, btnText;
                     if (onCooldown) { btnClass = 'btn-cooldown'; btnText = cdRemaining + 's'; }
-                    else if (canBuy) { btnClass = 'btn-buy'; btnText = fmt(item.cost) + 'g'; }
-                    else { btnClass = 'btn-locked'; btnText = fmt(item.cost) + 'g'; }
+                    else if (canBuy) { btnClass = 'btn-buy'; btnText = '$' + fmt(item.cost); }
+                    else { btnClass = 'btn-locked'; btnText = '$' + fmt(item.cost); }
 
                     const card = document.createElement('div');
                     card.className = 'item-card';

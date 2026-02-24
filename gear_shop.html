@@ -317,8 +317,8 @@
 
                 let btnClass, btnText;
                 if (maxed) { btnClass = 'btn-maxed'; btnText = 'MAXED'; }
-                else if (canBuy) { btnClass = 'btn-buy'; btnText = fmt(nextLevel.cost) + 'g'; }
-                else { btnClass = 'btn-locked'; btnText = fmt(nextLevel.cost) + 'g'; }
+                else if (canBuy) { btnClass = 'btn-buy'; btnText = '$' + fmt(nextLevel.cost); }
+                else { btnClass = 'btn-locked'; btnText = '$' + fmt(nextLevel.cost); }
 
                 const currentEffect = level > 0 ? g.levels[level-1].effect : 'Not owned';
                 const nextEffect = nextLevel ? nextLevel.effect : '';

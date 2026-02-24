@@ -376,8 +376,8 @@
                 if (unlocked || isFree) { btnClass = 'btn-done'; btnText = 'UNLOCKED'; }
                 else if (needsFloor) { btnClass = 'btn-locked'; btnText = 'Floor ' + z.reqFloor; }
                 else if (needsRebirth) { btnClass = 'btn-locked'; btnText = 'Rebirth ' + z.rebirth; }
-                else if (canBuy) { btnClass = 'btn-buy'; btnText = fmt(z.cost) + 'g'; }
-                else { btnClass = 'btn-locked'; btnText = fmt(z.cost) + 'g'; }
+                else if (canBuy) { btnClass = 'btn-buy'; btnText = '$' + fmt(z.cost); }
+                else { btnClass = 'btn-locked'; btnText = '$' + fmt(z.cost); }
 
                 let reqText = '';
                 if (z.reqFloor > 1) reqText += 'Requires Floor ' + z.reqFloor;
@@ -413,8 +413,8 @@
 
                 let btnClass, btnText;
                 if (unlocked) { btnClass = 'btn-done'; btnText = 'UNLOCKED'; }
-                else if (canBuy) { btnClass = 'btn-buy'; btnText = fmt(f.cost) + 'g'; }
-                else { btnClass = 'btn-locked'; btnText = fmt(f.cost) + 'g'; }
+                else if (canBuy) { btnClass = 'btn-buy'; btnText = '$' + fmt(f.cost); }
+                else { btnClass = 'btn-locked'; btnText = '$' + fmt(f.cost); }
 
                 const card = document.createElement('div');
                 card.className = 'upgrade-card' + (unlocked ? ' owned' : '');

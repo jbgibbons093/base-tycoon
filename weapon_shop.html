@@ -321,8 +321,8 @@
 
                 let btnHTML;
                 if (owned) btnHTML = '<button class="action-btn btn-done">OWNED</button>';
-                else if (canBuy) btnHTML = `<button class="action-btn btn-buy" onclick="buy('${w.id}')">${fmt(w.cost)}g</button>`;
-                else btnHTML = `<button class="action-btn btn-locked">${fmt(w.cost)}g</button>`;
+                else if (canBuy) btnHTML = `<button class="action-btn btn-buy" onclick="buy('${w.id}')">$${fmt(w.cost)}</button>`;
+                else btnHTML = `<button class="action-btn btn-locked">$${fmt(w.cost)}</button>`;
 
                 const card = document.createElement('div');
                 card.className = 'weapon-card' + (owned ? ' owned' : '');
