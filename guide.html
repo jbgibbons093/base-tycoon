@@ -1,0 +1,921 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Brainrot Tycoon - Game Guide</title>
+  <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: transparent;
+      overflow-x: hidden;
+      display: flex;
+      justify-content: center;
+    }
+
+    .guide-container {
+      background: #1a1028;
+      color: #ccc;
+      width: 95vw;
+      max-width: 1100px;
+      border-radius: 24px;
+      border: 5px solid #6C3483;
+      box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 20px;
+      background: linear-gradient(180deg, #9B59B6 0%, #6C3483 100%);
+      border-bottom: 4px solid #4A235A;
+    }
+    .header-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-icon { font-size: 30px; }
+    .header-text {
+      font-family: 'Luckiest Guy', cursive;
+      font-size: 32px;
+      color: white;
+      text-shadow: 3px 3px 0 rgba(0,0,0,0.25);
+      letter-spacing: 2px;
+    }
+    .close-hint {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-weight: 900;
+      color: rgba(255,255,255,0.7);
+    }
+    .key-hint {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-width: 28px;
+      height: 28px;
+      padding: 0 8px;
+      background: rgba(0,0,0,0.3);
+      border: 2px solid rgba(255,255,255,0.3);
+      border-radius: 6px;
+      font-size: 13px;
+      font-weight: 900;
+      color: white;
+    }
+    .close-x {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: linear-gradient(180deg, #C39BD3, #7D3C98);
+      border: 3px solid #5B2C6F;
+      box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      font-family: 'Luckiest Guy', cursive;
+      font-size: 18px; color: white;
+      text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+    }
+    .close-x:active { transform: translateY(2px); box-shadow: none; }
+
+    /* Body layout */
+    .guide-body {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      max-height: 82vh;
+    }
+
+    /* Sidebar */
+    .guide-sidebar {
+      width: 180px;
+      min-width: 180px;
+      background: #140e20;
+      border-right: 4px solid #4A235A;
+      overflow-y: auto;
+      padding: 10px 0;
+      flex-shrink: 0;
+    }
+    .guide-sidebar::-webkit-scrollbar { width: 10px; }
+    .guide-sidebar::-webkit-scrollbar-track { background: #140e20; }
+    .guide-sidebar::-webkit-scrollbar-thumb { background: #6C3483; border: 2px solid #140e20; border-radius: 6px; }
+
+    .sidebar-link {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      color: #a089b0;
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+      border-left: 3px solid transparent;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      transition: all 0.15s;
+    }
+    .sidebar-link:hover { background: rgba(155,89,182,0.1); color: #D2B4DE; }
+    .sidebar-link.active { background: rgba(155,89,182,0.15); color: #D2B4DE; border-left-color: #9B59B6; }
+    .sidebar-icon { font-size: 18px; width: 22px; text-align: center; }
+
+    /* Breadcrumb */
+    .breadcrumb {
+      padding: 10px 18px;
+      font-size: 13px;
+      color: #a089b0;
+      border-bottom: 2px solid #2D1845;
+      background: #140e20;
+      font-weight: 700;
+    }
+    .breadcrumb a { color: #9B59B6; cursor: pointer; font-weight: 800; text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .breadcrumb .sep { margin: 0 6px; color: #555; }
+
+    /* Content area */
+    .guide-wrapper {
+      flex: 1;
+      padding: 18px;
+      overflow-y: auto;
+      scroll-behavior: smooth;
+      background: #1a1028;
+      display: flex;
+      flex-direction: column;
+    }
+    .guide-wrapper::-webkit-scrollbar { width: 10px; }
+    .guide-wrapper::-webkit-scrollbar-track { background: #1a1028; }
+    .guide-wrapper::-webkit-scrollbar-thumb { background: #6C3483; border: 2px solid #1a1028; border-radius: 6px; }
+
+    .page-content { flex: 1; }
+
+    /* Sections */
+    .guide-section {
+      background: #201538;
+      border: 3px solid #2D1845;
+      border-radius: 16px;
+      padding: 22px;
+      margin-bottom: 16px;
+      display: none;
+      box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+    }
+    .guide-section.active-page { display: block; }
+
+    .section-title {
+      font-family: 'Luckiest Guy', cursive;
+      font-size: 24px;
+      color: #D2B4DE;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+      letter-spacing: 1px;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 3px;
+      background: #6C3483;
+      border-radius: 2px;
+    }
+
+    .guide-text {
+      font-size: 14px;
+      line-height: 1.7;
+      color: #ccc;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .guide-text strong { color: #D2B4DE; }
+    .guide-text em { color: #F39C12; font-style: normal; }
+
+    .guide-list {
+      list-style: none;
+      padding: 0;
+      margin: 10px 0;
+    }
+    .guide-list li {
+      padding: 8px 0 8px 28px;
+      position: relative;
+      border-bottom: 2px solid #2D1845;
+      color: #ccc;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    .guide-list li:last-child { border-bottom: none; }
+    .guide-list li::before {
+      content: '';
+      position: absolute;
+      left: 0; top: 12px;
+      width: 16px; height: 16px;
+      background: #6C3483;
+      border: 2px solid #4A235A;
+      border-radius: 4px;
+    }
+    .guide-list.numbered { counter-reset: guide-counter; }
+    .guide-list.numbered li::before {
+      content: counter(guide-counter);
+      counter-increment: guide-counter;
+      background: #27AE60;
+      border: 2px solid #1E8449;
+      color: #fff;
+      font-size: 10px;
+      font-weight: 900;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .guide-tip {
+      background: #0D1117;
+      border: 3px solid #27AE60;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin: 14px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .guide-tip-icon { font-size: 22px; flex-shrink: 0; }
+    .guide-tip-text { font-size: 14px; color: #27AE60; font-weight: 700; }
+
+    .guide-warning {
+      background: #0D1117;
+      border: 3px solid #E74C3C;
+      border-radius: 12px;
+      padding: 12px 16px;
+      margin: 14px 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+    .guide-warning-icon { font-size: 22px; flex-shrink: 0; }
+    .guide-warning-text { font-size: 14px; color: #E74C3C; font-weight: 700; }
+
+    .guide-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 14px 0;
+      font-size: 14px;
+      border-radius: 10px;
+      overflow: hidden;
+      border: 2px solid #2D1845;
+    }
+    .guide-table th {
+      background: #6C3483;
+      color: white;
+      padding: 10px;
+      text-align: left;
+      font-weight: 900;
+      font-size: 13px;
+      border: 2px solid #4A235A;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .guide-table td {
+      padding: 8px 10px;
+      border: 2px solid #2D1845;
+      color: #ccc;
+      font-weight: 600;
+    }
+    .guide-table tr:nth-child(even) { background: rgba(0,0,0,0.2); }
+
+    .subsection {
+      margin: 14px 0;
+      padding: 16px;
+      background: #0D1117;
+      border-radius: 12px;
+      border: 2px solid #2D1845;
+      border-left: 4px solid #6C3483;
+    }
+    .subsection-title {
+      font-size: 16px;
+      font-weight: 900;
+      color: #D2B4DE;
+      margin-bottom: 8px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .guide-key {
+      display: inline-block;
+      background: #2D1845;
+      color: #D2B4DE;
+      padding: 2px 8px;
+      border-radius: 5px;
+      font-family: monospace;
+      font-size: 13px;
+      margin: 0 2px;
+      border: 2px solid #4A235A;
+      font-weight: 900;
+    }
+
+    .xref {
+      color: #BB8FCE;
+      text-decoration: none;
+      cursor: pointer;
+      font-weight: 800;
+      border-bottom: 1px dashed #BB8FCE;
+    }
+    .xref:hover { color: #D7BDE2; border-bottom-style: solid; }
+
+    /* Rarity colors */
+    .rarity-common { color: #AAAAAA; }
+    .rarity-rare { color: #55FF55; }
+    .rarity-epic { color: #AA55FF; }
+    .rarity-legendary { color: #FFD700; }
+    .rarity-mythic { color: #FF4500; }
+    .rarity-god { color: #FF0000; }
+    .rarity-secret { color: #00FFFF; }
+    .rarity-og { color: #FF00FF; }
+
+    /* Prev/Next */
+    .page-nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: stretch;
+      margin-top: 18px;
+      gap: 12px;
+    }
+    .page-nav-btn {
+      display: flex;
+      flex-direction: column;
+      padding: 12px 16px;
+      background: #201538;
+      border: 3px solid #2D1845;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.15s;
+      min-width: 130px;
+      flex: 0 1 45%;
+    }
+    .page-nav-btn:hover { border-color: #6C3483; background: #2D1845; transform: translateY(-2px); }
+    .page-nav-btn:active { transform: translateY(1px); }
+    .page-nav-btn.prev { align-items: flex-start; }
+    .page-nav-btn.next { align-items: flex-end; margin-left: auto; }
+    .page-nav-dir { font-size: 12px; font-weight: 900; color: #9B59B6; text-transform: uppercase; letter-spacing: 1px; }
+    .page-nav-label { font-size: 15px; font-weight: 800; color: #D2B4DE; margin-top: 2px; }
+    .page-nav-spacer { flex: 0 1 45%; }
+  </style>
+</head>
+<body>
+  <div class="guide-container">
+  <div class="header-bar">
+    <div class="header-title">
+      <span class="header-icon">&#x1F4D6;</span>
+      <span class="header-text">Game Guide</span>
+    </div>
+    <div class="close-hint">
+      <span>Press <span class="key-hint">G</span> or <span class="key-hint">ESC</span> to close</span>
+      <div class="close-x" onclick="closeGuide()">X</div>
+    </div>
+  </div>
+
+  <div class="guide-body">
+    <nav class="guide-sidebar">
+      <a class="sidebar-link active" data-target="welcome" onclick="navigateTo('welcome')"><span class="sidebar-icon">&#x1F3E0;</span>Welcome</a>
+      <a class="sidebar-link" data-target="getting-started" onclick="navigateTo('getting-started')"><span class="sidebar-icon">&#x1F680;</span>Getting Started</a>
+      <a class="sidebar-link" data-target="bases" onclick="navigateTo('bases')"><span class="sidebar-icon">&#x1F3D7;</span>Bases</a>
+      <a class="sidebar-link" data-target="brainrots" onclick="navigateTo('brainrots')"><span class="sidebar-icon">&#x1F9E0;</span>Brainrots</a>
+      <a class="sidebar-link" data-target="zones" onclick="navigateTo('zones')"><span class="sidebar-icon">&#x1F30D;</span>Zones</a>
+      <a class="sidebar-link" data-target="combat" onclick="navigateTo('combat')"><span class="sidebar-icon">&#x2694;&#xFE0F;</span>Combat & PVP</a>
+      <a class="sidebar-link" data-target="shops" onclick="navigateTo('shops')"><span class="sidebar-icon">&#x1F6D2;</span>Shops</a>
+      <a class="sidebar-link" data-target="vault" onclick="navigateTo('vault')"><span class="sidebar-icon">&#x1F512;</span>Vault</a>
+      <a class="sidebar-link" data-target="rebirth" onclick="navigateTo('rebirth')"><span class="sidebar-icon">&#x1F504;</span>Rebirth</a>
+      <a class="sidebar-link" data-target="controls" onclick="navigateTo('controls')"><span class="sidebar-icon">&#x1F3AE;</span>Controls</a>
+      <a class="sidebar-link" data-target="tips" onclick="navigateTo('tips')"><span class="sidebar-icon">&#x1F4A1;</span>Tips & Tricks</a>
+    </nav>
+
+    <div class="guide-wrapper" id="guideContent">
+      <div class="breadcrumb" id="breadcrumb">
+        <a onclick="navigateTo('welcome')">Game Guide</a>
+        <span class="sep">&#x203A;</span>
+        <span id="breadcrumb-current">Welcome</span>
+      </div>
+
+      <div class="page-content">
+
+      <!-- WELCOME -->
+      <div class="guide-section active-page" id="welcome">
+        <div class="section-title">&#x1F3E0; Welcome to Brainrot Tycoon!</div>
+        <p class="guide-text">
+          <strong>Brainrot Tycoon</strong> is a multiplayer tycoon game where you <a class="xref" onclick="navigateTo('bases')">claim a base</a>,
+          <a class="xref" onclick="navigateTo('brainrots')">collect brainrot creatures</a>,
+          earn gold, <a class="xref" onclick="navigateTo('shops')">buy upgrades</a>,
+          and <a class="xref" onclick="navigateTo('combat')">fight other players</a> for their loot!
+        </p>
+        <p class="guide-text">
+          Brainrots spawn across <a class="xref" onclick="navigateTo('zones')">11 unique zones</a> and generate gold passively once deposited at your base.
+          Higher-tier zones have rarer and more valuable brainrots, but you'll need to unlock them first.
+        </p>
+
+        <div class="subsection">
+          <div class="subsection-title">Quick Links</div>
+          <p class="guide-text">
+            <a class="xref" onclick="navigateTo('getting-started')">Getting Started</a> &mdash; New player? Start here<br>
+            <a class="xref" onclick="navigateTo('brainrots')">Brainrots</a> &mdash; How collecting and gold generation works<br>
+            <a class="xref" onclick="navigateTo('zones')">Zones</a> &mdash; All 11 zones with unlock costs and gold ranges<br>
+            <a class="xref" onclick="navigateTo('combat')">Combat & PVP</a> &mdash; Weapons, death penalties, and strategy<br>
+            <a class="xref" onclick="navigateTo('controls')">Controls</a> &mdash; All keybinds at a glance
+          </p>
+        </div>
+      </div>
+
+      <!-- GETTING STARTED -->
+      <div class="guide-section" id="getting-started">
+        <div class="section-title">&#x1F680; Getting Started</div>
+        <p class="guide-text">
+          Your first few minutes in Brainrot Tycoon set the pace for everything. Here's what to do:
+        </p>
+        <ol class="guide-list numbered">
+          <li><strong>Claim a base</strong> &mdash; Walk to an unclaimed base pad and step on it. This is your home where you deposit brainrots and store gold. See <a class="xref" onclick="navigateTo('bases')">Bases</a>.</li>
+          <li><strong>Explore Beach or Meadow</strong> &mdash; These two <a class="xref" onclick="navigateTo('zones')">zones</a> are free and always unlocked. Brainrots spawn here every 30 seconds.</li>
+          <li><strong>Walk over a brainrot to pick it up</strong> &mdash; You can only carry one at a time. Carry it back to your base deposit zone.</li>
+          <li><strong>Deposit at your base</strong> &mdash; Walk into the deposit area to drop it off. The brainrot is now yours and earns gold passively!</li>
+          <li><strong>Collect your gold</strong> &mdash; Your brainrots generate gold per second. Watch the HUD to see your income growing, then collect it.</li>
+          <li><strong>Spend gold at the <a class="xref" onclick="navigateTo('shops')">Marketplace</a></strong> &mdash; Buy zones, weapons, gear, floors, and consumables.</li>
+        </ol>
+
+        <div class="guide-tip">
+          <span class="guide-tip-icon">&#x1F4A1;</span>
+          <span class="guide-tip-text"><strong>Pro tip:</strong> Don't carry a brainrot for too long! Other players can <a class="xref" onclick="navigateTo('combat')">kill you</a> and you'll drop what you're carrying. Deposit frequently.</span>
+        </div>
+      </div>
+
+      <!-- BASES -->
+      <div class="guide-section" id="bases">
+        <div class="section-title">&#x1F3D7; Bases</div>
+        <p class="guide-text">
+          Bases are your personal territory. Each base has a <strong>deposit zone</strong> where you drop off brainrots
+          and <strong>floors</strong> that expand your brainrot storage capacity.
+        </p>
+
+        <div class="subsection">
+          <div class="subsection-title">Claiming a Base</div>
+          <p class="guide-text">
+            Walk onto any unclaimed base pad to claim it. There are <strong>10 bases</strong> in the game &mdash; one per player.
+            Bases are <em>session-based</em>: when you leave the room, your base becomes available for the next player.
+          </p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Base Floors</div>
+          <p class="guide-text">
+            Each base starts with <strong>Floor 1</strong> (10 brainrot slots). Unlock additional floors at the
+            <a class="xref" onclick="navigateTo('shops')">Upgrades shop</a> to hold more brainrots and earn more gold per second.
+          </p>
+          <table class="guide-table">
+            <tr><th>Floor</th><th>Cost</th><th>Slots</th><th>Bonus</th></tr>
+            <tr><td>Floor 1</td><td>Free</td><td>10</td><td>&mdash;</td></tr>
+            <tr><td>Floor 2</td><td>1,000g</td><td>+10</td><td>+10% Rare gold</td></tr>
+            <tr><td>Floor 3</td><td>5,000g</td><td>+10</td><td>+10% Epic gold</td></tr>
+            <tr><td>Floor 4</td><td>20,000g</td><td>+10</td><td>+15% Legendary+ gold</td></tr>
+          </table>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Depositing Brainrots</div>
+          <p class="guide-text">
+            Walk into your base's deposit zone while carrying a brainrot. The brainrot is added to your collection
+            and immediately starts generating gold per second. You can check your collection in the
+            <strong>Inventory</strong> (press <span class="guide-key">E</span>).
+          </p>
+        </div>
+      </div>
+
+      <!-- BRAINROTS -->
+      <div class="guide-section" id="brainrots">
+        <div class="section-title">&#x1F9E0; Brainrots</div>
+        <p class="guide-text">
+          Brainrots are collectible creatures that generate <strong>gold per second</strong> once deposited at your
+          <a class="xref" onclick="navigateTo('bases')">base</a>. There are <strong>99 unique brainrots</strong> spread across
+          <a class="xref" onclick="navigateTo('zones')">11 zones</a>.
+        </p>
+
+        <div class="subsection">
+          <div class="subsection-title">How Spawning Works</div>
+          <ul class="guide-list">
+            <li>Each zone has a <strong>spawn timer</strong> that fires every ~30 seconds</li>
+            <li>A random brainrot from that zone is chosen to spawn</li>
+            <li>Maximum <strong>3 brainrots</strong> can be active per zone at once</li>
+            <li>Walk over a brainrot to <strong>pick it up</strong> &mdash; you can only carry one at a time</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Rarity Tiers</div>
+          <p class="guide-text">
+            Brainrots are organized by zone tier. Higher-tier zones have more valuable creatures:
+          </p>
+          <table class="guide-table">
+            <tr><th>Rarity</th><th>Gold/s Range</th><th>Zones</th></tr>
+            <tr><td><span class="rarity-common">Common</span></td><td>1-3g/s</td><td>Beach, Meadow</td></tr>
+            <tr><td><span class="rarity-rare">Rare</span></td><td>5-10g/s</td><td>Forest, Jungle</td></tr>
+            <tr><td><span class="rarity-epic">Epic</span></td><td>10-20g/s</td><td>Cave, Crystal Cove</td></tr>
+            <tr><td><span class="rarity-legendary">Legendary</span></td><td>20-40g/s</td><td>Boss Arena</td></tr>
+            <tr><td><span class="rarity-mythic">Mythic</span></td><td>40-80g/s</td><td>Volcano</td></tr>
+            <tr><td><span class="rarity-god">Brainrot God</span></td><td>80-150g/s</td><td>Ancient Ruins</td></tr>
+            <tr><td><span class="rarity-secret">Secret</span></td><td>150-300g/s</td><td>Sky Platform</td></tr>
+            <tr><td><span class="rarity-og">OG</span></td><td>300-500g/s</td><td>The Void</td></tr>
+          </table>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Collecting Duplicates</div>
+          <p class="guide-text">
+            You can collect multiple copies of the same brainrot. Each copy generates gold independently.
+            Stacking common brainrots early is a solid income strategy!
+          </p>
+        </div>
+
+        <div class="guide-tip">
+          <span class="guide-tip-icon">&#x1F4A1;</span>
+          <span class="guide-tip-text"><strong>Tip:</strong> Press <span class="guide-key">E</span> to open your Inventory. The Brainrots tab shows every brainrot by zone, how much gold each earns, and how many you own.</span>
+        </div>
+      </div>
+
+      <!-- ZONES -->
+      <div class="guide-section" id="zones">
+        <div class="section-title">&#x1F30D; Zones</div>
+        <p class="guide-text">
+          The map is divided into <strong>11 zones</strong>. Two are free; the rest must be unlocked at the
+          <a class="xref" onclick="navigateTo('shops')">Upgrades shop</a>. Higher zones require higher
+          <a class="xref" onclick="navigateTo('bases')">base floors</a> and sometimes
+          <a class="xref" onclick="navigateTo('rebirth')">rebirths</a>.
+        </p>
+
+        <table class="guide-table">
+          <tr><th>Zone</th><th>Rarity</th><th>Cost</th><th>Requires</th><th>Gold/s</th><th>Brainrots</th></tr>
+          <tr><td>Beach</td><td><span class="rarity-common">Common</span></td><td>Free</td><td>Floor 1</td><td>1-3g</td><td>10</td></tr>
+          <tr><td>Meadow</td><td><span class="rarity-common">Common</span></td><td>Free</td><td>Floor 1</td><td>1-3g</td><td>8</td></tr>
+          <tr><td>Forest</td><td><span class="rarity-rare">Rare</span></td><td>2,000g</td><td>Floor 2</td><td>5-10g</td><td>9</td></tr>
+          <tr><td>Jungle</td><td><span class="rarity-rare">Rare</span></td><td>2,000g</td><td>Floor 2</td><td>5-10g</td><td>10</td></tr>
+          <tr><td>Cave</td><td><span class="rarity-epic">Epic</span></td><td>8,000g</td><td>Floor 3</td><td>10-20g</td><td>6</td></tr>
+          <tr><td>Crystal Cove</td><td><span class="rarity-epic">Epic</span></td><td>8,000g</td><td>Floor 3</td><td>10-20g</td><td>6</td></tr>
+          <tr><td>Boss Arena</td><td><span class="rarity-legendary">Legendary</span></td><td>25,000g</td><td>Floor 3</td><td>20-40g</td><td>12</td></tr>
+          <tr><td>Volcano</td><td><span class="rarity-mythic">Mythic</span></td><td>75,000g</td><td>Floor 4</td><td>40-80g</td><td>12</td></tr>
+          <tr><td>Ancient Ruins</td><td><span class="rarity-god">Brainrot God</span></td><td>200,000g</td><td>Floor 4 + Rebirth 1</td><td>80-150g</td><td>9</td></tr>
+          <tr><td>Sky Platform</td><td><span class="rarity-secret">Secret</span></td><td>500,000g</td><td>Floor 4 + Rebirth 2</td><td>150-300g</td><td>11</td></tr>
+          <tr><td>The Void</td><td><span class="rarity-og">OG</span></td><td>1,000,000g</td><td>Floor 4 + Rebirth 3</td><td>300-500g</td><td>6</td></tr>
+        </table>
+
+        <div class="guide-warning">
+          <span class="guide-warning-icon">&#x26A0;&#xFE0F;</span>
+          <span class="guide-warning-text"><strong>Danger zones:</strong> Higher-tier zones attract more players with <a class="xref" onclick="navigateTo('combat')">weapons</a>. The most valuable brainrots are in the most dangerous areas!</span>
+        </div>
+      </div>
+
+      <!-- COMBAT -->
+      <div class="guide-section" id="combat">
+        <div class="section-title">&#x2694;&#xFE0F; Combat & PVP</div>
+        <p class="guide-text">
+          Brainrot Tycoon is a PVP game. Other players can kill you to steal your gold.
+          Buy <a class="xref" onclick="navigateTo('shops')">weapons and gear</a> to fight back!
+        </p>
+
+        <div class="subsection">
+          <div class="subsection-title">Weapons</div>
+          <table class="guide-table">
+            <tr><th>Weapon</th><th>Cost</th><th>Damage</th><th>Speed</th><th>Range</th></tr>
+            <tr><td>Pistol</td><td>1,000g</td><td>30</td><td>Fast</td><td>Medium</td></tr>
+            <tr><td>Rifle</td><td>5,000g</td><td>60</td><td>Medium</td><td>Long</td></tr>
+            <tr><td>Shotgun</td><td>15,000g</td><td>95</td><td>Slow</td><td>Short</td></tr>
+          </table>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Gear</div>
+          <table class="guide-table">
+            <tr><th>Gear</th><th>Max Level</th><th>Effect</th><th>Cost Range</th></tr>
+            <tr><td>Speed Boots</td><td>5</td><td>Up to +100% movement speed</td><td>3K - 300K</td></tr>
+            <tr><td>Battle Armor</td><td>4</td><td>Up to +100 max HP</td><td>5K - 200K</td></tr>
+          </table>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">What Happens on Death</div>
+          <ul class="guide-list">
+            <li><strong>Lose 50% of your wallet gold</strong> &mdash; the killer steals it as a bounty</li>
+            <li><strong>Lose all uncollected pending gold</strong> &mdash; gold that was accumulating but not yet collected is wiped</li>
+            <li><strong>Drop your carried brainrot</strong> &mdash; if you were carrying one, it's gone</li>
+            <li><strong>Teleport to your base</strong> &mdash; or to the hub if you don't have a base</li>
+          </ul>
+        </div>
+
+        <div class="guide-tip">
+          <span class="guide-tip-icon">&#x1F4A1;</span>
+          <span class="guide-tip-text"><strong>Protect your gold:</strong> Use the <a class="xref" onclick="navigateTo('vault')">Vault</a> to store gold safely. Vaulted gold is immune to death penalties!</span>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Consumables</div>
+          <p class="guide-text">Buy these at the <a class="xref" onclick="navigateTo('shops')">Items shop</a> for combat advantages:</p>
+          <table class="guide-table">
+            <tr><th>Item</th><th>Cost</th><th>Effect</th></tr>
+            <tr><td>Health Pack</td><td>800g</td><td>Heal to full HP</td></tr>
+            <tr><td>Speed Potion</td><td>2,000g</td><td>2x speed for 2 minutes</td></tr>
+            <tr><td>Base Teleport</td><td>1,000g</td><td>Instant teleport to your base</td></tr>
+            <tr><td>Shield Bubble</td><td>3,000g</td><td>Immune to damage for 30s</td></tr>
+          </table>
+        </div>
+      </div>
+
+      <!-- SHOPS -->
+      <div class="guide-section" id="shops">
+        <div class="section-title">&#x1F6D2; Shops</div>
+        <p class="guide-text">
+          The <strong>Marketplace</strong> is located in the center of the map. Walk into any shop stall to open it.
+          There are four shops:
+        </p>
+
+        <div class="subsection">
+          <div class="subsection-title">Upgrades Shop</div>
+          <p class="guide-text">
+            Buy <a class="xref" onclick="navigateTo('zones')">zone unlocks</a> and
+            <a class="xref" onclick="navigateTo('bases')">base floors</a>. This is where most of your early gold goes.
+            Zones require specific floors to be unlocked first.
+          </p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Weapons Shop</div>
+          <p class="guide-text">
+            Buy <a class="xref" onclick="navigateTo('combat')">Pistol, Rifle, or Shotgun</a>. Each weapon has different damage,
+            speed, and range trade-offs. You can own all three and switch between them.
+          </p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Gear Shop</div>
+          <p class="guide-text">
+            Buy <a class="xref" onclick="navigateTo('combat')">Speed Boots and Battle Armor</a>. Gear has multiple upgrade levels &mdash;
+            each level costs more but provides stronger bonuses.
+          </p>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Items Shop</div>
+          <p class="guide-text">
+            Buy <a class="xref" onclick="navigateTo('combat')">consumables</a> like Health Packs, Speed Potions, Base Teleports, and Shield Bubbles.
+            These are one-time-use items accessed from the action bar.
+          </p>
+        </div>
+      </div>
+
+      <!-- VAULT -->
+      <div class="guide-section" id="vault">
+        <div class="section-title">&#x1F512; Vault</div>
+        <p class="guide-text">
+          The <strong>Vault</strong> is located next to the marketplace (the golden pedestal). Walk onto the stand pad
+          to open it. The vault lets you protect your gold from <a class="xref" onclick="navigateTo('combat')">death penalties</a>.
+        </p>
+
+        <div class="subsection">
+          <div class="subsection-title">How It Works</div>
+          <ul class="guide-list">
+            <li><strong>Deposit</strong> gold from your wallet into the vault (25%, 50%, or 100%)</li>
+            <li><strong>Withdraw</strong> gold from the vault back to your wallet (25%, 50%, or 100%)</li>
+            <li><strong>Vaulted gold is safe from death</strong> &mdash; when you die, only wallet gold is affected</li>
+          </ul>
+        </div>
+
+        <div class="guide-tip">
+          <span class="guide-tip-icon">&#x1F4A1;</span>
+          <span class="guide-tip-text"><strong>Strategy:</strong> Before entering dangerous zones like Volcano or The Void, deposit most of your gold in the vault. If you die, you only lose what's in your wallet!</span>
+        </div>
+      </div>
+
+      <!-- REBIRTH -->
+      <div class="guide-section" id="rebirth">
+        <div class="section-title">&#x1F504; Rebirth</div>
+        <p class="guide-text">
+          <strong>Rebirth</strong> resets your progress but unlocks access to the most powerful
+          <a class="xref" onclick="navigateTo('zones')">zones</a> in the game. The top 3 zones require rebirths:
+        </p>
+        <table class="guide-table">
+          <tr><th>Zone</th><th>Rebirth Required</th><th>Gold/s Range</th></tr>
+          <tr><td><span class="rarity-god">Ancient Ruins</span></td><td>Rebirth 1</td><td>80-150g/s</td></tr>
+          <tr><td><span class="rarity-secret">Sky Platform</span></td><td>Rebirth 2</td><td>150-300g/s</td></tr>
+          <tr><td><span class="rarity-og">The Void</span></td><td>Rebirth 3</td><td>300-500g/s</td></tr>
+        </table>
+
+        <div class="subsection">
+          <div class="subsection-title">What Gets Reset</div>
+          <ul class="guide-list">
+            <li><strong>Gold &amp; Vault Gold</strong> &mdash; back to 0</li>
+            <li><strong>All brainrots</strong> &mdash; your collection is cleared</li>
+            <li><strong>Zone unlocks</strong> &mdash; must re-purchase them</li>
+            <li><strong>Base floors</strong> &mdash; reset to Floor 1</li>
+            <li><strong>Weapons &amp; Gear</strong> &mdash; must re-purchase</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">What You Keep</div>
+          <ul class="guide-list">
+            <li><strong>Rebirth count</strong> &mdash; permanently tracked, unlocking new zones</li>
+            <li><strong>Experience</strong> &mdash; you'll progress much faster knowing the optimal routes</li>
+          </ul>
+        </div>
+
+        <div class="guide-warning">
+          <span class="guide-warning-icon">&#x26A0;&#xFE0F;</span>
+          <span class="guide-warning-text"><strong>Rebirth is permanent!</strong> Make sure you're ready. Visit the red reset pad in the marketplace to rebirth.</span>
+        </div>
+      </div>
+
+      <!-- CONTROLS -->
+      <div class="guide-section" id="controls">
+        <div class="section-title">&#x1F3AE; Controls</div>
+        <table class="guide-table">
+          <tr><th>Key</th><th>Action</th></tr>
+          <tr><td><span class="guide-key">W A S D</span></td><td>Move around</td></tr>
+          <tr><td><span class="guide-key">Space</span></td><td>Jump</td></tr>
+          <tr><td><span class="guide-key">Shift</span></td><td>Sprint</td></tr>
+          <tr><td><span class="guide-key">E</span></td><td>Open / close Inventory</td></tr>
+          <tr><td><span class="guide-key">G</span></td><td>Open / close Game Guide (this page)</td></tr>
+          <tr><td><span class="guide-key">X</span></td><td>Interact (shops, vault, etc.)</td></tr>
+          <tr><td><span class="guide-key">ESC</span></td><td>Close current UI panel</td></tr>
+          <tr><td><span class="guide-key">Mouse</span></td><td>Look around / Aim weapon</td></tr>
+          <tr><td><span class="guide-key">Left Click</span></td><td>Shoot (when weapon equipped)</td></tr>
+        </table>
+
+        <div class="guide-tip">
+          <span class="guide-tip-icon">&#x1F4A1;</span>
+          <span class="guide-tip-text"><strong>Tip:</strong> If your character stops responding to WASD after closing a shop, click anywhere in the 3D world to re-focus the game.</span>
+        </div>
+      </div>
+
+      <!-- TIPS -->
+      <div class="guide-section" id="tips">
+        <div class="section-title">&#x1F4A1; Tips & Tricks</div>
+
+        <div class="subsection">
+          <div class="subsection-title">Early Game (0 - 5,000g)</div>
+          <ul class="guide-list">
+            <li><strong>Claim a base immediately</strong> &mdash; you need it to deposit brainrots</li>
+            <li><strong>Farm Beach and Meadow</strong> &mdash; they're free and safe (fewer PVP players)</li>
+            <li><strong>Deposit fast, don't hoard</strong> &mdash; a dead player drops their carried brainrot</li>
+            <li><strong>Buy Floor 2 (1,000g)</strong> &mdash; unlocks Forest and Jungle zones</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Mid Game (5K - 50Kg)</div>
+          <ul class="guide-list">
+            <li><strong>Buy a Pistol (1,000g)</strong> &mdash; cheap defense against other players</li>
+            <li><strong>Unlock Cave or Crystal Cove (8,000g each)</strong> &mdash; big gold/s jump to Epic tier</li>
+            <li><strong>Vault your gold</strong> &mdash; before going to dangerous zones, deposit in the <a class="xref" onclick="navigateTo('vault')">Vault</a></li>
+            <li><strong>Speed Boots level 1 (3,000g)</strong> &mdash; huge quality of life for running between zones and base</li>
+            <li><strong>Floor 3 (5,000g)</strong> &mdash; unlocks Boss Arena which has Legendary brainrots</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">Late Game (50K+)</div>
+          <ul class="guide-list">
+            <li><strong>Upgrade to Rifle or Shotgun</strong> &mdash; much better for PVP in contested zones</li>
+            <li><strong>Invest in Armor</strong> &mdash; survivability is key when everyone has weapons</li>
+            <li><strong>Floor 4 (20,000g)</strong> &mdash; unlocks Volcano, Ancient Ruins, Sky Platform, and The Void</li>
+            <li><strong>Vault aggressively before rebirth</strong> &mdash; you lose everything, so spend it all first</li>
+            <li><strong>Use Shield + Base Teleport combo</strong> &mdash; shield up, grab a valuable brainrot, teleport home</li>
+          </ul>
+        </div>
+
+        <div class="subsection">
+          <div class="subsection-title">PVP Tips</div>
+          <ul class="guide-list">
+            <li><strong>Press <span class="guide-key">E</span> to check the Players tab</strong> &mdash; see who's carrying a brainrot and how much gold they have</li>
+            <li><strong>Target players carrying brainrots</strong> &mdash; they're worth killing because they drop the brainrot</li>
+            <li><strong>Shotgun is king up close</strong> &mdash; 95 damage can two-shot most players</li>
+            <li><strong>Always keep a Health Pack</strong> &mdash; 800g to heal to full can save thousands in death penalties</li>
+          </ul>
+        </div>
+      </div>
+
+      </div><!-- end page-content -->
+      <div class="page-nav" id="pageNav"></div>
+    </div>
+  </div>
+  </div>
+
+  <script>
+    var sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+
+    var PAGES = [
+      { id: 'welcome', label: 'Welcome' },
+      { id: 'getting-started', label: 'Getting Started' },
+      { id: 'bases', label: 'Bases' },
+      { id: 'brainrots', label: 'Brainrots' },
+      { id: 'zones', label: 'Zones' },
+      { id: 'combat', label: 'Combat & PVP' },
+      { id: 'shops', label: 'Shops' },
+      { id: 'vault', label: 'Vault' },
+      { id: 'rebirth', label: 'Rebirth' },
+      { id: 'controls', label: 'Controls' },
+      { id: 'tips', label: 'Tips & Tricks' }
+    ];
+
+    var currentPage = 'welcome';
+
+    function navigateTo(pageId) {
+      var sections = document.querySelectorAll('.guide-section');
+      for (var i = 0; i < sections.length; i++) sections[i].classList.remove('active-page');
+      var target = document.getElementById(pageId);
+      if (target) target.classList.add('active-page');
+
+      var links = document.querySelectorAll('.sidebar-link');
+      for (var j = 0; j < links.length; j++) {
+        links[j].classList.remove('active');
+        if (links[j].getAttribute('data-target') === pageId) {
+          links[j].classList.add('active');
+          links[j].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        }
+      }
+
+      var pageInfo = null, pageIndex = -1;
+      for (var k = 0; k < PAGES.length; k++) {
+        if (PAGES[k].id === pageId) { pageInfo = PAGES[k]; pageIndex = k; break; }
+      }
+      if (pageInfo) document.getElementById('breadcrumb-current').textContent = pageInfo.label;
+      renderPageNav(pageIndex);
+
+      var wrapper = document.getElementById('guideContent');
+      if (wrapper) wrapper.scrollTop = 0;
+      currentPage = pageId;
+    }
+
+    function renderPageNav(pageIndex) {
+      var nav = document.getElementById('pageNav');
+      if (!nav) return;
+      var html = '';
+      if (pageIndex > 0) {
+        var prev = PAGES[pageIndex - 1];
+        html += '<a class="page-nav-btn prev" onclick="navigateTo(\'' + prev.id + '\')"><span class="page-nav-dir">\u2190 Previous</span><span class="page-nav-label">' + prev.label + '</span></a>';
+      } else {
+        html += '<div class="page-nav-spacer"></div>';
+      }
+      if (pageIndex < PAGES.length - 1) {
+        var next = PAGES[pageIndex + 1];
+        html += '<a class="page-nav-btn next" onclick="navigateTo(\'' + next.id + '\')"><span class="page-nav-dir">Next \u2192</span><span class="page-nav-label">' + next.label + '</span></a>';
+      } else {
+        html += '<div class="page-nav-spacer"></div>';
+      }
+      nav.innerHTML = html;
+    }
+
+    function closeGuide() {
+      if (sdk) {
+        sdk.sendMessageToUnity(JSON.stringify({ TaskName: 'guide', TaskTargetState: 'SetActiveToNotActive' }));
+        sdk.focusGameKeyboard();
+        sdk.closeIframe();
+      }
+    }
+
+    // Keyboard: G or ESC to close
+    document.addEventListener('keydown', function(e) {
+      var key = e.key.toLowerCase();
+      if (e.key === 'Escape' || key === 'g') {
+        e.preventDefault();
+        closeGuide();
+      }
+    });
+
+    // --- Keyboard refocus pattern ---
+    function _doFocusGame() {
+      if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+    }
+    document.addEventListener('click', function(e) {
+      if (document.hidden) return;
+      if (e && e.target) {
+        var tag = e.target.tagName;
+        if (tag === 'BUTTON' || tag === 'SELECT' || tag === 'INPUT') return;
+        if (e.target.closest && e.target.closest('button, select, .sidebar-link, .xref, .page-nav-btn')) return;
+      }
+      _doFocusGame();
+    });
+    document.addEventListener('mouseup', function(e) {
+      if (e && e.target) {
+        var tag = e.target.tagName;
+        if (tag === 'BUTTON' || tag === 'SELECT' || tag === 'INPUT') return;
+        if (e.target.closest && e.target.closest('button, select, .sidebar-link, .xref, .page-nav-btn')) return;
+      }
+      setTimeout(_doFocusGame, 50);
+    });
+    _doFocusGame();
+    setTimeout(_doFocusGame, 100);
+    setTimeout(_doFocusGame, 300);
+    setTimeout(_doFocusGame, 600);
+
+    // Init
+    renderPageNav(0);
+  </script>
+</body>
+</html>
