@@ -93,7 +93,7 @@
             transition: all 0.15s;
         }
         .weapon-card:hover { transform: translateY(-3px); border-color: #3498DB; }
-        .weapon-card.equipped {
+        .weapon-card.owned {
             border-color: #2ECC40;
             background: linear-gradient(180deg, #E8FFE8 0%, #D4FFD4 100%);
             box-shadow: 0 4px 0 rgba(0,180,0,0.15);
@@ -174,12 +174,7 @@
             border-color: #CC8800;
             color: #4A2800;
         }
-        .btn-equip {
-            background: linear-gradient(180deg, #74B9FF, #3498DB);
-            border-color: #2176AA;
-            color: white;
-        }
-        .btn-equipped {
+        .btn-done {
             background: linear-gradient(180deg, #6EF06E, #2ECC40);
             border-color: #1FA030;
             color: #0A3A0A;
@@ -192,7 +187,7 @@
             cursor: not-allowed;
         }
 
-        .equipped-tag {
+        .owned-tag {
             font-family: 'Luckiest Guy', cursive;
             font-size: 11px;
             color: #2ECC40;
@@ -288,7 +283,7 @@
             { id:'shotgun', name:'Shotgun', icon:'\u{1F4A5}', tier:'Elite', tierClass:'tier-elite', cost:15000, dmg:95, spd:25, rng:30 }
         ];
 
-        let state = { gold: 0, owned: ['pistol'], equipped: 'pistol' };
+        let state = { gold: 0, owned: [] };
 
         function fmt(n) {
             if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
@@ -322,17 +317,15 @@
 
             WEAPONS.forEach(w => {
                 const owned = state.owned.includes(w.id);
-                const equipped = state.equipped === w.id;
                 const canBuy = !owned && state.gold >= w.cost;
 
                 let btnHTML;
-                if (equipped) btnHTML = '<button class="action-btn btn-equipped">EQUIPPED</button>';
-                else if (owned) btnHTML = `<button class="action-btn btn-equip" onclick="equip('${w.id}')">EQUIP</button>`;
+                if (owned) btnHTML = '<button class="action-btn btn-done">OWNED</button>';
                 else if (canBuy) btnHTML = `<button class="action-btn btn-buy" onclick="buy('${w.id}')">${fmt(w.cost)}g</button>`;
                 else btnHTML = `<button class="action-btn btn-locked">${fmt(w.cost)}g</button>`;
 
                 const card = document.createElement('div');
-                card.className = 'weapon-card' + (equipped ? ' equipped' : '');
+                card.className = 'weapon-card' + (owned ? ' owned' : '');
                 card.innerHTML = `
                     <div class="w-icon">${w.icon}</div>
                     <div class="w-name">${w.name}</div>
@@ -340,7 +333,6 @@
                     <div class="stat-row"><span class="label">DMG</span><div class="stat-track"><div class="stat-fill fill-dmg" style="width:${w.dmg}%"></div></div></div>
                     <div class="stat-row"><span class="label">SPD</span><div class="stat-track"><div class="stat-fill fill-spd" style="width:${w.spd}%"></div></div></div>
                     <div class="stat-row"><span class="label">RNG</span><div class="stat-track"><div class="stat-fill fill-rng" style="width:${w.rng}%"></div></div></div>
-                    ${equipped ? '<div class="equipped-tag">IN USE</div>' : ''}
                     ${btnHTML}
                 `;
                 grid.appendChild(card);
@@ -352,23 +344,12 @@
             if (!w||state.owned.includes(id)||state.gold<w.cost) return;
             state.gold -= w.cost;
             state.owned.push(id);
-            state.equipped = id;
             render();
             playSound('purchase');
             spawnSpendParticles(8);
             var BUY_TASK_MAP = {pistol:'buy_pistol', rifle:'buy_rifle', shotgun:'buy_shotgun'};
             if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:BUY_TASK_MAP[id],TaskTargetState:'SetNotActiveToActive'}));
             toast('Bought '+w.name+'!');
-        }
-
-        function equip(id) {
-            if (state.equipped===id) return;
-            state.equipped = id;
-            render();
-            playSound('click');
-            var EQUIP_TASK_MAP = {pistol:'equip_pistol', rifle:'equip_rifle', shotgun:'equip_shotgun'};
-            if (sdk) sdk.sendMessageToUnity(JSON.stringify({TaskName:EQUIP_TASK_MAP[id],TaskTargetState:'SetNotActiveToActive'}));
-            toast('Equipped '+WEAPONS.find(x=>x.id===id).name+'!');
         }
 
         function closeShop() { playSound('click'); if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
@@ -422,7 +403,6 @@
                 const d = JSON.parse(msg);
                 if (d.gold !== undefined) state.gold = parseFloat(d.gold) || 0;
                 if (d.owned) state.owned = d.owned;
-                if (d.equipped) state.equipped = d.equipped;
                 render();
             } catch(e) {}
         }
@@ -468,10 +448,9 @@
         const p=new URLSearchParams(window.location.search);
         if(p.get('gold'))state.gold=parseFloat(p.get('gold'))||0;
         if(p.get('owned'))state.owned=p.get('owned').split(',');
-        if(p.get('equipped'))state.equipped=p.get('equipped');
 
         render();
-        if(!sdk){state.gold=25000;state.owned=['pistol','rifle'];state.equipped='rifle';render();}
+        if(!sdk){state.gold=25000;state.owned=['pistol'];render();}
     </script>
 </body>
 </html>
