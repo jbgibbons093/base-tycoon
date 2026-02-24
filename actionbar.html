@@ -321,6 +321,45 @@
             pointer-events: none;
         }
 
+        /* ---- BUFF PANEL ---- */
+        .buff-panel {
+            position: fixed;
+            bottom: 98px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 6px;
+            z-index: 10;
+        }
+        .buff-pill {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-family: 'Fredoka One', cursive;
+            font-size: 10px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(6px);
+            animation: buffIn 0.2s ease;
+        }
+        .buff-pill.speed {
+            background: rgba(38, 166, 255, 0.85);
+            border: 1.5px solid rgba(100, 200, 255, 0.5);
+        }
+        .buff-pill.shield {
+            background: rgba(168, 85, 247, 0.85);
+            border: 1.5px solid rgba(200, 150, 255, 0.5);
+        }
+        .buff-icon { font-size: 13px; }
+        .buff-time { font-variant-numeric: tabular-nums; }
+        @keyframes buffIn {
+            from { opacity: 0; transform: scale(0.8); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
         /* ---- QUANTITY BADGE ---- */
         .slot-qty {
             position: absolute;
@@ -343,6 +382,9 @@
     </style>
 </head>
 <body>
+    <!-- BUFF PANEL (above HP bar) -->
+    <div class="buff-panel" id="buff-panel"></div>
+
     <!-- HP BAR (above action bar) -->
     <div class="hp-bar-wrap" id="hp-bar-wrap">
         <div class="hp-bar-fill" id="hp-bar-fill" style="width:100%"></div>
@@ -436,7 +478,11 @@
             carrying: 0,
             carryGold: 0,
             health: 100,
-            armorLevel: 0
+            armorLevel: 0,
+            buffs: {
+                speed: { active: false, endTime: 0, duration: 120 },
+                shield: { active: false, endTime: 0, duration: 30 }
+            }
         };
 
         const ARMOR_MAX_HP = { 0: 100, 1: 125, 2: 150, 3: 175, 4: 200 };
@@ -517,8 +563,25 @@
             hpFill.className = 'hp-bar-fill' + (pct <= 25 ? ' low' : pct <= 50 ? ' mid' : '');
             hpText.textContent = Math.round(hp) + ' / ' + maxHp;
 
-            // Carry indicator (push up above HP bar)
-            carryIndicator.style.bottom = '98px';
+            // Buff panel
+            var buffPanel = document.getElementById('buff-panel');
+            var buffHtml = '';
+            var now = Date.now();
+            if (state.buffs.speed.active && state.buffs.speed.endTime > now) {
+                var secs = Math.ceil((state.buffs.speed.endTime - now) / 1000);
+                var mins = Math.floor(secs / 60);
+                var s = secs % 60;
+                buffHtml += '<div class="buff-pill speed"><span class="buff-icon">\u26A1</span><span class="buff-time">' + (mins > 0 ? mins + ':' + (s < 10 ? '0' : '') + s : s + 's') + '</span></div>';
+            }
+            if (state.buffs.shield.active && state.buffs.shield.endTime > now) {
+                var secs2 = Math.ceil((state.buffs.shield.endTime - now) / 1000);
+                buffHtml += '<div class="buff-pill shield"><span class="buff-icon">\uD83D\uDEE1\uFE0F</span><span class="buff-time">' + secs2 + 's</span></div>';
+            }
+            buffPanel.innerHTML = buffHtml;
+
+            // Position carry indicator above buffs/HP bar
+            var buffActive = state.buffs.speed.active || state.buffs.shield.active;
+            carryIndicator.style.bottom = buffActive ? '122px' : '98px';
             if (state.carrying > 0) {
                 carryIndicator.classList.add('show');
                 carryGoldEl.textContent = state.carryGold;
@@ -804,6 +867,24 @@
                 }
             }
 
+            // Update buffs
+            if (vars['Speed_Potion_Active'] !== undefined) {
+                var spActive = vars['Speed_Potion_Active'] > 0;
+                if (spActive && !state.buffs.speed.active) {
+                    state.buffs.speed.endTime = Date.now() + (state.buffs.speed.duration * 1000);
+                }
+                state.buffs.speed.active = spActive;
+                if (!spActive) state.buffs.speed.endTime = 0;
+            }
+            if (vars['Shield_Active'] !== undefined) {
+                var shActive = vars['Shield_Active'] > 0;
+                if (shActive && !state.buffs.shield.active) {
+                    state.buffs.shield.endTime = Date.now() + (state.buffs.shield.duration * 1000);
+                }
+                state.buffs.shield.active = shActive;
+                if (!shActive) state.buffs.shield.endTime = 0;
+            }
+
             render();
             console.log('[ActionBar] Updated: gold=' + state.gold + ' weapons=' + state.ownedWeapons + ' items=' + JSON.stringify(state.itemCounts));
         }
@@ -889,10 +970,20 @@
         // ---- INIT ----
         render();
 
-        // Cooldown refresh timer
+        // Cooldown + buff refresh timer
         setInterval(function() {
-            var hasActive = Object.values(state.cooldowns).some(function(v) { return v > Date.now(); });
-            if (hasActive) render();
+            var now = Date.now();
+            var hasActive = Object.values(state.cooldowns).some(function(v) { return v > now; });
+            var hasBuff = (state.buffs.speed.active && state.buffs.speed.endTime > now) ||
+                          (state.buffs.shield.active && state.buffs.shield.endTime > now);
+            // Auto-expire buffs client-side
+            if (state.buffs.speed.active && state.buffs.speed.endTime > 0 && state.buffs.speed.endTime <= now) {
+                state.buffs.speed.active = false;
+            }
+            if (state.buffs.shield.active && state.buffs.shield.endTime > 0 && state.buffs.shield.endTime <= now) {
+                state.buffs.shield.active = false;
+            }
+            if (hasActive || hasBuff) render();
         }, 1000);
 
         // Dev preview
