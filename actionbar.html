@@ -322,73 +322,45 @@
             pointer-events: none;
         }
 
-        /* ---- BUFF PANEL ---- */
-        .buff-panel {
-            position: fixed;
-            bottom: 98px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-            z-index: 10;
-        }
-        .buff-row {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            animation: buffIn 0.25s ease;
-        }
-        .buff-label {
-            font-family: 'Fredoka One', cursive;
-            font-size: 14px;
-            color: white;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.4), -1px -1px 0 rgba(0,0,0,0.2);
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            white-space: nowrap;
-        }
-        .buff-label.speed { color: #5BDDFF; }
-        .buff-label.shield { color: #D4A0FF; }
-        .buff-circle {
+        /* ---- SLOT BUFF TIMER ---- */
+        .slot.buff-active {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.3);
             position: relative;
-            width: 36px;
-            height: 36px;
-            flex-shrink: 0;
+            overflow: hidden;
         }
-        .buff-circle svg {
-            width: 36px;
-            height: 36px;
-            transform: rotate(-90deg);
-        }
-        .buff-circle-bg {
-            fill: none;
-            stroke: rgba(0,0,0,0.3);
-            stroke-width: 3;
-        }
-        .buff-circle-fill {
-            fill: none;
-            stroke-width: 3.5;
-            stroke-linecap: round;
-            transition: stroke-dashoffset 0.9s linear;
-        }
-        .buff-circle-fill.speed { stroke: #5BDDFF; filter: drop-shadow(0 0 4px rgba(91,221,255,0.6)); }
-        .buff-circle-fill.shield { stroke: #D4A0FF; filter: drop-shadow(0 0 4px rgba(212,160,255,0.6)); }
-        .buff-secs {
+        .slot-timer-fill {
             position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: 'Fredoka One', cursive;
-            font-size: 12px;
-            color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
-            font-variant-numeric: tabular-nums;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-radius: 0 0 10px 10px;
+            transition: height 0.9s linear;
+            pointer-events: none;
         }
-        @keyframes buffIn {
-            from { opacity: 0; transform: translateY(6px) scale(0.9); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
+        .slot-timer-fill.speed {
+            background: linear-gradient(180deg, rgba(91,221,255,0.35), rgba(91,221,255,0.15));
+        }
+        .slot-timer-fill.shield {
+            background: linear-gradient(180deg, rgba(212,160,255,0.35), rgba(212,160,255,0.15));
+        }
+        .slot-timer-text {
+            font-family: 'Fredoka One', cursive;
+            font-size: 16px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            font-variant-numeric: tabular-nums;
+            z-index: 1;
+            position: relative;
+        }
+        .slot-timer-label {
+            font-size: 6px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            opacity: 0.7;
+            z-index: 1;
+            position: relative;
         }
 
         /* ---- QUANTITY BADGE ---- */
@@ -413,9 +385,6 @@
     </style>
 </head>
 <body>
-    <!-- BUFF PANEL (above HP bar) -->
-    <div class="buff-panel" id="buff-panel"></div>
-
     <!-- HP BAR (above action bar) -->
     <div class="hp-bar-wrap" id="hp-bar-wrap">
         <div class="hp-bar-fill" id="hp-bar-fill" style="width:100%"></div>
@@ -540,34 +509,64 @@
                 weaponLabel.textContent = 'None';
             }
 
+            // Buff-to-slot mapping
+            var BUFF_MAP = { speed_potion: 'speed', shield: 'shield' };
+            var BUFF_COLORS = { speed: 'speed', shield: 'shield' };
+            var now = Date.now();
+
             // Consumable slots
             for (let i = 0; i < 4; i++) {
                 const slotEl = document.getElementById('slot-item' + (i + 1));
                 const iconEl = document.getElementById('item' + (i + 1) + '-icon');
                 const labelEl = document.getElementById('item' + (i + 1) + '-label');
 
-                // Remove old badges
+                // Remove old badges and timer fills
                 const oldQty = slotEl.querySelector('.slot-qty');
                 if (oldQty) oldQty.remove();
+                const oldFill = slotEl.querySelector('.slot-timer-fill');
+                if (oldFill) oldFill.remove();
+                slotEl.classList.remove('buff-active');
 
                 const itemId = state.equippedItems[i];
                 if (itemId) {
                     const item = CONSUMABLES.find(c => c.id === itemId);
                     if (item) {
                         slotEl.classList.remove('empty');
-                        iconEl.innerHTML = item.icon;
-                        // Show cooldown or cost
-                        const onCd = item.cooldown && state.cooldowns[itemId] && state.cooldowns[itemId] > Date.now();
-                        if (onCd) {
-                            const cdSec = Math.ceil((state.cooldowns[itemId] - Date.now()) / 1000);
-                            labelEl.innerHTML = cdSec + 's';
-                            slotEl.style.opacity = '0.5';
+
+                        // Check if this slot has an active buff timer
+                        var buffKey = BUFF_MAP[itemId];
+                        var buffData = buffKey ? state.buffs[buffKey] : null;
+                        var buffActive = buffData && buffData.active && buffData.endTime > now;
+
+                        if (buffActive) {
+                            // Show countdown timer in the slot
+                            var secs = Math.ceil((buffData.endTime - now) / 1000);
+                            var pctRemain = Math.max(0, (buffData.endTime - now) / (buffData.duration * 1000));
+                            slotEl.classList.add('buff-active');
+                            iconEl.innerHTML = '<span class="slot-timer-text">' + secs + '</span>';
+                            labelEl.innerHTML = '<span class="slot-timer-label">' + (buffKey === 'speed' ? 'SPEED' : 'SHIELD') + '</span>';
+                            slotEl.style.opacity = '1';
+
+                            // Add fill bar
+                            var fill = document.createElement('div');
+                            fill.className = 'slot-timer-fill ' + BUFF_COLORS[buffKey];
+                            fill.style.height = Math.round(pctRemain * 100) + '%';
+                            slotEl.appendChild(fill);
                         } else {
-                            labelEl.innerHTML = item.name.replace(/\n/g, '<br>');
-                            slotEl.style.opacity = (state.itemCounts[itemId] || 0) > 0 ? '1' : '0.5';
+                            // Normal display
+                            iconEl.innerHTML = item.icon;
+                            const onCd = item.cooldown && state.cooldowns[itemId] && state.cooldowns[itemId] > now;
+                            if (onCd) {
+                                const cdSec = Math.ceil((state.cooldowns[itemId] - now) / 1000);
+                                labelEl.innerHTML = cdSec + 's';
+                                slotEl.style.opacity = '0.5';
+                            } else {
+                                labelEl.innerHTML = item.name.replace(/\n/g, '<br>');
+                                slotEl.style.opacity = (state.itemCounts[itemId] || 0) > 0 ? '1' : '0.5';
+                            }
                         }
 
-                        // Show count badge
+                        // Show count badge (even during buff, so player sees remaining stock)
                         const qty = state.itemCounts[itemId] || 0;
                         if (qty > 0) {
                             const badge = document.createElement('div');
@@ -594,40 +593,7 @@
             hpFill.className = 'hp-bar-fill' + (pct <= 25 ? ' low' : pct <= 50 ? ' mid' : '');
             hpText.textContent = Math.round(hp) + ' / ' + Math.round(maxHp);
 
-            // Buff panel
-            var buffPanel = document.getElementById('buff-panel');
-            var buffHtml = '';
-            var now = Date.now();
-            var circumference = 2 * Math.PI * 14; // r=14 for the SVG circle
-            if (state.buffs.speed.active && state.buffs.speed.endTime > now) {
-                var secs = Math.ceil((state.buffs.speed.endTime - now) / 1000);
-                var pct = Math.max(0, (state.buffs.speed.endTime - now) / (state.buffs.speed.duration * 1000));
-                var offset = circumference * (1 - pct);
-                buffHtml += '<div class="buff-row">' +
-                    '<span class="buff-label speed">Speed Boost</span>' +
-                    '<div class="buff-circle">' +
-                        '<svg viewBox="0 0 36 36"><circle class="buff-circle-bg" cx="18" cy="18" r="14"/>' +
-                        '<circle class="buff-circle-fill speed" cx="18" cy="18" r="14" stroke-dasharray="' + circumference.toFixed(1) + '" stroke-dashoffset="' + offset.toFixed(1) + '"/></svg>' +
-                        '<div class="buff-secs">' + secs + '</div>' +
-                    '</div></div>';
-            }
-            if (state.buffs.shield.active && state.buffs.shield.endTime > now) {
-                var secs2 = Math.ceil((state.buffs.shield.endTime - now) / 1000);
-                var pct2 = Math.max(0, (state.buffs.shield.endTime - now) / (state.buffs.shield.duration * 1000));
-                var offset2 = circumference * (1 - pct2);
-                buffHtml += '<div class="buff-row">' +
-                    '<span class="buff-label shield">Shield</span>' +
-                    '<div class="buff-circle">' +
-                        '<svg viewBox="0 0 36 36"><circle class="buff-circle-bg" cx="18" cy="18" r="14"/>' +
-                        '<circle class="buff-circle-fill shield" cx="18" cy="18" r="14" stroke-dasharray="' + circumference.toFixed(1) + '" stroke-dashoffset="' + offset2.toFixed(1) + '"/></svg>' +
-                        '<div class="buff-secs">' + secs2 + '</div>' +
-                    '</div></div>';
-            }
-            buffPanel.innerHTML = buffHtml;
-
-            // Position carry indicator above buffs/HP bar
-            var buffCount = (state.buffs.speed.active ? 1 : 0) + (state.buffs.shield.active ? 1 : 0);
-            carryIndicator.style.bottom = buffCount > 0 ? (98 + 5 + buffCount * 41) + 'px' : '98px';
+            // Carry indicator
             if (state.carrying > 0) {
                 carryIndicator.classList.add('show');
                 carryGoldEl.textContent = state.carryGold;
