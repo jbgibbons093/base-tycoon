@@ -433,7 +433,7 @@
                 uipop: 'ui-pop.mp3', harvest: 'harvest.mp3', talent: 'talent.mp3',
                 xp: 'xp-gain.mp3', cropready: 'cropready.mp3',
                 notification: 'notification.mp3', pickup: 'brainrot-collect.mp3',
-                deposit: 'deposit-brainrot.mp3'
+                deposit: 'deposit-brainrot.mp3', death: 'death.mp3', kill: 'kill.mp3'
             };
             for (var k in files) {
                 (function(key, url) {
@@ -562,7 +562,7 @@
         function showDeathAlert(goldLost) {
             showScreenFlash('death');
             showCenterAlert('YOU DIED', 'death');
-            playSound('uipop');
+            playSound('death');
             if (goldLost) {
                 notify('Lost ' + goldLost + ' gold!', 'error');
             } else {
@@ -574,7 +574,7 @@
         function showKillAlert(goldGained) {
             showScreenFlash('kill');
             showCenterAlert('KILL! +' + (goldGained || '?') + 'g', 'kill');
-            playSound('levelup');
+            playSound('kill');
             notify('+' + (goldGained || '?') + ' gold from kill!', 'kill');
             spawnCashParticles('earn', 8);
             pop(document.getElementById('pill-gold'));
