@@ -737,11 +737,13 @@
                 const parsed = JSON.parse(raw);
                 if (typeof parsed === 'number') return parsed;
                 if (typeof parsed === 'object' && parsed !== null) {
-                    // Take the current player's value (first value in object)
                     const vals = Object.values(parsed);
                     return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
                 }
             } catch(e) {}
+            // Portals built-in vars use = instead of : e.g. {"Hugh"="100"}
+            var eqMatch = raw.match(/[=:]\s*"?(\d+\.?\d*)"?\s*\}?/);
+            if (eqMatch) return Number(eqMatch[1]) || 0;
             return 0;
         }
 
