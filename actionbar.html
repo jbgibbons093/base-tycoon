@@ -866,8 +866,8 @@
                 const key = pair.substring(0, eqIdx).trim();
                 const rawVal = pair.substring(eqIdx + 1);
                 if (key === 'username') {
-                    myUsername = rawVal.trim();
-                    result[key] = rawVal.trim();
+                    myUsername = rawVal.trim().replace(/^["']|["']$/g, '');
+                    result[key] = myUsername;
                     continue;
                 }
             }

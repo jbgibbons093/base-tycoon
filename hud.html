@@ -1016,7 +1016,7 @@
                         if (eq > 0) params[pairs[pi].substring(0, eq)] = pairs[pi].substring(eq + 1);
                     }
                     // Store local player username (always plain string, never JSON)
-                    if (params.username) myUsername = params.username;
+                    if (params.username) myUsername = params.username.replace(/^["']|["']$/g, '');
                     if (params.Gold !== undefined) {
                         var gv = parseVarValue(params.Gold);
                         if (gv !== state.gold) {
