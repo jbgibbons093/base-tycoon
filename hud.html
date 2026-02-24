@@ -983,7 +983,12 @@
                     if (d.baseId !== undefined) state.baseId = parseInt(d.baseId)||0;
                     if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying)||0;
                     if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold)||0;
-                    if (d.rebirth !== undefined) state.rebirth = parseInt(d.rebirth)||0;
+                    if (d.rebirth !== undefined) {
+                        state.rebirth = parseInt(d.rebirth)||0;
+                        state.pendingGold = 0;
+                        state.earningRate = 0;
+                        updateGoldDisplay();
+                    }
                     if (d.toast) showToast(d.toast);
                     if (d.notif) notify(d.notif, d.notifType || 'info');
                     updateDisplay();
@@ -1141,7 +1146,11 @@
                 } else if (msg.startsWith('base:')) {
                     state.baseId = parseInt(msg.substring(5))||0; updateDisplay();
                 } else if (msg.startsWith('rebirth:')) {
-                    state.rebirth = parseInt(msg.substring(8))||0; updateDisplay();
+                    state.rebirth = parseInt(msg.substring(8))||0;
+                    state.pendingGold = 0;
+                    state.earningRate = 0;
+                    updateGoldDisplay();
+                    updateDisplay();
                 } else if (msg.startsWith('toast:')) {
                     playSound('notification');
                     showToast(msg.substring(6));
