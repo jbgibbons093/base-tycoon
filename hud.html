@@ -461,6 +461,51 @@
         }
 
         let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0 };
+        var myUsername = '';
+
+        /* ---- MULTIPLAYER VALUE PARSER ---- */
+        // Portals sends multiplayer vars as objects like {"player1":val1,"player2":val2}
+        // or with = signs like {"player1"="val1","player2"="val2"}
+        // This extracts only the local player's value using myUsername
+        function parseVarValue(raw) {
+            if (typeof raw !== 'string') return parseFloat(raw) || 0;
+            raw = raw.trim();
+            if (raw.charAt(0) !== '{') return parseFloat(raw) || 0;
+            if (!myUsername) return parseFloat(raw) || 0;
+            // Try standard JSON first
+            try {
+                var obj = JSON.parse(raw);
+                if (typeof obj === 'object' && obj !== null) {
+                    // Case-insensitive username match
+                    var keys = Object.keys(obj);
+                    for (var i = 0; i < keys.length; i++) {
+                        if (keys[i].toLowerCase() === myUsername.toLowerCase()) {
+                            return parseFloat(obj[keys[i]]) || 0;
+                        }
+                    }
+                    return 0;
+                }
+                return parseFloat(raw) || 0;
+            } catch(e) {}
+            // Fallback: parse Portals format {"name"="val", "name2"="val2"}
+            try {
+                var inner = raw.substring(1, raw.length - 1).trim();
+                var entries = inner.split(',');
+                for (var j = 0; j < entries.length; j++) {
+                    var entry = entries[j].trim();
+                    // Split on first = or :
+                    var sep = entry.indexOf('=');
+                    if (sep < 0) sep = entry.indexOf(':');
+                    if (sep < 0) continue;
+                    var k = entry.substring(0, sep).trim().replace(/^["']|["']$/g, '');
+                    var v = entry.substring(sep + 1).trim().replace(/^["']|["']$/g, '');
+                    if (k.toLowerCase() === myUsername.toLowerCase()) {
+                        return parseFloat(v) || 0;
+                    }
+                }
+            } catch(e2) {}
+            return 0;
+        }
 
         const valGold = document.getElementById('val-gold');
         const carryBanner = document.getElementById('carry-banner');
@@ -750,7 +795,7 @@
                 var k = keys[i];
                 if (k.startsWith('Own_bv_')) {
                     var bvKey = k.substring(4); // "bv_Banana"
-                    var val = parseFloat(params[k]) || 0;
+                    var val = parseVarValue(params[k]);
                     if (val > 0) {
                         ownedBrainrots[bvKey] = val;
                     } else {
@@ -944,15 +989,18 @@
                 } catch(e) {}
                 // String-based messages
                 if (msg.startsWith('inv:')) {
-                    // Parse key=value pairs: inv:Gold=123&Own_bv_Banana=2&...
+                    // Parse key=value pairs: inv:username=bob&Gold=123&health={"bob":100}...
+                    // Split on first = only per pair to handle JSON values with = inside
                     var pairs = msg.substring(4).split('&');
                     var params = {};
                     for (var pi = 0; pi < pairs.length; pi++) {
-                        var kv = pairs[pi].split('=');
-                        if (kv.length === 2) params[kv[0]] = kv[1];
+                        var eq = pairs[pi].indexOf('=');
+                        if (eq > 0) params[pairs[pi].substring(0, eq)] = pairs[pi].substring(eq + 1);
                     }
+                    // Store local player username (always plain string, never JSON)
+                    if (params.username) myUsername = params.username;
                     if (params.Gold !== undefined) {
-                        var gv = parseFloat(params.Gold) || 0;
+                        var gv = parseVarValue(params.Gold);
                         if (gv !== state.gold) {
                             state.gold = gv;
                             pop(document.getElementById('pill-gold'));
@@ -960,11 +1008,11 @@
                     }
                     // Parse base ID
                     if (params.My_Base_ID !== undefined) {
-                        state.baseId = parseInt(params.My_Base_ID) || 0;
+                        state.baseId = Math.round(parseVarValue(params.My_Base_ID));
                     }
                     // Parse carrying brainrot from server variable
                     if (params.My_Carrying_Brainrot !== undefined) {
-                        var carryNum = parseInt(params.My_Carrying_Brainrot) || 0;
+                        var carryNum = Math.round(parseVarValue(params.My_Carrying_Brainrot));
                         if (carryNum > 0 && QUEST_NUM_TO_BV[carryNum]) {
                             var bvKey = QUEST_NUM_TO_BV[carryNum];
                             state.carrying = 1;
@@ -989,7 +1037,7 @@
                         var zk = 'ZC_' + z;
                         if (params[zk] !== undefined) {
                             var oldCount = spawnCounts[z] || 0;
-                            var newCount = parseInt(params[zk]) || 0;
+                            var newCount = Math.round(parseVarValue(params[zk]));
                             spawnCounts[z] = newCount;
                             var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
                             // Zone went from full to not full — restart timer
