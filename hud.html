@@ -327,6 +327,53 @@
             0% { opacity: 1; transform: translate(0, 0) scale(1); }
             100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.5); }
         }
+
+        /* ---- KILL NOTIFICATION ---- */
+        .notif-kill {
+            background: linear-gradient(180deg, #6EF06E, #2ECC40);
+            border: 3px solid #1FA030;
+            color: #0A3A0A;
+        }
+
+        /* ---- DEATH/KILL SCREEN FLASH ---- */
+        .screen-flash {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 50;
+            animation: flashFade 0.6s ease-out forwards;
+        }
+        .screen-flash.death { background: rgba(231, 76, 60, 0.35); }
+        .screen-flash.kill { background: rgba(46, 204, 64, 0.25); }
+        @keyframes flashFade {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* ---- CENTER KILL/DEATH TEXT ---- */
+        .center-alert {
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 32px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.4), 0 0 20px rgba(0,0,0,0.3);
+            pointer-events: none;
+            z-index: 51;
+            animation: alertPop 0.4s ease, alertOut 0.4s ease 1.5s forwards;
+            white-space: nowrap;
+        }
+        .center-alert.death { color: #FF4444; }
+        .center-alert.kill { color: #2ECC40; }
+        @keyframes alertPop {
+            0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+            60% { transform: translate(-50%, -50%) scale(1.15); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes alertOut {
+            to { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+        }
     </style>
 </head>
 <body>
@@ -494,6 +541,43 @@
                 notifContainer.removeChild(notifContainer.firstChild);
             }
             setTimeout(function() { if (el.parentNode) el.remove(); }, 3500);
+        }
+
+        /* ---- DEATH/KILL ALERTS ---- */
+        function showScreenFlash(type) {
+            var flash = document.createElement('div');
+            flash.className = 'screen-flash ' + type;
+            document.body.appendChild(flash);
+            setTimeout(function() { if (flash.parentNode) flash.remove(); }, 700);
+        }
+
+        function showCenterAlert(text, type) {
+            var alert = document.createElement('div');
+            alert.className = 'center-alert ' + type;
+            alert.textContent = text;
+            document.body.appendChild(alert);
+            setTimeout(function() { if (alert.parentNode) alert.remove(); }, 2000);
+        }
+
+        function showDeathAlert(goldLost) {
+            showScreenFlash('death');
+            showCenterAlert('YOU DIED', 'death');
+            playSound('uipop');
+            if (goldLost) {
+                notify('Lost ' + goldLost + ' gold!', 'error');
+            } else {
+                notify('You died! Lost 50% gold.', 'error');
+            }
+            spawnCashParticles('spend', 6);
+        }
+
+        function showKillAlert(goldGained) {
+            showScreenFlash('kill');
+            showCenterAlert('KILL! +' + (goldGained || '?') + 'g', 'kill');
+            playSound('levelup');
+            notify('+' + (goldGained || '?') + ' gold from kill!', 'kill');
+            spawnCashParticles('earn', 8);
+            pop(document.getElementById('pill-gold'));
         }
 
         // Legacy toast (still works for old messages)
@@ -1000,6 +1084,12 @@
                 } else if (msg.startsWith('toast:')) {
                     playSound('notification');
                     showToast(msg.substring(6));
+                } else if (msg.startsWith('death:')) {
+                    var deathGold = msg.substring(6);
+                    showDeathAlert(deathGold);
+                } else if (msg.startsWith('kill:')) {
+                    var killGold = msg.substring(5);
+                    showKillAlert(killGold);
                 } else if (msg.startsWith('repopulate:')) {
                     var baseNum = parseInt(msg.substring(11)) || 0;
                     if (baseNum > 0) repopulateBase(baseNum);
