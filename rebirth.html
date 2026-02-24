@@ -236,8 +236,15 @@
         })();
         function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
 
+        var myUsername = '';
         const REBIRTH_COSTS = [500000, 2000000, 10000000];
-        const REBIRTH_BONUSES = ['1.5x Permanent Income', '2x Permanent + Ancient Ruins', '3x Permanent + Sky + Void'];
+        const REBIRTH_BONUSES = [
+            '1.5x Permanent Gold Income',
+            '2x Permanent Gold Income\n+ Unlock Ancient Ruins zone',
+            '3x Permanent Gold Income\n+ Unlock Sky Platform & The Void zones\n+ Exclusive Night Skybox'
+        ];
+        const REBIRTH_KEEPS = 'Your base, floors, and base upgrades are kept.';
+        const REBIRTH_RESETS = 'Gold, brainrots, zone unlocks, weapons, gear, and items are reset.';
 
         let state = { gold: 0, rebirth: 0 };
 
@@ -257,12 +264,13 @@
 
             if (state.rebirth >= maxRebirth) {
                 const stars = '\u2B50'.repeat(state.rebirth);
+                const bonusLines = REBIRTH_BONUSES[state.rebirth-1].split('\n').map(l => '<div>' + l.trim() + '</div>').join('');
                 el.innerHTML = `
                     <div class="rebirth-panel">
                         <div class="rebirth-stars">${stars}</div>
                         <h2>MAX REBIRTH!</h2>
                         <div class="sub">You've reached Rebirth ${state.rebirth}. All zones unlocked.</div>
-                        <div class="rebirth-reward" style="margin-top:14px">${REBIRTH_BONUSES[state.rebirth-1]}</div>
+                        <div class="rebirth-reward" style="margin-top:14px">${bonusLines}</div>
                         <div class="rebirth-max">All permanent bonuses active</div>
                     </div>
                 `;
@@ -273,15 +281,16 @@
             const canRebirth = state.gold >= cost;
             const progress = Math.min(100, (state.gold / cost) * 100);
             const stars = state.rebirth > 0 ? '\u2B50'.repeat(state.rebirth) : '';
+            const bonusLines = REBIRTH_BONUSES[state.rebirth].split('\n').map(l => '<div>' + l.trim() + '</div>').join('');
 
             el.innerHTML = `
                 <div class="rebirth-panel">
                     ${stars ? '<div class="rebirth-stars">' + stars + '</div>' : ''}
                     <h2>REBIRTH ${nextRebirth}</h2>
-                    <div class="sub">Reset zone unlocks & placed brainrots</div>
-                    <div class="sub" style="margin-top:2px">Keep: Base, Floors, Income upgrades</div>
+                    <div class="rebirth-reward" style="margin-bottom:8px">${bonusLines}</div>
                     <div class="rebirth-cost-badge">$ ${fmt(cost)}</div>
-                    <div class="rebirth-reward">${REBIRTH_BONUSES[state.rebirth]}</div>
+                    <div class="sub" style="margin-top:8px;color:#2ECC40;font-weight:900">${REBIRTH_KEEPS}</div>
+                    <div class="sub" style="margin-top:4px;color:#D63031;font-weight:900">${REBIRTH_RESETS}</div>
                     <div class="rebirth-progress">
                         ${fmt(state.gold)} / ${fmt(cost)} gold
                     </div>
@@ -320,20 +329,41 @@
 
         function closeShop() { playSound('click'); if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
 
-        /** Parse a variable value from Portals |var| interpolation. */
+        /** Parse a variable value from Portals |var| interpolation.
+         *  Multiplayer sends JSON objects like {"Player1":100,"Player2":87}.
+         *  We match by myUsername to get the local player's value. */
         function parseVarValue(raw) {
             if (raw === undefined || raw === null || raw === '') return 0;
             raw = String(raw).trim();
-            const num = Number(raw);
+            var num = Number(raw);
             if (!isNaN(num)) return num;
             try {
-                const parsed = JSON.parse(raw);
+                var parsed = JSON.parse(raw);
                 if (typeof parsed === 'number') return parsed;
                 if (typeof parsed === 'object' && parsed !== null) {
-                    const vals = Object.values(parsed);
+                    // Try username match first (case-insensitive)
+                    if (myUsername) {
+                        var uLower = myUsername.toLowerCase();
+                        for (var k in parsed) {
+                            if (k.toLowerCase() === uLower) return Number(parsed[k]) || 0;
+                        }
+                    }
+                    // Fallback: first value
+                    var vals = Object.values(parsed);
                     return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
                 }
-            } catch(e) {}
+            } catch(e) {
+                // Portals = format: {"name"="val"&"name2"="val2"}
+                if (raw.indexOf('=') > -1) {
+                    var eqParts = raw.replace(/[{}"]/g, '').split('&');
+                    for (var i = 0; i < eqParts.length; i++) {
+                        var ep = eqParts[i].split('=');
+                        if (ep.length === 2 && myUsername && ep[0].toLowerCase() === myUsername.toLowerCase()) {
+                            return Number(ep[1]) || 0;
+                        }
+                    }
+                }
+            }
             return 0;
         }
 
@@ -350,14 +380,26 @@
         function handleMessage(msg) {
             console.log('[Rebirth] Received:', msg);
 
-            // inv: format — "inv:Gold=|Gold|&Rebirth=|Rebirth|"
+            // inv: format — "inv:Gold=|Gold|&Rebirth=|Rebirth|&username=PlayerName"
             if (msg.startsWith('inv:')) {
                 const payload = msg.substring(4);
                 const pairs = payload.split('&');
+                // First pass: extract username (raw string, not numeric)
                 for (const pair of pairs) {
                     const eq = pair.indexOf('=');
                     if (eq < 0) continue;
                     const key = pair.substring(0, eq).trim();
+                    if (key === 'username') {
+                        myUsername = pair.substring(eq + 1).trim();
+                        break;
+                    }
+                }
+                // Second pass: parse numeric values
+                for (const pair of pairs) {
+                    const eq = pair.indexOf('=');
+                    if (eq < 0) continue;
+                    const key = pair.substring(0, eq).trim();
+                    if (key === 'username') continue;
                     const val = parseVarValue(pair.substring(eq + 1));
                     if (key === 'Gold') state.gold = val;
                     else if (key === 'Rebirth') state.rebirth = val;
