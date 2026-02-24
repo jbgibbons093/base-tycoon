@@ -165,6 +165,7 @@
             backdrop-filter: blur(10px);
             display: none;
             z-index: 30;
+            white-space: nowrap;
         }
 
         .flyout-left.show {
@@ -594,11 +595,12 @@
             weaponList.innerHTML = '';
             weaponList.style.display = 'flex';
             weaponList.style.gap = '4px';
+            weaponList.style.flexWrap = 'nowrap';
 
             // "None" option (unequip)
             var noneActive = state.equippedWeapon === null;
             var noneDiv = document.createElement('div');
-            noneDiv.style.cssText = 'width:56px;height:56px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:' + (noneActive ? 'default' : 'pointer') + ';border:2px solid ' + (noneActive ? 'rgba(255,215,0,0.5)' : 'rgba(255,255,255,0.1)') + ';background:' + (noneActive ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.06)') + ';transition:background 0.1s;';
+            noneDiv.style.cssText = 'width:56px;height:56px;flex-shrink:0;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:' + (noneActive ? 'default' : 'pointer') + ';border:2px solid ' + (noneActive ? 'rgba(255,215,0,0.5)' : 'rgba(255,255,255,0.1)') + ';background:' + (noneActive ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.06)') + ';transition:background 0.1s;';
             noneDiv.innerHTML = '<span style="font-size:22px;line-height:1">\u2014</span>' +
                 '<span style="font-size:7px;font-weight:900;text-transform:uppercase;margin-top:2px;color:' + (noneActive ? '#FFD700' : 'rgba(255,255,255,0.6)') + '">None</span>';
             if (!noneActive) {
@@ -612,7 +614,7 @@
                 const owned = state.ownedWeapons.includes(w.id);
                 const equipped = state.equippedWeapon === w.id;
                 const div = document.createElement('div');
-                div.style.cssText = 'width:56px;height:56px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:' + (owned && !equipped ? 'pointer' : !owned ? 'not-allowed' : 'default') + ';border:2px solid ' + (equipped ? 'rgba(255,215,0,0.5)' : 'rgba(255,255,255,0.1)') + ';background:' + (equipped ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.06)') + ';opacity:' + (!owned ? '0.35' : '1') + ';transition:background 0.1s;';
+                div.style.cssText = 'width:56px;height:56px;flex-shrink:0;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:' + (owned && !equipped ? 'pointer' : !owned ? 'not-allowed' : 'default') + ';border:2px solid ' + (equipped ? 'rgba(255,215,0,0.5)' : 'rgba(255,255,255,0.1)') + ';background:' + (equipped ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.06)') + ';opacity:' + (!owned ? '0.35' : '1') + ';transition:background 0.1s;';
                 div.innerHTML = '<span style="font-size:22px;line-height:1">' + w.icon + '</span>' +
                     '<span style="font-size:7px;font-weight:900;text-transform:uppercase;margin-top:2px;color:' + (equipped ? '#FFD700' : 'rgba(255,255,255,0.6)') + '">' + w.name + '</span>';
                 if (owned && !equipped) {
