@@ -280,6 +280,47 @@
             animation: dropupIn 0.2s ease;
         }
 
+        /* ---- HP BAR ---- */
+        .hp-bar-wrap {
+            position: fixed;
+            bottom: 76px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            height: 18px;
+            background: rgba(20, 20, 30, 0.85);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(6px);
+        }
+        .hp-bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.3s ease, background 0.3s ease;
+            background: linear-gradient(180deg, #4ADE80, #22C55E);
+        }
+        .hp-bar-fill.mid {
+            background: linear-gradient(180deg, #FBBF24, #F59E0B);
+        }
+        .hp-bar-fill.low {
+            background: linear-gradient(180deg, #F87171, #EF4444);
+        }
+        .hp-bar-text {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fredoka One', cursive;
+            font-size: 10px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+            pointer-events: none;
+        }
+
         /* ---- QUANTITY BADGE ---- */
         .slot-qty {
             position: absolute;
@@ -302,6 +343,12 @@
     </style>
 </head>
 <body>
+    <!-- HP BAR (above action bar) -->
+    <div class="hp-bar-wrap" id="hp-bar-wrap">
+        <div class="hp-bar-fill" id="hp-bar-fill" style="width:100%"></div>
+        <div class="hp-bar-text" id="hp-bar-text">100 / 100</div>
+    </div>
+
     <!-- CARRY INDICATOR (shown above bar when carrying brainrot) -->
     <div class="carry-indicator" id="carry-indicator">
         Carrying: <span id="carry-gold">0</span>g
@@ -387,8 +434,12 @@
             cooldowns: {},
             itemCounts: {},   // e.g. { health_pack: 3, speed_potion: 1, ... }
             carrying: 0,
-            carryGold: 0
+            carryGold: 0,
+            health: 100,
+            armorLevel: 0
         };
+
+        const ARMOR_MAX_HP = { 0: 100, 1: 125, 2: 150, 3: 175, 4: 200 };
 
         let openDropup = null;
 
@@ -456,7 +507,18 @@
                 }
             }
 
-            // Carry indicator
+            // HP bar
+            var maxHp = ARMOR_MAX_HP[state.armorLevel] || 100;
+            var hp = Math.min(state.health, maxHp);
+            var pct = Math.max(0, Math.min(100, (hp / maxHp) * 100));
+            var hpFill = document.getElementById('hp-bar-fill');
+            var hpText = document.getElementById('hp-bar-text');
+            hpFill.style.width = pct + '%';
+            hpFill.className = 'hp-bar-fill' + (pct <= 25 ? ' low' : pct <= 50 ? ' mid' : '');
+            hpText.textContent = Math.round(hp) + ' / ' + maxHp;
+
+            // Carry indicator (push up above HP bar)
+            carryIndicator.style.bottom = '98px';
             if (state.carrying > 0) {
                 carryIndicator.classList.add('show');
                 carryGoldEl.textContent = state.carryGold;
@@ -692,6 +754,10 @@
                 state.equippedWeapon = EQUIPPED_WEAPON_MAP[vars['Equipped_Weapon']];
             }
 
+            // Update health and armor
+            if (vars['health'] !== undefined) state.health = vars['health'];
+            if (vars['Gear_Armor'] !== undefined) state.armorLevel = Math.floor(vars['Gear_Armor']);
+
             // Update item counts
             for (const [varName, itemId] of Object.entries(VAR_TO_ITEM)) {
                 if (vars[varName] !== undefined) {
@@ -798,6 +864,8 @@
             state.equippedItems = ['health_pack', 'speed_potion', 'base_teleport', 'shield'];
             state.carrying = 1;
             state.carryGold = 14.6;
+            state.health = 87;
+            state.armorLevel = 2;
             render();
         }
     </script>
