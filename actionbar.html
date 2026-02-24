@@ -454,6 +454,9 @@
         })();
         function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
 
+        // ---- MULTIPLAYER USERNAME ----
+        var myUsername = '';
+
         // ---- DATA ----
         const WEAPONS = [
             { id: 'pistol', name: 'Pistol', icon: '\u{1F52B}', stat: 'Fast \u2022 Low DMG' },
@@ -800,27 +803,49 @@
 
         /**
          * Parse a value from Portals variable interpolation.
-         * Handles: raw numbers ("3"), JSON objects ({"PlayerName": 3}),
-         * quoted strings, and edge cases.
+         * Handles: raw numbers ("3"), multiplayer JSON objects ({"Player1": 100, "Player2": 87}),
+         * and Portals = format ({"Player1"="100"}).
+         * Uses myUsername to extract the LOCAL player's value in multiplayer.
          */
         function parseVarValue(raw) {
             if (raw === undefined || raw === null || raw === '') return 0;
-            raw = String(raw).trim();
-            // Try as plain number first
-            const num = Number(raw);
-            if (!isNaN(num)) return num;
-            // Try as JSON (multiplayer format: {"Player1": 3, "Player2": 0})
+            if (typeof raw !== 'string') return parseFloat(raw) || 0;
+            raw = raw.trim();
+            // Plain number — single player or already resolved
+            if (raw.charAt(0) !== '{') return parseFloat(raw) || 0;
+            // Multiplayer JSON object — need username to extract local player's value
+            if (!myUsername) return parseFloat(raw) || 0;
+            // Try standard JSON first: {"Player1": 100, "Player2": 87}
             try {
-                const parsed = JSON.parse(raw);
-                if (typeof parsed === 'number') return parsed;
-                if (typeof parsed === 'object' && parsed !== null) {
-                    const vals = Object.values(parsed);
-                    return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
+                var obj = JSON.parse(raw);
+                if (typeof obj === 'object' && obj !== null) {
+                    var keys = Object.keys(obj);
+                    for (var i = 0; i < keys.length; i++) {
+                        if (keys[i].toLowerCase() === myUsername.toLowerCase()) {
+                            return parseFloat(obj[keys[i]]) || 0;
+                        }
+                    }
+                    return 0;
                 }
+                return parseFloat(raw) || 0;
             } catch(e) {}
-            // Portals built-in vars use = instead of : e.g. {"Hugh"="100"}
-            var eqMatch = raw.match(/[=:]\s*"?(\d+\.?\d*)"?\s*\}?/);
-            if (eqMatch) return Number(eqMatch[1]) || 0;
+            // Fallback: Portals format {"name"="val"&"name2"="val2"} or comma-separated
+            try {
+                var inner = raw.substring(1, raw.length - 1).trim();
+                var entries = inner.split(/[&,]/);
+                for (var j = 0; j < entries.length; j++) {
+                    var entry = entries[j].trim();
+                    if (!entry) continue;
+                    var sep = entry.indexOf('=');
+                    if (sep < 0) sep = entry.indexOf(':');
+                    if (sep < 0) continue;
+                    var k = entry.substring(0, sep).trim().replace(/^["']|["']$/g, '');
+                    var v = entry.substring(sep + 1).trim().replace(/^["']|["']$/g, '');
+                    if (k.toLowerCase() === myUsername.toLowerCase()) {
+                        return parseFloat(v) || 0;
+                    }
+                }
+            } catch(e2) {}
             return 0;
         }
 
@@ -834,10 +859,24 @@
             const payload = msg.substring(4);
             const result = {};
             const pairs = payload.split('&');
+            // Extract username FIRST (raw string, not numeric)
             for (const pair of pairs) {
                 const eqIdx = pair.indexOf('=');
                 if (eqIdx < 0) continue;
                 const key = pair.substring(0, eqIdx).trim();
+                const rawVal = pair.substring(eqIdx + 1);
+                if (key === 'username') {
+                    myUsername = rawVal.trim();
+                    result[key] = rawVal.trim();
+                    continue;
+                }
+            }
+            // Now parse all other values as numbers (using myUsername for multiplayer resolution)
+            for (const pair of pairs) {
+                const eqIdx = pair.indexOf('=');
+                if (eqIdx < 0) continue;
+                const key = pair.substring(0, eqIdx).trim();
+                if (key === 'username') continue; // already handled
                 const rawVal = pair.substring(eqIdx + 1);
                 result[key] = parseVarValue(rawVal);
             }
@@ -852,6 +891,9 @@
          * Apply parsed inventory variables to action bar state.
          */
         function applyInventoryUpdate(vars) {
+            // Store local player username (always plain string, never JSON)
+            if (vars['username']) myUsername = vars['username'];
+
             // Update gold
             if (vars['Gold'] !== undefined) state.gold = vars['Gold'];
 
