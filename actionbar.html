@@ -161,7 +161,6 @@
             border: 2px solid rgba(255, 255, 255, 0.12);
             border-radius: 12px;
             padding: 6px;
-            min-width: 140px;
             box-shadow: -6px 0 24px rgba(0, 0, 0, 0.6);
             backdrop-filter: blur(10px);
             display: none;
@@ -319,7 +318,6 @@
             </div>
             <!-- WEAPON FLYOUT (slides left) -->
             <div class="flyout-left" id="dropup-weapon">
-                <div class="dropup-title">Weapons</div>
                 <div id="weapon-list"></div>
             </div>
         </div>
@@ -469,20 +467,18 @@
 
         function renderWeaponDropup() {
             weaponList.innerHTML = '';
+            weaponList.style.display = 'flex';
+            weaponList.style.gap = '4px';
             WEAPONS.forEach(w => {
                 const owned = state.ownedWeapons.includes(w.id);
                 const equipped = state.equippedWeapon === w.id;
                 const div = document.createElement('div');
-                div.className = 'dropup-item' + (equipped ? ' equipped' : '') + (!owned ? ' locked' : '');
-                div.innerHTML =
-                    '<span class="di-icon">' + w.icon + '</span>' +
-                    '<div class="di-info">' +
-                        '<span class="di-name">' + w.name + '</span>' +
-                        '<span class="di-stat">' + w.stat + '</span>' +
-                    '</div>' +
-                    (equipped ? '<span class="di-tag tag-equipped">Equipped</span>' :
-                     !owned ? '<span class="di-tag tag-locked">Locked</span>' : '');
+                div.style.cssText = 'width:56px;height:56px;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:' + (owned && !equipped ? 'pointer' : !owned ? 'not-allowed' : 'default') + ';border:2px solid ' + (equipped ? 'rgba(255,215,0,0.5)' : 'rgba(255,255,255,0.1)') + ';background:' + (equipped ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.06)') + ';opacity:' + (!owned ? '0.35' : '1') + ';transition:background 0.1s;';
+                div.innerHTML = '<span style="font-size:22px;line-height:1">' + w.icon + '</span>' +
+                    '<span style="font-size:7px;font-weight:900;text-transform:uppercase;margin-top:2px;color:' + (equipped ? '#FFD700' : 'rgba(255,255,255,0.6)') + '">' + w.name + '</span>';
                 if (owned && !equipped) {
+                    div.onmouseenter = function() { div.style.background = 'rgba(255,255,255,0.12)'; };
+                    div.onmouseleave = function() { div.style.background = 'rgba(255,255,255,0.06)'; };
                     div.onclick = function(e) {
                         e.stopPropagation();
                         equipWeapon(w.id);
