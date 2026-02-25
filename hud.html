@@ -1429,7 +1429,7 @@
             },
             {
                 id: 'tut_buy_gun',
-                msg: '\u{1F52B} Visit the Weapon Shop in the marketplace to buy a gun!',
+                msg: '\u{1F52B} Visit the WEAPONS SHOP in the marketplace to buy a gun!',
                 showIf: function() { return !hasAnyWeapon() && state.gold > 1000; },
                 doneIf: function() { return hasAnyWeapon(); },
                 stackable: true
@@ -1443,28 +1443,28 @@
             },
             {
                 id: 'tut_buy_items',
-                msg: '\u{1F48A} Visit the Item Shop in the marketplace for health packs and potions!',
+                msg: '\u{1F48A} Visit the ITEM SHOP in the marketplace for health packs and potions!',
                 showIf: function() { return !hasAnyItem() && state.gold > 800; },
                 doneIf: function() { return hasAnyItem(); },
                 stackable: true
             },
             {
                 id: 'tut_buy_gear',
-                msg: '\u{1F45F} Visit the Gear Shop in the marketplace for speed boots and armor!',
+                msg: '\u{1F45F} Visit the GEAR SHOP in the marketplace for speed boots and armor!',
                 showIf: function() { return !hasAnyGear() && state.gold > 3000; },
                 doneIf: function() { return hasAnyGear(); },
                 stackable: true
             },
             {
                 id: 'tut_buy_floor',
-                msg: '\u{1F3D7}\uFE0F Unlock a new base floor at the Upgrade Shop in the marketplace!',
+                msg: '\u{1F3D7}\uFE0F Unlock a new base floor at the UPGRADE SHOP in the marketplace!',
                 showIf: function() { return !hasAnyFloorUnlock() && state.gold > 2000; },
                 doneIf: function() { return hasAnyFloorUnlock(); },
                 stackable: true
             },
             {
                 id: 'tut_unlock_zone',
-                msg: '\u{1F5FA}\uFE0F Unlock new zones for rarer brainrots at the Upgrade Shop!',
+                msg: '\u{1F5FA}\uFE0F Unlock new zones for rarer brainrots at the UPGRADE SHOP!',
                 showIf: function() { return countZonesUnlocked() === 0 && state.gold > 2000; },
                 doneIf: function() { return hasAnyZoneUnlock(); },
                 stackable: true
