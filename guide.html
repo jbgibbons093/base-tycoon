@@ -373,8 +373,7 @@
       <span class="header-text">Game Guide</span>
     </div>
     <div class="close-hint">
-      <span>Press <span class="key-hint">G</span> or <span class="key-hint">ESC</span> to close</span>
-      <div class="close-x" onclick="closeGuide()">X</div>
+      <span>Walk away to close</span>
     </div>
   </div>
 
@@ -485,7 +484,7 @@
           <p class="guide-text">
             Walk into your base's deposit zone while carrying a brainrot. The brainrot is added to your collection
             and immediately starts generating $/s. You can check your collection in the
-            <strong>Inventory</strong> (press <span class="guide-key">E</span>).
+            <strong>Inventory</strong>.
           </p>
         </div>
       </div>
@@ -537,7 +536,7 @@
 
         <div class="guide-tip">
           <span class="guide-tip-icon">&#x1F4A1;</span>
-          <span class="guide-tip-text"><strong>Tip:</strong> Press <span class="guide-key">E</span> to open your Inventory. The Brainrots tab shows every brainrot by zone, how much $/s each earns, and how many you own.</span>
+          <span class="guide-tip-text"><strong>Tip:</strong> Walk into your Inventory trigger to open it. The Brainrots tab shows every brainrot by zone, how much $/s each earns, and how many you own.</span>
         </div>
       </div>
 
@@ -739,10 +738,7 @@
           <tr><td><span class="guide-key">W A S D</span></td><td>Move around</td></tr>
           <tr><td><span class="guide-key">Space</span></td><td>Jump</td></tr>
           <tr><td><span class="guide-key">Shift</span></td><td>Sprint</td></tr>
-          <tr><td><span class="guide-key">E</span></td><td>Open / close Inventory</td></tr>
-          <tr><td><span class="guide-key">G</span></td><td>Open / close Game Guide (this page)</td></tr>
           <tr><td><span class="guide-key">X</span></td><td>Interact (shops, vault, etc.)</td></tr>
-          <tr><td><span class="guide-key">ESC</span></td><td>Close current UI panel</td></tr>
           <tr><td><span class="guide-key">Mouse</span></td><td>Look around / Aim weapon</td></tr>
           <tr><td><span class="guide-key">Left Click</span></td><td>Shoot (when weapon equipped)</td></tr>
         </table>
@@ -792,7 +788,7 @@
         <div class="subsection">
           <div class="subsection-title">PVP Tips</div>
           <ul class="guide-list">
-            <li><strong>Press <span class="guide-key">E</span> to check the Players tab</strong> &mdash; see who's carrying a brainrot and how much cash they have</li>
+            <li><strong>Check the Players tab in the Inventory</strong> &mdash; see who's carrying a brainrot and how much cash they have</li>
             <li><strong>Target players carrying brainrots</strong> &mdash; they're worth killing because they drop the brainrot</li>
             <li><strong>Shotgun is king up close</strong> &mdash; 95 damage can two-shot most players</li>
             <li><strong>Always keep a Health Pack</strong> &mdash; $800 to heal to full can save thousands in death penalties</li>
@@ -870,23 +866,6 @@
       }
       nav.innerHTML = html;
     }
-
-    function closeGuide() {
-      if (sdk) {
-        sdk.sendMessageToUnity(JSON.stringify({ TaskName: 'guide', TaskTargetState: 'SetActiveToNotActive' }));
-        sdk.focusGameKeyboard();
-        sdk.closeIframe();
-      }
-    }
-
-    // Keyboard: G or ESC to close
-    document.addEventListener('keydown', function(e) {
-      var key = e.key.toLowerCase();
-      if (e.key === 'Escape' || key === 'g') {
-        e.preventDefault();
-        closeGuide();
-      }
-    });
 
     // --- Keyboard refocus pattern ---
     function _doFocusGame() {
