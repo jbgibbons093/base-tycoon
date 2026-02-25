@@ -373,7 +373,7 @@
       <span class="header-text">Game Guide</span>
     </div>
     <div class="close-hint">
-      <span>Walk away to close</span>
+      <div class="close-x" onclick="closeGuide()">X</div>
     </div>
   </div>
 
@@ -865,6 +865,13 @@
         html += '<div class="page-nav-spacer"></div>';
       }
       nav.innerHTML = html;
+    }
+
+    function closeGuide() {
+      if (sdk) {
+        sdk.focusGameKeyboard();
+        sdk.closeIframe();
+      }
     }
 
     // --- Keyboard refocus pattern ---
