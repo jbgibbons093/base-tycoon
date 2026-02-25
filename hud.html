@@ -350,6 +350,33 @@
             100% { opacity: 0; }
         }
 
+        /* ---- TUTORIAL NOTIFICATION ---- */
+        .tutorial-banner {
+            position: fixed;
+            top: 12px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 20px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #74B9FF 0%, #0984E3 100%);
+            border: 3px solid #0660A0;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 15px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            white-space: nowrap;
+            z-index: 40;
+            display: none;
+            animation: tutorialPulse 2.5s ease-in-out infinite;
+            pointer-events: none;
+        }
+        .tutorial-banner.show { display: block; }
+        @keyframes tutorialPulse {
+            0%, 100% { box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3); }
+            50% { box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 24px rgba(9,132,227,0.5); }
+        }
+
         /* ---- CENTER KILL/DEATH TEXT ---- */
         .center-alert {
             position: fixed;
@@ -411,6 +438,9 @@
             &#x1F3E0; Find a base and claim it!
         </div>
     </div>
+
+    <!-- TUTORIAL BANNER (top center) -->
+    <div class="tutorial-banner" id="tutorial-banner"></div>
 
     <!-- TOAST (legacy) -->
     <div class="toast-container" id="toasts"></div>
@@ -534,13 +564,7 @@
             } else {
                 carryBanner.classList.remove('show');
             }
-            // Show claim banner when no base owned (hide carry banner takes priority)
-            var claimBanner = document.getElementById('claim-banner');
-            if (state.baseId <= 0 && state.carrying <= 0) {
-                claimBanner.classList.add('show');
-            } else {
-                claimBanner.classList.remove('show');
-            }
+            // Claim banner replaced by tutorial system — tutorial step 1 handles this
         }
 
         function pop(el) {
@@ -1074,7 +1098,9 @@
                         }
                     }
                     updateTimerUI();
+                    parseTutorialVars(params);
                     updateDisplay();
+                    checkTutorial();
                 } else if (msg === 'collect:go') {
                     // Player stepped on collect trigger — check base ownership first
                     if (state.baseId <= 0) {
@@ -1109,6 +1135,7 @@
                             var pickupZone = BV_TO_ZONE[state.carryBvKey];
                             if (pickupZone && spawnCounts[pickupZone] > 0) spawnCounts[pickupZone]--;
                             updateDisplay();
+                            checkTutorial();
                         } else {
                             notify(msg.substring(7), 'pickup');
                         }
@@ -1142,6 +1169,7 @@
                         state.carryBvKey = '';
                         state.carryGold = 0;
                         updateDisplay();
+                        checkTutorial();
                     }
                 } else if (msg.startsWith('carry:')) {
                     var p = msg.substring(6).split(',');
@@ -1149,7 +1177,7 @@
                     state.carryGold = parseFloat(p[1])||0;
                     updateDisplay();
                 } else if (msg.startsWith('base:')) {
-                    state.baseId = parseInt(msg.substring(5))||0; updateDisplay();
+                    state.baseId = parseInt(msg.substring(5))||0; updateDisplay(); checkTutorial();
                 } else if (msg.startsWith('rebirth:')) {
                     state.rebirth = parseInt(msg.substring(8))||0;
                     state.pendingGold = 0;
@@ -1364,6 +1392,224 @@
             }
         }
 
+        /* ---- TUTORIAL SYSTEM ---- */
+        var tutorialBanner = document.getElementById('tutorial-banner');
+        var tutorialStorage = {}; // local cache of storage flags
+        var tutorialLoaded = false;
+        var tutorialFirstSync = true;
+
+        var TUTORIAL_STEPS = [
+            {
+                id: 'tut_claim_base',
+                msg: '\u{1F3E0} Walk up to an empty base and press [X] to claim it!',
+                showIf: function() { return state.baseId <= 0; },
+                doneIf: function() { return state.baseId > 0; }
+            },
+            {
+                id: 'tut_collect_brainrot',
+                msg: '\u{1F99C} Explore the island! Walk up to a brainrot to collect it.',
+                showIf: function() { return state.baseId > 0 && state.carrying <= 0 && countOwnedBrainrots() === 0; },
+                doneIf: function() { return state.carrying > 0 || countOwnedBrainrots() > 0; }
+            },
+            {
+                id: 'tut_deposit',
+                msg: '\u{1F4E6} Bring it back to your base! Walk into the deposit zone.',
+                showIf: function() { return state.carrying > 0; },
+                doneIf: function() { return countOwnedBrainrots() > 0; }
+            },
+            {
+                id: 'tut_collect_gold',
+                msg: '\u{1F4B0} Your brainrots generate cash! Walk into the collect zone at your base.',
+                showIf: function() { return countOwnedBrainrots() > 0 && state.gold <= 0; },
+                doneIf: function() { return state.gold > 0; }
+            },
+            {
+                id: 'tut_visit_shops',
+                msg: '\u{1F6D2} Head to the marketplace shops! Buy weapons, gear, and upgrades.',
+                showIf: function() { return state.gold > 0; },
+                doneIf: function() { return hasAnyPurchase(); }
+            },
+            {
+                id: 'tut_unlock_zone',
+                msg: '\u{1F5FA}\uFE0F Unlock new zones for rarer, more valuable brainrots!',
+                showIf: function() { return hasAnyPurchase(); },
+                doneIf: function() { return hasAnyZoneUnlock(); }
+            },
+            {
+                id: 'tut_pvp',
+                msg: '\u{2694}\uFE0F You\'re armed! Enter the PVP zone to battle. You lose half your cash on death!',
+                showIf: function() { return hasAnyWeapon(); },
+                doneIf: function() { return true; } // auto-complete after first display
+            },
+            {
+                id: 'tut_rebirth',
+                msg: '\u{1F504} Ready for more power? Visit the Rebirth shrine for permanent multipliers!',
+                showIf: function() { return state.gold >= 5000 && state.rebirth <= 0; },
+                doneIf: function() { return state.rebirth > 0; }
+            }
+        ];
+
+        // Track purchase/zone/weapon variables from inv: messages
+        var purchaseVars = {};
+        var zoneUnlockVars = {};
+
+        function countOwnedBrainrots() {
+            var total = 0;
+            var keys = Object.keys(ownedBrainrots);
+            for (var i = 0; i < keys.length; i++) total += ownedBrainrots[keys[i]] || 0;
+            return total;
+        }
+
+        function hasAnyPurchase() {
+            return (purchaseVars.Own_Pistol > 0 || purchaseVars.Own_Rifle > 0 ||
+                    purchaseVars.Own_Shotgun > 0 || purchaseVars.Gear_Armor > 0 ||
+                    purchaseVars.Gear_Speed > 0 || purchaseVars.Shield_Active > 0 ||
+                    purchaseVars.anyItemBought > 0);
+        }
+
+        function hasAnyWeapon() {
+            return (purchaseVars.Own_Pistol > 0 || purchaseVars.Own_Rifle > 0 ||
+                    purchaseVars.Own_Shotgun > 0);
+        }
+
+        function hasAnyZoneUnlock() {
+            var keys = Object.keys(zoneUnlockVars);
+            for (var i = 0; i < keys.length; i++) {
+                if (zoneUnlockVars[keys[i]] > 0) return true;
+            }
+            return false;
+        }
+
+        // Load all tutorial flags from Portals storage
+        function loadTutorialStorage(callback) {
+            var steps = TUTORIAL_STEPS;
+            var remaining = steps.length;
+            if (!sdk) { callback(); return; }
+            for (var i = 0; i < steps.length; i++) {
+                (function(step) {
+                    sdk.storageGet(step.id, function(val) {
+                        if (val === 'done') tutorialStorage[step.id] = true;
+                        remaining--;
+                        if (remaining <= 0) {
+                            tutorialLoaded = true;
+                            callback();
+                        }
+                    });
+                })(steps[i]);
+            }
+            // Timeout fallback in case storageGet doesn't call back
+            setTimeout(function() {
+                if (!tutorialLoaded) {
+                    tutorialLoaded = true;
+                    callback();
+                }
+            }, 3000);
+        }
+
+        function markTutorialDone(stepId) {
+            if (tutorialStorage[stepId]) return;
+            tutorialStorage[stepId] = true;
+            if (sdk) sdk.storageSet(stepId, 'done');
+        }
+
+        // Auto-skip completed steps for returning players
+        function autoSkipTutorial() {
+            if (state.baseId > 0) markTutorialDone('tut_claim_base');
+            if (countOwnedBrainrots() > 0) {
+                markTutorialDone('tut_claim_base');
+                markTutorialDone('tut_collect_brainrot');
+                markTutorialDone('tut_deposit');
+            }
+            if (state.gold > 0 || hasAnyPurchase()) {
+                markTutorialDone('tut_claim_base');
+                markTutorialDone('tut_collect_brainrot');
+                markTutorialDone('tut_deposit');
+                markTutorialDone('tut_collect_gold');
+            }
+            if (hasAnyPurchase()) {
+                markTutorialDone('tut_visit_shops');
+            }
+            if (hasAnyZoneUnlock()) {
+                markTutorialDone('tut_claim_base');
+                markTutorialDone('tut_collect_brainrot');
+                markTutorialDone('tut_deposit');
+                markTutorialDone('tut_collect_gold');
+                markTutorialDone('tut_visit_shops');
+                markTutorialDone('tut_unlock_zone');
+            }
+            if (hasAnyWeapon()) {
+                markTutorialDone('tut_pvp');
+            }
+            if (state.rebirth > 0) {
+                markTutorialDone('tut_rebirth');
+            }
+        }
+
+        var currentTutorialStep = null;
+
+        function checkTutorial() {
+            if (!tutorialLoaded) return;
+
+            // On first sync, auto-skip already-completed steps
+            if (tutorialFirstSync) {
+                tutorialFirstSync = false;
+                autoSkipTutorial();
+            }
+
+            // Find the first incomplete step whose show condition is met
+            var activeStep = null;
+            for (var i = 0; i < TUTORIAL_STEPS.length; i++) {
+                var step = TUTORIAL_STEPS[i];
+                if (tutorialStorage[step.id]) continue; // already done
+
+                // Check if this step should complete
+                if (step.doneIf()) {
+                    markTutorialDone(step.id);
+                    continue;
+                }
+
+                // Check if this step should show
+                if (step.showIf()) {
+                    activeStep = step;
+                    break;
+                }
+            }
+
+            if (activeStep) {
+                if (currentTutorialStep !== activeStep.id) {
+                    currentTutorialStep = activeStep.id;
+                    tutorialBanner.textContent = activeStep.msg;
+                    tutorialBanner.classList.add('show');
+                }
+            } else {
+                currentTutorialStep = null;
+                tutorialBanner.classList.remove('show');
+            }
+        }
+
+        // Parse purchase/zone variables from inv: params
+        function parseTutorialVars(params) {
+            var purchaseKeys = ['Own_Pistol', 'Own_Rifle', 'Own_Shotgun', 'Gear_Armor', 'Gear_Speed', 'Shield_Active'];
+            for (var i = 0; i < purchaseKeys.length; i++) {
+                if (params[purchaseKeys[i]] !== undefined) {
+                    purchaseVars[purchaseKeys[i]] = parseVarValue(params[purchaseKeys[i]]);
+                }
+            }
+            // Check for any item purchase (upgrade shop items, etc.)
+            var paramKeys = Object.keys(params);
+            for (var j = 0; j < paramKeys.length; j++) {
+                var k = paramKeys[j];
+                if (k.startsWith('Own_') && !k.startsWith('Own_bv_')) {
+                    var v = parseVarValue(params[k]);
+                    if (v > 0) purchaseVars.anyItemBought = 1;
+                }
+                // Zone unlock variables (Unlock_Forest, Unlock_Cave, etc.)
+                if (k.startsWith('Unlock_')) {
+                    zoneUnlockVars[k] = parseVarValue(params[k]);
+                }
+            }
+        }
+
         /* ---- INIT ---- */
         updateDisplay();
         if (sdk) {
@@ -1376,6 +1622,10 @@
             // Start spawn timers after reset completes (~6s for 99 brainrots at 60ms each)
             setTimeout(function() { startSpawnTimers(); }, 7000);
             startGoldAccumulator();
+            // Load tutorial progress from storage
+            loadTutorialStorage(function() {
+                checkTutorial();
+            });
         } else {
             // Dev preview
             state.gold = 42350; state.baseId = 3; state.carrying = 1; state.carryGold = 14.6; state.rebirth = 1;
