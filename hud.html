@@ -1403,49 +1403,85 @@
                 id: 'tut_claim_base',
                 msg: '\u{1F3E0} Walk up to an empty base and press [X] to claim it!',
                 showIf: function() { return state.baseId <= 0; },
-                doneIf: function() { return state.baseId > 0; }
+                doneIf: function() { return state.baseId > 0; },
+                stackable: false
             },
             {
                 id: 'tut_collect_brainrot',
                 msg: '\u{1F99C} Explore the island! Walk up to a brainrot to collect it.',
                 showIf: function() { return state.baseId > 0 && state.carrying <= 0 && countOwnedBrainrots() === 0; },
-                doneIf: function() { return state.carrying > 0 || countOwnedBrainrots() > 0; }
+                doneIf: function() { return state.carrying > 0 || countOwnedBrainrots() > 0; },
+                stackable: false
             },
             {
                 id: 'tut_deposit',
                 msg: '\u{1F4E6} Bring it back to your base! Walk into the deposit zone.',
                 showIf: function() { return state.carrying > 0; },
-                doneIf: function() { return countOwnedBrainrots() > 0; }
+                doneIf: function() { return countOwnedBrainrots() > 0; },
+                stackable: false
             },
             {
                 id: 'tut_collect_gold',
                 msg: '\u{1F4B0} Your brainrots generate cash! Walk into the collect zone at your base.',
                 showIf: function() { return countOwnedBrainrots() > 0 && state.gold <= 0; },
-                doneIf: function() { return state.gold > 0; }
+                doneIf: function() { return state.gold > 0; },
+                stackable: false
             },
             {
-                id: 'tut_visit_shops',
-                msg: '\u{1F6D2} Head to the marketplace shops! Buy weapons, gear, and upgrades.',
-                showIf: function() { return state.gold > 0; },
-                doneIf: function() { return hasAnyPurchase(); }
+                id: 'tut_buy_gun',
+                msg: '\u{1F52B} Visit the Weapon Shop in the marketplace to buy a gun!',
+                showIf: function() { return !hasAnyWeapon() && state.gold > 1000; },
+                doneIf: function() { return hasAnyWeapon(); },
+                stackable: true
+            },
+            {
+                id: 'tut_equip_gun',
+                msg: '\u{1F3AF} Press [G] to equip your weapon!',
+                showIf: function() { return hasAnyWeapon() && !hasGunEquipped(); },
+                doneIf: function() { return hasGunEquipped(); },
+                stackable: false
+            },
+            {
+                id: 'tut_buy_items',
+                msg: '\u{1F48A} Visit the Item Shop in the marketplace for health packs and potions!',
+                showIf: function() { return !hasAnyItem() && state.gold > 800; },
+                doneIf: function() { return hasAnyItem(); },
+                stackable: true
+            },
+            {
+                id: 'tut_buy_gear',
+                msg: '\u{1F45F} Visit the Gear Shop in the marketplace for speed boots and armor!',
+                showIf: function() { return !hasAnyGear() && state.gold > 3000; },
+                doneIf: function() { return hasAnyGear(); },
+                stackable: true
+            },
+            {
+                id: 'tut_buy_floor',
+                msg: '\u{1F3D7}\uFE0F Unlock a new base floor at the Upgrade Shop in the marketplace!',
+                showIf: function() { return !hasAnyFloorUnlock() && state.gold > 2000; },
+                doneIf: function() { return hasAnyFloorUnlock(); },
+                stackable: true
             },
             {
                 id: 'tut_unlock_zone',
-                msg: '\u{1F5FA}\uFE0F Unlock new zones for rarer, more valuable brainrots!',
-                showIf: function() { return hasAnyPurchase(); },
-                doneIf: function() { return hasAnyZoneUnlock(); }
+                msg: '\u{1F5FA}\uFE0F Unlock new zones for rarer brainrots at the Upgrade Shop!',
+                showIf: function() { return countZonesUnlocked() === 0 && state.gold > 2000; },
+                doneIf: function() { return hasAnyZoneUnlock(); },
+                stackable: true
             },
             {
                 id: 'tut_pvp',
                 msg: '\u{2694}\uFE0F You\'re armed! Enter the PVP zone to battle. You lose half your cash on death!',
-                showIf: function() { return hasAnyWeapon(); },
-                doneIf: function() { return true; } // auto-complete after first display
+                showIf: function() { return hasGunEquipped(); },
+                doneIf: function() { return true; }, // auto-complete after first display
+                stackable: false
             },
             {
                 id: 'tut_rebirth',
                 msg: '\u{1F504} Ready for more power? Visit the Rebirth shrine for permanent multipliers!',
-                showIf: function() { return state.gold >= 5000 && state.rebirth <= 0; },
-                doneIf: function() { return state.rebirth > 0; }
+                showIf: function() { return state.gold >= 500000 && state.rebirth <= 0; },
+                doneIf: function() { return state.rebirth > 0; },
+                stackable: true
             }
         ];
 
@@ -1463,8 +1499,37 @@
         function hasAnyPurchase() {
             return (purchaseVars.Own_Pistol > 0 || purchaseVars.Own_Rifle > 0 ||
                     purchaseVars.Own_Shotgun > 0 || purchaseVars.Gear_Armor > 0 ||
-                    purchaseVars.Gear_Speed > 0 || purchaseVars.Shield_Active > 0 ||
+                    purchaseVars.Gear_SpeedBoots > 0 || purchaseVars.Gear_CarryPack > 0 ||
+                    purchaseVars.Inv_Health_Pack > 0 || purchaseVars.Inv_Speed_Potion > 0 ||
+                    purchaseVars.Inv_Base_Teleport > 0 || purchaseVars.Inv_Shield > 0 ||
                     purchaseVars.anyItemBought > 0);
+        }
+
+        function hasAnyItem() {
+            return (purchaseVars.Inv_Health_Pack > 0 || purchaseVars.Inv_Speed_Potion > 0 ||
+                    purchaseVars.Inv_Base_Teleport > 0 || purchaseVars.Inv_Shield > 0);
+        }
+
+        function hasAnyGear() {
+            return (purchaseVars.Gear_SpeedBoots > 0 || purchaseVars.Gear_Armor > 0);
+        }
+
+        function hasGunEquipped() {
+            return purchaseVars.Equipped_Weapon > 0;
+        }
+
+        function hasAnyFloorUnlock() {
+            return (purchaseVars.Floor_2_Unlocked > 0 || purchaseVars.Floor_3_Unlocked > 0 ||
+                    purchaseVars.Floor_4_Unlocked > 0);
+        }
+
+        function countZonesUnlocked() {
+            var count = 0;
+            var keys = Object.keys(zoneUnlockVars);
+            for (var i = 0; i < keys.length; i++) {
+                if (zoneUnlockVars[keys[i]] > 0) count++;
+            }
+            return count;
         }
 
         function hasAnyWeapon() {
@@ -1526,26 +1591,32 @@
                 markTutorialDone('tut_deposit');
                 markTutorialDone('tut_collect_gold');
             }
-            if (hasAnyPurchase()) {
-                markTutorialDone('tut_visit_shops');
+            if (hasAnyWeapon()) {
+                markTutorialDone('tut_buy_gun');
+            }
+            if (hasGunEquipped()) {
+                markTutorialDone('tut_buy_gun');
+                markTutorialDone('tut_equip_gun');
+                markTutorialDone('tut_pvp');
+            }
+            if (hasAnyItem()) {
+                markTutorialDone('tut_buy_items');
+            }
+            if (hasAnyGear()) {
+                markTutorialDone('tut_buy_gear');
+            }
+            if (hasAnyFloorUnlock()) {
+                markTutorialDone('tut_buy_floor');
             }
             if (hasAnyZoneUnlock()) {
-                markTutorialDone('tut_claim_base');
-                markTutorialDone('tut_collect_brainrot');
-                markTutorialDone('tut_deposit');
-                markTutorialDone('tut_collect_gold');
-                markTutorialDone('tut_visit_shops');
                 markTutorialDone('tut_unlock_zone');
-            }
-            if (hasAnyWeapon()) {
-                markTutorialDone('tut_pvp');
             }
             if (state.rebirth > 0) {
                 markTutorialDone('tut_rebirth');
             }
         }
 
-        var currentTutorialStep = null;
+        var currentTutorialSteps = [];
 
         function checkTutorial() {
             if (!tutorialLoaded) return;
@@ -1556,8 +1627,9 @@
                 autoSkipTutorial();
             }
 
-            // Find the first incomplete step whose show condition is met
-            var activeStep = null;
+            // Collect all active steps: first non-stackable, or all stackable whose conditions are met
+            var activeSteps = [];
+            var foundNonStackable = false;
             for (var i = 0; i < TUTORIAL_STEPS.length; i++) {
                 var step = TUTORIAL_STEPS[i];
                 if (tutorialStorage[step.id]) continue; // already done
@@ -1570,41 +1642,64 @@
 
                 // Check if this step should show
                 if (step.showIf()) {
-                    activeStep = step;
-                    break;
+                    if (!step.stackable) {
+                        // Non-stackable step: show only this one, stop looking
+                        activeSteps = [step];
+                        foundNonStackable = true;
+                        break;
+                    } else {
+                        activeSteps.push(step);
+                    }
                 }
             }
 
-            if (activeStep) {
-                if (currentTutorialStep !== activeStep.id) {
-                    currentTutorialStep = activeStep.id;
-                    tutorialBanner.textContent = activeStep.msg;
-                    tutorialBanner.classList.add('show');
+            // Build a key string to detect changes
+            var stepIds = [];
+            for (var s = 0; s < activeSteps.length; s++) stepIds.push(activeSteps[s].id);
+            var key = stepIds.join(',');
+
+            if (activeSteps.length > 0 && key !== currentTutorialSteps.join(',')) {
+                currentTutorialSteps = stepIds;
+                // Build stacked banner content
+                if (activeSteps.length === 1) {
+                    tutorialBanner.textContent = activeSteps[0].msg;
+                } else {
+                    tutorialBanner.innerHTML = '';
+                    for (var m = 0; m < activeSteps.length; m++) {
+                        var line = document.createElement('div');
+                        line.textContent = activeSteps[m].msg;
+                        if (m > 0) line.style.marginTop = '4px';
+                        tutorialBanner.appendChild(line);
+                    }
                 }
-            } else {
-                currentTutorialStep = null;
+                tutorialBanner.classList.add('show');
+            } else if (activeSteps.length === 0) {
+                currentTutorialSteps = [];
                 tutorialBanner.classList.remove('show');
             }
         }
 
         // Parse purchase/zone variables from inv: params
         function parseTutorialVars(params) {
-            var purchaseKeys = ['Own_Pistol', 'Own_Rifle', 'Own_Shotgun', 'Gear_Armor', 'Gear_Speed', 'Shield_Active'];
+            var purchaseKeys = ['Own_Pistol', 'Own_Rifle', 'Own_Shotgun', 'Gear_Armor', 'Gear_SpeedBoots', 'Gear_CarryPack',
+                                'Inv_Health_Pack', 'Inv_Speed_Potion', 'Inv_Base_Teleport', 'Inv_Shield',
+                                'Floor_2_Unlocked', 'Floor_3_Unlocked', 'Floor_4_Unlocked', 'Equipped_Weapon'];
             for (var i = 0; i < purchaseKeys.length; i++) {
                 if (params[purchaseKeys[i]] !== undefined) {
                     purchaseVars[purchaseKeys[i]] = parseVarValue(params[purchaseKeys[i]]);
                 }
             }
-            // Check for any item purchase (upgrade shop items, etc.)
+            // Check for any item purchase (weapons, gear, inventory items, etc.)
             var paramKeys = Object.keys(params);
             for (var j = 0; j < paramKeys.length; j++) {
                 var k = paramKeys[j];
-                if (k.startsWith('Own_') && !k.startsWith('Own_bv_')) {
+                if ((k.startsWith('Own_') && !k.startsWith('Own_bv_')) ||
+                    k.startsWith('Gear_') || k.startsWith('Inv_') || k.startsWith('Floor_')) {
                     var v = parseVarValue(params[k]);
                     if (v > 0) purchaseVars.anyItemBought = 1;
                 }
-                // Zone unlock variables (Unlock_Forest, Unlock_Cave, etc.)
-                if (k.startsWith('Unlock_')) {
+                // Zone unlock variables (Zone_Forest_Zone_Unlocked, Zone_Cave_Zone_Unlocked, etc.)
+                if (k.startsWith('Zone_') && k.endsWith('_Unlocked')) {
                     zoneUnlockVars[k] = parseVarValue(params[k]);
                 }
             }
