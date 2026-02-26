@@ -1428,6 +1428,20 @@
                 stackable: false
             },
             {
+                id: 'tut_inventory',
+                msg: '\u{1F4CB} Press [E] to check your inventory and stats!',
+                showIf: function() { return state.gold > 0; },
+                doneIf: function() { return true; },
+                stackable: false
+            },
+            {
+                id: 'tut_explore',
+                msg: '\u{26A0}\uFE0F Get back out there and keep collecting! Watch out for other players \u2014 they can kill you and steal your brainrots and gold!',
+                showIf: function() { return state.gold > 0; },
+                doneIf: function() { return true; },
+                stackable: false
+            },
+            {
                 id: 'tut_buy_gun',
                 msg: '\u{1F52B} Visit the WEAPONS SHOP in the marketplace to buy a gun!',
                 showIf: function() { return !hasAnyWeapon() && state.gold > 1000; },
