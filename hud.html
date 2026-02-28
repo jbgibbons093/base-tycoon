@@ -1053,9 +1053,14 @@
                             pop(document.getElementById('pill-gold'));
                         }
                     }
-                    // Parse base ID
+                    // Parse base ID — auto-repopulate on claim (baseId 0 -> N)
                     if (params.My_Base_ID !== undefined) {
-                        state.baseId = Math.round(parseVarValue(params.My_Base_ID));
+                        var newBaseId = Math.round(parseVarValue(params.My_Base_ID));
+                        if (state.baseId <= 0 && newBaseId > 0) {
+                            // Just claimed a base — repopulate owned brainrots after a short delay
+                            setTimeout(function() { repopulateBase(newBaseId); }, 800);
+                        }
+                        state.baseId = newBaseId;
                     }
                     // Parse carrying brainrot from server variable
                     if (params.My_Carrying_Brainrot !== undefined) {
