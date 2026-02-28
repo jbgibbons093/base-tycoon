@@ -1044,8 +1044,23 @@
                         var eq = pairs[pi].indexOf('=');
                         if (eq > 0) params[pairs[pi].substring(0, eq)] = pairs[pi].substring(eq + 1);
                     }
-                    // Store local player username (always plain string, never JSON)
-                    if (params.username) myUsername = params.username.replace(/^["']|["']$/g, '');
+                    // Store local player username
+                    if (params.username) {
+                        var uraw = params.username;
+                        // If pipe interpolation returned a JSON-like object, extract first key as username
+                        if (uraw.charAt(0) === '{') {
+                            try {
+                                var uobj = JSON.parse(uraw);
+                                var ukeys = Object.keys(uobj);
+                                if (ukeys.length > 0) uraw = ukeys[0];
+                            } catch(eu) {
+                                // Portals format {"name"="val"} — extract first key
+                                var um = uraw.match(/^\{"?([^"=&}]+)/);
+                                if (um) uraw = um[1];
+                            }
+                        }
+                        myUsername = uraw.replace(/^["']|["']$/g, '');
+                    }
                     if (params.Gold !== undefined) {
                         var gv = parseVarValue(params.Gold);
                         if (gv !== state.gold) {
@@ -1056,8 +1071,12 @@
                     // Parse base ID — auto-repopulate on claim (baseId 0 -> N)
                     if (params.My_Base_ID !== undefined) {
                         var newBaseId = Math.round(parseVarValue(params.My_Base_ID));
+                        // Fallback: if parseVarValue returned 0 but raw value has a number, extract it
+                        if (newBaseId === 0 && params.My_Base_ID !== '0') {
+                            var bidMatch = params.My_Base_ID.match(/[=:](\d+)/);
+                            if (bidMatch) newBaseId = parseInt(bidMatch[1]) || 0;
+                        }
                         if (state.baseId <= 0 && newBaseId > 0) {
-                            // Just claimed a base — repopulate owned brainrots after a short delay
                             setTimeout(function() { repopulateBase(newBaseId); }, 800);
                         }
                         state.baseId = newBaseId;
@@ -1107,11 +1126,8 @@
                     updateDisplay();
                     checkTutorial();
                 } else if (msg === 'collect:go') {
-                    // Player stepped on collect trigger — check base ownership first
-                    if (state.baseId <= 0) {
-                        playSound('uipop');
-                        notify('Claim a base first!', 'error');
-                    } else if (state.pendingGold < 1) {
+                    // Room-side logic already gates on My_Base_ID — just collect
+                    if (state.pendingGold < 1) {
                         playSound('uipop');
                         notify('No cash to collect yet!', 'info');
                     } else {
@@ -1149,15 +1165,10 @@
                     // Parse base number from message: "Deposited brainrot at Base N!"
                     var baseMatch = msg.match(/Base (\d+)/);
                     var depositBase = baseMatch ? parseInt(baseMatch[1]) : 0;
+                    // Room-side logic already gates on My_Base_ID — just deposit
                     if (state.carrying <= 0) {
                         playSound('uipop');
                         notify('You\'re not carrying a brainrot!', 'error');
-                    } else if (state.baseId <= 0) {
-                        playSound('uipop');
-                        notify('Claim a base first!', 'error');
-                    } else if (depositBase > 0 && state.baseId !== depositBase) {
-                        playSound('uipop');
-                        notify('This is not your base!', 'error');
                     } else {
                         playSound('deposit');
                         var depositName = state.carryName || state.lastCarryName || 'brainrot';
