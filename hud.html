@@ -126,6 +126,21 @@
             0%, 100% { box-shadow: 0 3px 0 rgba(0,0,0,0.2); }
             50% { box-shadow: 0 3px 0 rgba(0,0,0,0.2), 0 0 12px rgba(9,132,227,0.4); }
         }
+        /* ---- SPECTATOR BANNER ---- */
+        .spectator-banner {
+            padding: 6px 18px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #636E72 0%, #2D3436 100%);
+            border: 3px solid #1A1A2E;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 15px;
+            color: #DFE6E9;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+            display: none;
+            white-space: nowrap;
+        }
+        .spectator-banner.show { display: block; }
 
         /* ---- SPAWN TIMERS (vertical, above notifs) ---- */
         .spawn-strip {
@@ -437,6 +452,10 @@
         <div class="claim-banner" id="claim-banner">
             &#x1F3E0; Find a base and claim it!
         </div>
+        <!-- SPECTATOR BANNER -->
+        <div class="spectator-banner" id="spectator-banner">
+            &#x1F441; Spectator Mode — All bases taken
+        </div>
     </div>
 
     <!-- TUTORIAL BANNER (top center) -->
@@ -565,6 +584,12 @@
                 carryBanner.classList.remove('show');
             }
             // Claim banner replaced by tutorial system — tutorial step 1 handles this
+            // Spectator banner
+            var specBanner = document.getElementById('spectator-banner');
+            if (specBanner) {
+                if (state.spectator && state.baseId <= 0) specBanner.classList.add('show');
+                else specBanner.classList.remove('show');
+            }
         }
 
         function pop(el) {
@@ -1123,27 +1148,28 @@
                     }
                     updateTimerUI();
                     parseTutorialVars(params);
-                    // Auto-claim: if no base, find smallest open base and claim it
-                    if (state.baseId <= 0 && !state.autoClaimSent) {
-                        var openBase = 0;
-                        for (var bn = 1; bn <= 10; bn++) {
-                            var bkey = 'Base_' + bn + '_Open';
-                            if (params[bkey] !== undefined) {
-                                var bval = Math.round(parseVarValue(params[bkey]));
-                                if (bval >= 1) { openBase = bn; break; }
-                            }
+                    // Auto-claim: server computed Auto_Claim_Base = smallest open base (0 = all taken)
+                    if (state.baseId <= 0 && !state.autoClaimSent && params.Auto_Claim_Base !== undefined) {
+                        var rawAcb = params.Auto_Claim_Base;
+                        // Extract number — handle plain "1", JSON {"name":1}, or Portals {"name"="1"}
+                        var acb = 0;
+                        if (rawAcb.charAt(0) === '{') {
+                            var acbMatch = rawAcb.match(/[=:](\d+)/);
+                            if (acbMatch) acb = parseInt(acbMatch[1]) || 0;
+                        } else {
+                            acb = Math.round(parseFloat(rawAcb)) || 0;
                         }
-                        if (openBase > 0 && sdk) {
-                            state.autoClaimSent = true;
+                        state.autoClaimSent = true;
+                        if (acb > 0 && sdk) {
                             setTimeout(function() {
                                 sdk.sendMessageToUnity(JSON.stringify({
-                                    TaskName: 'claim_base_' + openBase,
+                                    TaskName: 'claim_base_' + acb,
                                     TaskTargetState: 'SetNotActiveToActive'
                                 }));
                             }, 500);
-                        } else if (openBase === 0 && params.Base_1_Open !== undefined) {
-                            // All bases taken — spectator mode
-                            notify('All bases taken! Spectator mode.', 'info');
+                        } else if (acb === 0) {
+                            state.spectator = true;
+                            updateDisplay();
                         }
                     }
                     updateDisplay();
