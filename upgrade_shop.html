@@ -403,10 +403,6 @@
         function renderFloors() {
             const el = document.getElementById('panel-floors');
             el.innerHTML = '';
-            if (!state.hasBase) {
-                el.innerHTML = '<div style="text-align:center;padding:30px;"><div style="font-size:40px;margin-bottom:8px;">&#x1F3E0;</div><div style="font-family:Luckiest Guy,cursive;font-size:16px;color:#95A5A6;">Claim a base first!</div></div>';
-                return;
-            }
             FLOORS.forEach(f => {
                 const unlocked = state.unlockedFloors.includes(f.num);
                 const canBuy = !unlocked && state.gold >= f.cost;
