@@ -1163,8 +1163,8 @@
                         // Extract number — handle plain "1", JSON {"name":1}, or Portals {"name"="1"}
                         var acb = 0;
                         if (rawAcb.charAt(0) === '{') {
-                            var acbMatch = rawAcb.match(/[=:](\d+)/);
-                            if (acbMatch) acb = parseInt(acbMatch[1]) || 0;
+                            var acbMatch = rawAcb.match(/[=:](\d+\.?\d*)/);
+                            if (acbMatch) acb = Math.round(parseFloat(acbMatch[1])) || 0;
                         } else {
                             acb = Math.round(parseFloat(rawAcb)) || 0;
                         }
