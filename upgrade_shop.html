@@ -456,14 +456,14 @@
 
         function buyFloor(floorNum) {
             const f = FLOORS.find(x => x.num === floorNum);
-            if (!f || !state.hasBase || state.unlockedFloors.includes(f.num) || state.gold < f.cost) return;
+            if (!f || state.unlockedFloors.includes(f.num) || state.gold < f.cost) return;
+            if (state.baseId <= 0) { toast('Waiting for base assignment...'); return; }
             state.gold -= f.cost;
             state.unlockedFloors.push(f.num);
             renderAll();
             playSound('levelup');
             spawnSpendParticles(8);
             if (sdk) {
-                // Send base-specific floor unlock: unlock_floor_2_b3 for base 3
                 var taskName = f.taskName + '_b' + state.baseId;
                 sdk.sendMessageToUnity(JSON.stringify({
                     TaskName: taskName,
