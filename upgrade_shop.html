@@ -499,6 +499,9 @@
                     return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
                 }
             } catch(e) {}
+            // Fallback: extract number after = or : (handles Portals {"name"=1} format)
+            var m = raw.match(/[=:](\d+\.?\d*)/);
+            if (m) return parseFloat(m[1]) || 0;
             return 0;
         }
 

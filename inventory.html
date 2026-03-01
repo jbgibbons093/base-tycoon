@@ -179,6 +179,8 @@
                     return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
                 }
             } catch(e) {}
+            var m = raw.match(/[=:](\d+\.?\d*)/);
+            if (m) return parseFloat(m[1]) || 0;
             return 0;
         }
 
