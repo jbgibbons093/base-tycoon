@@ -400,6 +400,16 @@
         setTimeout(_doFocusGame, 100);
         setTimeout(_doFocusGame, 300);
 
+        // Request variable sync from Portals after iframe is loaded
+        if (sdk) {
+            setTimeout(function() {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: 'hud_sync',
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+            }, 500);
+        }
+
         render();
         if (!sdk) { state.gold = 12500; state.vaultGold = 8000; render(); }
     </script>
