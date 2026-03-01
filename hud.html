@@ -1123,6 +1123,29 @@
                     }
                     updateTimerUI();
                     parseTutorialVars(params);
+                    // Auto-claim: if no base, find smallest open base and claim it
+                    if (state.baseId <= 0 && !state.autoClaimSent) {
+                        var openBase = 0;
+                        for (var bn = 1; bn <= 10; bn++) {
+                            var bkey = 'Base_' + bn + '_Open';
+                            if (params[bkey] !== undefined) {
+                                var bval = Math.round(parseVarValue(params[bkey]));
+                                if (bval >= 1) { openBase = bn; break; }
+                            }
+                        }
+                        if (openBase > 0 && sdk) {
+                            state.autoClaimSent = true;
+                            setTimeout(function() {
+                                sdk.sendMessageToUnity(JSON.stringify({
+                                    TaskName: 'claim_base_' + openBase,
+                                    TaskTargetState: 'SetNotActiveToActive'
+                                }));
+                            }, 500);
+                        } else if (openBase === 0 && params.Base_1_Open !== undefined) {
+                            // All bases taken — spectator mode
+                            notify('All bases taken! Spectator mode.', 'info');
+                        }
+                    }
                     updateDisplay();
                     checkTutorial();
                 } else if (msg === 'collect:go') {
