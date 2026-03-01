@@ -1479,8 +1479,8 @@
         var TUTORIAL_STEPS = [
             {
                 id: 'tut_claim_base',
-                msg: '\u{1F3E0} Walk up to an empty base and press [X] to claim it!',
-                showIf: function() { return state.baseId <= 0; },
+                msg: '\u{1F3E0} Your base is being assigned...',
+                showIf: function() { return state.baseId <= 0 && !state.autoClaimSent; },
                 doneIf: function() { return state.baseId > 0; },
                 stackable: false
             },
