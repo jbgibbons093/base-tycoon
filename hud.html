@@ -583,7 +583,16 @@
             } else {
                 carryBanner.classList.remove('show');
             }
-            // Claim banner replaced by tutorial system — tutorial step 1 handles this
+            // Claimed base banner — shown after auto-claim, hidden on first pickup
+            var claimBanner = document.getElementById('claim-banner');
+            if (claimBanner) {
+                if (state.claimedBase > 0 && !state.claimDismissed) {
+                    claimBanner.innerHTML = '&#x1F3E0; You claimed Base ' + state.claimedBase + '!';
+                    claimBanner.classList.add('show');
+                } else {
+                    claimBanner.classList.remove('show');
+                }
+            }
             // Spectator banner
             var specBanner = document.getElementById('spectator-banner');
             if (specBanner) {
@@ -1161,11 +1170,13 @@
                         }
                         state.autoClaimSent = true;
                         if (acb > 0 && sdk) {
+                            state.claimedBase = acb;
                             setTimeout(function() {
                                 sdk.sendMessageToUnity(JSON.stringify({
                                     TaskName: 'claim_base_' + acb,
                                     TaskTargetState: 'SetNotActiveToActive'
                                 }));
+                                updateDisplay();
                             }, 500);
                         } else if (acb === 0) {
                             state.spectator = true;
@@ -1194,6 +1205,8 @@
                         notify('Already carrying a brainrot!', 'info');
                     } else {
                         playSound('pickup');
+                        // Dismiss claimed-base banner on first pickup
+                        if (!state.claimDismissed) { state.claimDismissed = true; }
                         var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
                         if (pMatch) {
                             state.carrying = 1;
