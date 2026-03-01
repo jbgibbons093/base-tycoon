@@ -617,14 +617,27 @@
         setTimeout(_doFocusGame, 100);
         setTimeout(_doFocusGame, 300);
 
-        // Request variable sync from Portals after iframe is loaded
+        // Read baseId from SDK storage (set by HUD on claim)
+        if (sdk && sdk.storageGet) {
+            sdk.storageGet('baseId', function(val) {
+                if (val) {
+                    var id = parseInt(val) || 0;
+                    if (id > 0) { state.baseId = id; state.hasBase = true; renderAll(); }
+                }
+            });
+        }
+
+        // Also request variable sync from Portals
+        function requestSync() {
+            if (!sdk) return;
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: 'hud_sync',
+                TaskTargetState: 'SetAnyToActive'
+            }));
+        }
         if (sdk) {
-            setTimeout(function() {
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: 'hud_sync',
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-            }, 500);
+            setTimeout(requestSync, 300);
+            setTimeout(requestSync, 1500);
         }
 
         const params = new URLSearchParams(window.location.search);

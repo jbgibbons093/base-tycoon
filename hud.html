@@ -1116,6 +1116,7 @@
                             setTimeout(function() { repopulateBase(newBaseId); }, 800);
                         }
                         state.baseId = newBaseId;
+                        if (newBaseId > 0 && sdk) sdk.storageSet('baseId', String(newBaseId));
                     }
                     // Parse carrying brainrot from server variable
                     if (params.My_Carrying_Brainrot !== undefined) {
