@@ -1111,6 +1111,8 @@
                             if (bidMatch) newBaseId = parseInt(bidMatch[1]) || 0;
                         }
                         if (state.baseId <= 0 && newBaseId > 0) {
+                            // Base just claimed — show banner and repopulate
+                            state.claimedBase = newBaseId;
                             setTimeout(function() { repopulateBase(newBaseId); }, 800);
                         }
                         state.baseId = newBaseId;
@@ -1157,30 +1159,28 @@
                     }
                     updateTimerUI();
                     parseTutorialVars(params);
-                    // Auto-claim: server computed Auto_Claim_Base = smallest open base (0 = all taken)
-                    if (state.baseId <= 0 && !state.autoClaimSent && params.Auto_Claim_Base !== undefined) {
-                        var rawAcb = params.Auto_Claim_Base;
-                        // Extract number — handle plain "1", JSON {"name":1}, or Portals {"name"="1"}
-                        var acb = 0;
-                        if (rawAcb.charAt(0) === '{') {
-                            var acbMatch = rawAcb.match(/[=:](\d+\.?\d*)/);
-                            if (acbMatch) acb = Math.round(parseFloat(acbMatch[1])) || 0;
-                        } else {
-                            acb = Math.round(parseFloat(rawAcb)) || 0;
-                        }
+                    // Auto-claim: when HUD receives first inv: and player has no base,
+                    // directly send claim quest activation via sendMessageToUnity.
+                    // The claim quest's own FunctionEffector validates availability
+                    // via CountArray(SelectPlayers(...)) before actually claiming.
+                    // For single-player: always try base 1. For multiplayer: iterate 1-10.
+                    if (state.baseId <= 0 && !state.autoClaimSent) {
                         state.autoClaimSent = true;
-                        if (acb > 0 && sdk) {
-                            state.claimedBase = acb;
-                            setTimeout(function() {
-                                sdk.sendMessageToUnity(JSON.stringify({
-                                    TaskName: 'claim_base_' + acb,
-                                    TaskTargetState: 'SetNotActiveToActive'
-                                }));
-                                updateDisplay();
-                            }, 500);
-                        } else if (acb === 0) {
-                            state.spectator = true;
-                            updateDisplay();
+                        // Try claiming bases 1-10 with staggered delays
+                        // Each claim quest checks My_Base_ID==0 && CountArray availability
+                        // Only the first unclaimed base will succeed
+                        var claimDelay = 500;
+                        for (var cb = 1; cb <= 10; cb++) {
+                            (function(baseNum) {
+                                setTimeout(function() {
+                                    if (state.baseId <= 0 && sdk) {
+                                        sdk.sendMessageToUnity(JSON.stringify({
+                                            TaskName: 'claim_base_' + baseNum,
+                                            TaskTargetState: 'SetNotActiveToActive'
+                                        }));
+                                    }
+                                }, claimDelay * baseNum);
+                            })(cb);
                         }
                     }
                     updateDisplay();
