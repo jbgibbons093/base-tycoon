@@ -514,6 +514,13 @@
         function handleMessage(msg) {
             console.log('[UpgradeShop] Received:', msg);
 
+            // base:N — direct base assignment from claim trigger
+            if (msg.startsWith('base:')) {
+                var id = parseInt(msg.substring(5)) || 0;
+                if (id > 0) { state.baseId = id; state.hasBase = true; renderAll(); }
+                return;
+            }
+
             // inv: format — "inv:Gold=|Gold|&Rebirth=|Rebirth|&..."
             if (msg.startsWith('inv:')) {
                 const payload = msg.substring(4);

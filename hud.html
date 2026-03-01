@@ -1057,6 +1057,21 @@
                     updateDisplay();
                     return;
                 } catch(e) {}
+                // base:N — direct base assignment from claim trigger
+                if (msg.startsWith('base:')) {
+                    var bid = parseInt(msg.substring(5)) || 0;
+                    if (bid > 0 && state.baseId <= 0) {
+                        state.baseId = bid;
+                        state.claimedBase = bid;
+                        if (sdk) sdk.storageSet('baseId', String(bid));
+                        setTimeout(function() { repopulateBase(bid); }, 800);
+                    } else if (bid > 0) {
+                        state.baseId = bid;
+                        if (sdk) sdk.storageSet('baseId', String(bid));
+                    }
+                    updateDisplay(); checkTutorial();
+                    return;
+                }
                 // String-based messages
                 if (msg.startsWith('inv:')) {
                     // Parse key=value pairs: inv:username=bob&Gold=123&health={"bob"=100&"Hugh"=175}
