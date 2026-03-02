@@ -1057,19 +1057,24 @@
                     updateDisplay();
                     return;
                 } catch(e) {}
-                // base:N — direct base assignment from claim trigger
-                if (msg.startsWith('base:')) {
-                    var bid = parseInt(msg.substring(5)) || 0;
-                    if (bid > 0 && state.baseId <= 0) {
-                        state.baseId = bid;
-                        state.claimedBase = bid;
-                        if (sdk) sdk.storageSet('baseId', String(bid));
-                        setTimeout(function() { repopulateBase(bid); }, 800);
-                    } else if (bid > 0) {
-                        state.baseId = bid;
-                        if (sdk) sdk.storageSet('baseId', String(bid));
+                // avail:0,1,0,... — base availability from room (0=open, 1=taken)
+                // Pick lowest open base and send claim quest to Portals
+                if (msg.startsWith('avail:')) {
+                    if (state.baseId > 0) return; // already have a base
+                    var vals = msg.substring(6).split(',');
+                    for (var ai = 0; ai < vals.length; ai++) {
+                        if (parseInt(vals[ai]) === 0) {
+                            var claimNum = ai + 1;
+                            console.log('[HUD] Auto-claiming base ' + claimNum);
+                            if (sdk) {
+                                sdk.sendMessageToUnity(JSON.stringify({
+                                    TaskName: 'claim_base_' + claimNum,
+                                    TaskTargetState: 'SetNotActiveToActive'
+                                }));
+                            }
+                            break;
+                        }
                     }
-                    updateDisplay(); checkTutorial();
                     return;
                 }
                 // String-based messages
@@ -1131,7 +1136,6 @@
                             setTimeout(function() { repopulateBase(newBaseId); }, 800);
                         }
                         state.baseId = newBaseId;
-                        if (newBaseId > 0 && sdk) sdk.storageSet('baseId', String(newBaseId));
                     }
                     // Parse carrying brainrot from server variable
                     if (params.My_Carrying_Brainrot !== undefined) {
@@ -1175,30 +1179,6 @@
                     }
                     updateTimerUI();
                     parseTutorialVars(params);
-                    // Auto-claim: when HUD receives first inv: and player has no base,
-                    // directly send claim quest activation via sendMessageToUnity.
-                    // The claim quest's own FunctionEffector validates availability
-                    // via CountArray(SelectPlayers(...)) before actually claiming.
-                    // For single-player: always try base 1. For multiplayer: iterate 1-10.
-                    if (state.baseId <= 0 && !state.autoClaimSent) {
-                        state.autoClaimSent = true;
-                        // Try claiming bases 1-10 with staggered delays
-                        // Each claim quest checks My_Base_ID==0 && CountArray availability
-                        // Only the first unclaimed base will succeed
-                        var claimDelay = 500;
-                        for (var cb = 1; cb <= 10; cb++) {
-                            (function(baseNum) {
-                                setTimeout(function() {
-                                    if (state.baseId <= 0 && sdk) {
-                                        sdk.sendMessageToUnity(JSON.stringify({
-                                            TaskName: 'claim_base_' + baseNum,
-                                            TaskTargetState: 'SetNotActiveToActive'
-                                        }));
-                                    }
-                                }, claimDelay * baseNum);
-                            })(cb);
-                        }
-                    }
                     updateDisplay();
                     checkTutorial();
                 } else if (msg === 'collect:go') {
@@ -1270,8 +1250,6 @@
                     state.carrying = parseFloat(p[0])||0;
                     state.carryGold = parseFloat(p[1])||0;
                     updateDisplay();
-                } else if (msg.startsWith('base:')) {
-                    state.baseId = parseInt(msg.substring(5))||0; updateDisplay(); checkTutorial();
                 } else if (msg.startsWith('rebirth:')) {
                     state.rebirth = parseInt(msg.substring(8))||0;
                     state.pendingGold = 0;
@@ -1496,7 +1474,7 @@
             {
                 id: 'tut_claim_base',
                 msg: '\u{1F3E0} Your base is being assigned...',
-                showIf: function() { return state.baseId <= 0 && !state.autoClaimSent; },
+                showIf: function() { return state.baseId <= 0; },
                 doneIf: function() { return state.baseId > 0; },
                 stackable: false
             },
