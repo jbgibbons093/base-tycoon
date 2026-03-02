@@ -1142,6 +1142,18 @@
                             setTimeout(function() { repopulateBase(newBaseId); }, 800);
                         }
                         state.baseId = newBaseId;
+                        // Auto-claim: if base ID is 0, pick random base and claim it
+                        if (state.baseId <= 0 && !state._claimSent) {
+                            var rndBase = Math.floor(Math.random() * 10) + 1; // 1-10
+                            console.log('[HUD] Auto-claiming random base ' + rndBase);
+                            state._claimSent = true;
+                            if (sdk) {
+                                sdk.sendMessageToUnity(JSON.stringify({
+                                    TaskName: 'claim_base_' + rndBase,
+                                    TaskTargetState: 'SetNotActiveToActive'
+                                }));
+                            }
+                        }
                     }
                     // Parse carrying brainrot from server variable
                     if (params.My_Carrying_Brainrot !== undefined) {
