@@ -1039,6 +1039,7 @@
         /* ---- MESSAGE LISTENER ---- */
         if (sdk) {
             sdk.setMessageListener(function(msg) {
+                console.log('[HUD] MSG received: ' + (msg.length > 120 ? msg.substring(0, 120) + '...' : msg));
                 if (isDupe(msg)) return;
                 try {
                     var d = JSON.parse(msg);
@@ -1060,10 +1061,15 @@
                 // avail:0,1,0,... — base availability from room (0=open, 1=taken)
                 // Pick lowest open base and send claim quest to Portals
                 if (msg.startsWith('avail:')) {
+                    console.log('[HUD] avail raw: ' + msg);
+                    console.log('[HUD] myUsername=' + myUsername + ' baseId=' + state.baseId);
                     if (state.baseId > 0) return; // already have a base
                     var vals = msg.substring(6).split(';');
+                    console.log('[HUD] avail vals count=' + vals.length + ' vals[0]=' + vals[0]);
                     for (var ai = 0; ai < vals.length; ai++) {
-                        if (parseVarValue(vals[ai]) === 0) {
+                        var pv = parseVarValue(vals[ai]);
+                        console.log('[HUD] avail[' + ai + '] raw=' + vals[ai] + ' parsed=' + pv);
+                        if (pv === 0) {
                             var claimNum = ai + 1;
                             console.log('[HUD] Auto-claiming base ' + claimNum);
                             if (sdk) {
