@@ -504,7 +504,7 @@
             } catch(e) {}
         }
 
-        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0 };
+        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false };
         var myUsername = '';
 
         /* ---- MULTIPLAYER VALUE PARSER ---- */
@@ -663,6 +663,7 @@
             showScreenFlash('death');
             showCenterAlert('YOU DIED', 'death');
             playSound('death');
+            state.hasDied = true;
             // Wipe uncollected pending gold on death
             var lostPending = Math.floor(state.pendingGold);
             state.pendingGold = 0;
@@ -671,7 +672,7 @@
                 var totalLost = parseInt(goldLost) + (lostPending > 0 ? lostPending : 0);
                 notify('Lost $' + fmt(totalLost) + ' cash!', 'error');
             } else {
-                notify('You died! Lost 50% cash.', 'error');
+                notify('You died! Lost all your cash!', 'error');
             }
             spawnCashParticles('spend', 6);
         }
@@ -1506,6 +1507,13 @@
                 stackable: false
             },
             {
+                id: 'tut_keep_collecting',
+                msg: '\u{1F4AA} Keep collecting! The more brainrots at your base, the faster you earn gold.',
+                showIf: function() { return countOwnedBrainrots() > 0 && countOwnedBrainrots() < 3 && state.gold <= 0; },
+                doneIf: function() { return countOwnedBrainrots() >= 3 || state.gold > 0; },
+                stackable: false
+            },
+            {
                 id: 'tut_collect_gold',
                 msg: '\u{1F4B0} Your brainrots generate cash! Walk into the collect zone at your base.',
                 showIf: function() { return countOwnedBrainrots() > 0 && state.gold <= 0; },
@@ -1513,18 +1521,25 @@
                 stackable: false
             },
             {
-                id: 'tut_inventory',
-                msg: '\u{1F4CB} Press [E] to check your inventory and stats!',
+                id: 'tut_marketplace',
+                msg: '\u{1F6D2} Head to the marketplace to spend your gold! You\'ll find shops for weapons, gear, items, and upgrades.',
                 showIf: function() { return state.gold > 0; },
                 doneIf: function() { return true; },
                 stackable: false
             },
             {
-                id: 'tut_explore',
-                msg: '\u{26A0}\uFE0F Get back out there and keep collecting! Watch out for other players \u2014 they can kill you and steal your brainrots and gold!',
+                id: 'tut_pvp_warning',
+                msg: '\u{26A0}\uFE0F Watch out for other players \u2014 they can kill you and steal ALL your cash!',
                 showIf: function() { return state.gold > 0; },
                 doneIf: function() { return true; },
                 stackable: false
+            },
+            {
+                id: 'tut_buy_floor',
+                msg: '\u{1F3D7}\uFE0F Unlock a new floor at the UPGRADE SHOP to get rarer brainrots and unlock new zones!',
+                showIf: function() { return !hasAnyFloorUnlock() && state.gold > 1000; },
+                doneIf: function() { return hasAnyFloorUnlock(); },
+                stackable: true
             },
             {
                 id: 'tut_buy_gun',
@@ -1538,6 +1553,13 @@
                 msg: '\u{1F3AF} Click Slot 1 in your action bar and select a gun to equip it!',
                 showIf: function() { return hasAnyWeapon() && !hasGunEquipped(); },
                 doneIf: function() { return hasGunEquipped(); },
+                stackable: false
+            },
+            {
+                id: 'tut_kill_reward',
+                msg: '\u{1F4B5} You earn $10,000 for every player you kill! Hunt down other players to get rich fast.',
+                showIf: function() { return hasGunEquipped(); },
+                doneIf: function() { return true; },
                 stackable: false
             },
             {
@@ -1555,25 +1577,25 @@
                 stackable: true
             },
             {
-                id: 'tut_buy_floor',
-                msg: '\u{1F3D7}\uFE0F Unlock a new floor at the UPGRADE SHOP to get rarer brainrots and unlock new zones!',
-                showIf: function() { return !hasAnyFloorUnlock() && state.gold > 1000; },
-                doneIf: function() { return hasAnyFloorUnlock(); },
-                stackable: true
-            },
-            {
                 id: 'tut_unlock_zone',
                 msg: '\u{1F5FA}\uFE0F Unlock new zones for rarer brainrots at the UPGRADE SHOP!',
-                showIf: function() { return countZonesUnlocked() === 0 && state.gold > 2000; },
+                showIf: function() { return hasAnyFloorUnlock() && countZonesUnlocked() === 0 && state.gold > 2000; },
                 doneIf: function() { return hasAnyZoneUnlock(); },
                 stackable: true
             },
             {
-                id: 'tut_pvp',
-                msg: '\u{2694}\uFE0F You\'re armed! Enter the PVP zone to battle. You lose half your cash on death!',
-                showIf: function() { return hasGunEquipped(); },
-                doneIf: function() { return true; }, // auto-complete after first display
+                id: 'tut_death_vault',
+                msg: '\u{1F512} Store gold in the Vault to protect it! You lose all carried cash on death.',
+                showIf: function() { return state.hasDied; },
+                doneIf: function() { return true; },
                 stackable: false
+            },
+            {
+                id: 'tut_more_floors',
+                msg: '\u{2B06}\uFE0F Unlock more base floors at the UPGRADE SHOP for even rarer brainrots!',
+                showIf: function() { return purchaseVars.Floor_2_Unlocked > 0 && !(purchaseVars.Floor_3_Unlocked > 0) && state.gold > 5000; },
+                doneIf: function() { return purchaseVars.Floor_3_Unlocked > 0; },
+                stackable: true
             },
             {
                 id: 'tut_rebirth',
