@@ -108,18 +108,18 @@
 
         /* ---- CLAIM BASE BANNER ---- */
         .claim-banner {
-            padding: 4px 14px;
-            border-radius: 14px;
+            padding: 8px 20px;
+            border-radius: 16px;
             background: linear-gradient(180deg, #74B9FF 0%, #0984E3 100%);
             border: 3px solid #0660A0;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3);
             font-family: 'Luckiest Guy', cursive;
-            font-size: 14px;
+            font-size: 15px;
             color: white;
             text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
             display: none;
             white-space: nowrap;
-            animation: claimPulse 2s ease-in-out infinite;
+            animation: claimPulse 2.5s ease-in-out infinite;
         }
         .claim-banner.show { display: block; }
         @keyframes claimPulse {
@@ -367,10 +367,6 @@
 
         /* ---- TUTORIAL NOTIFICATION ---- */
         .tutorial-banner {
-            position: fixed;
-            top: 12px;
-            left: 50%;
-            transform: translateX(-50%);
             padding: 8px 20px;
             border-radius: 16px;
             background: linear-gradient(180deg, #74B9FF 0%, #0984E3 100%);
@@ -381,10 +377,8 @@
             color: white;
             text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
             white-space: nowrap;
-            z-index: 40;
             display: none;
             animation: tutorialPulse 2.5s ease-in-out infinite;
-            pointer-events: none;
         }
         .tutorial-banner.show { display: block; }
         @keyframes tutorialPulse {
@@ -448,18 +442,19 @@
             &#x1F9F8; Carrying <span id="carry-name">???</span> ($<span id="carry-gold">0</span>/s)
         </div>
 
-        <!-- CLAIM BASE BANNER -->
-        <div class="claim-banner" id="claim-banner">
-            &#x1F3E0; Find a base and claim it!
-        </div>
         <!-- SPECTATOR BANNER -->
         <div class="spectator-banner" id="spectator-banner">
             &#x1F441; Spectator Mode — All bases taken
         </div>
     </div>
 
-    <!-- TUTORIAL BANNER (top center) -->
-    <div class="tutorial-banner" id="tutorial-banner"></div>
+    <!-- TOP CENTER BANNERS (stacked vertically) -->
+    <div style="position:fixed;top:12px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:40;pointer-events:none;">
+        <div class="claim-banner" id="claim-banner">
+            &#x1F3E0; Find a base and claim it!
+        </div>
+        <div class="tutorial-banner" id="tutorial-banner"></div>
+    </div>
 
     <!-- TOAST (legacy) -->
     <div class="toast-container" id="toasts"></div>
