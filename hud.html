@@ -1061,9 +1061,9 @@
                 // Pick lowest open base and send claim quest to Portals
                 if (msg.startsWith('avail:')) {
                     if (state.baseId > 0) return; // already have a base
-                    var vals = msg.substring(6).split(',');
+                    var vals = msg.substring(6).split(';');
                     for (var ai = 0; ai < vals.length; ai++) {
-                        if (parseInt(vals[ai]) === 0) {
+                        if (parseVarValue(vals[ai]) === 0) {
                             var claimNum = ai + 1;
                             console.log('[HUD] Auto-claiming base ' + claimNum);
                             if (sdk) {
