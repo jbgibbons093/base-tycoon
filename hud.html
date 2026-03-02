@@ -1179,23 +1179,6 @@
                     }
                     updateTimerUI();
                     parseTutorialVars(params);
-                    // Auto-claim: check Base_N_Taken from inv: params
-                    if (state.baseId <= 0) {
-                        for (var bc = 1; bc <= 10; bc++) {
-                            var bk = 'Base_' + bc + '_Taken';
-                            if (params[bk] !== undefined) {
-                                var taken = Math.round(parseVarValue(params[bk]));
-                                if (taken === 0 && sdk) {
-                                    console.log('[HUD] Auto-claiming base ' + bc);
-                                    sdk.sendMessageToUnity(JSON.stringify({
-                                        TaskName: 'claim_base_' + bc,
-                                        TaskTargetState: 'SetNotActiveToActive'
-                                    }));
-                                    break;
-                                }
-                            }
-                        }
-                    }
                     updateDisplay();
                     checkTutorial();
                 } else if (msg === 'collect:go') {
