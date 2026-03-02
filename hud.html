@@ -1149,16 +1149,6 @@
                                     TaskTargetState: 'SetNotActiveToActive'
                                 }));
                             }
-                            // Fallback for returning players: claim gets rejected because
-                            // My_Base_ID is already set server-side. After 4s, assume
-                            // returning player and dismiss "assigning" banner.
-                            setTimeout(function() {
-                                if (state.baseId <= 0) {
-                                    console.log('[HUD] Claim timeout — assuming returning player');
-                                    state.baseId = -1; // unknown but has base
-                                    updateDisplay();
-                                }
-                            }, 4000);
                         }
                     }
                     // Parse carrying brainrot from server variable
@@ -1498,14 +1488,14 @@
             {
                 id: 'tut_claim_base',
                 msg: '\u{1F3E0} Your base is being assigned...',
-                showIf: function() { return state.baseId === 0; },
-                doneIf: function() { return state.baseId !== 0; },
+                showIf: function() { return state.baseId <= 0; },
+                doneIf: function() { return state.baseId > 0; },
                 stackable: false
             },
             {
                 id: 'tut_collect_brainrot',
                 msg: '\u{1F99C} Hunt brainrots across the Meadow and Beach \u2014 rarer ones are worth more gold! Bring them back to your base to start earning.',
-                showIf: function() { return state.baseId !== 0 && state.carrying <= 0 && countOwnedBrainrots() === 0; },
+                showIf: function() { return state.baseId > 0 && state.carrying <= 0 && countOwnedBrainrots() === 0; },
                 doneIf: function() { return state.carrying > 0 || countOwnedBrainrots() > 0; },
                 stackable: false
             },
@@ -1710,7 +1700,7 @@
 
         // Auto-skip completed steps for returning players
         function autoSkipTutorial() {
-            if (state.baseId !== 0) markTutorialDone('tut_claim_base');
+            if (state.baseId > 0) markTutorialDone('tut_claim_base');
             if (countOwnedBrainrots() > 0) {
                 markTutorialDone('tut_claim_base');
                 markTutorialDone('tut_collect_brainrot');
