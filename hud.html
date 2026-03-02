@@ -1493,7 +1493,7 @@
             },
             {
                 id: 'tut_collect_brainrot',
-                msg: '\u{1F99C} Explore the Meadow and Island to find brainrots! Each gives different gold. Deposit them at your base to earn cash for weapons, items, upgrades, and gear at the marketplace!',
+                msg: '\u{1F99C} Hunt brainrots across the Meadow and Island \u2014 rarer ones are worth more gold! Bring them back to your base to start earning.',
                 showIf: function() { return state.baseId > 0 && state.carrying <= 0 && countOwnedBrainrots() === 0; },
                 doneIf: function() { return state.carrying > 0 || countOwnedBrainrots() > 0; },
                 stackable: false
