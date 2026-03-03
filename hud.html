@@ -1138,18 +1138,26 @@
                             setTimeout(function() { repopulateBase(newBaseId); }, 800);
                         }
                         state.baseId = newBaseId;
-                        // If base ID is 0, auto-claim a random base (retry even if claim:init already tried)
-                        if (newBaseId === 0 && sdk) {
-                            state._claimSent = false; // reset so we can retry
-                            var rndBase = Math.floor(Math.random() * 10) + 1;
-                            console.log('[HUD] inv: My_Base_ID=0, auto-claiming base ' + rndBase);
-                            state._claimSent = true;
-                            setTimeout(function() {
+                        // If base ID is 0, start a retry loop to keep claiming until it works
+                        if (newBaseId === 0 && sdk && !state._claimInterval) {
+                            state._claimInterval = setInterval(function() {
+                                if (state.baseId > 0) {
+                                    clearInterval(state._claimInterval);
+                                    state._claimInterval = null;
+                                    return;
+                                }
+                                var rndBase = Math.floor(Math.random() * 10) + 1;
+                                console.log('[HUD] retry claim: base ' + rndBase);
                                 sdk.sendMessageToUnity(JSON.stringify({
                                     TaskName: 'claim_base_' + rndBase,
-                                    TaskTargetState: 'SetNotActiveToActive'
+                                    TaskTargetState: 'SetAnyToActive'
                                 }));
-                            }, 500);
+                            }, 3000);
+                        }
+                        // Also clear the interval if base was just claimed
+                        if (newBaseId > 0 && state._claimInterval) {
+                            clearInterval(state._claimInterval);
+                            state._claimInterval = null;
                         }
                     }
                     // Parse carrying brainrot from server variable
@@ -1285,15 +1293,30 @@
                     if (baseNum > 0) repopulateBase(baseNum);
                 } else if (msg === 'claim:init') {
                     // Room says player just logged in — pick a random base and claim it
-                    if (state.baseId <= 0 && !state._claimSent) {
+                    if (state.baseId <= 0) {
                         var rndBase = Math.floor(Math.random() * 10) + 1;
                         console.log('[HUD] claim:init received, claiming base ' + rndBase);
-                        state._claimSent = true;
                         if (sdk) {
                             sdk.sendMessageToUnity(JSON.stringify({
                                 TaskName: 'claim_base_' + rndBase,
-                                TaskTargetState: 'SetNotActiveToActive'
+                                TaskTargetState: 'SetAnyToActive'
                             }));
+                        }
+                        // Start retry loop in case first attempt fails
+                        if (!state._claimInterval) {
+                            state._claimInterval = setInterval(function() {
+                                if (state.baseId > 0) {
+                                    clearInterval(state._claimInterval);
+                                    state._claimInterval = null;
+                                    return;
+                                }
+                                var rb = Math.floor(Math.random() * 10) + 1;
+                                console.log('[HUD] retry claim: base ' + rb);
+                                sdk.sendMessageToUnity(JSON.stringify({
+                                    TaskName: 'claim_base_' + rb,
+                                    TaskTargetState: 'SetAnyToActive'
+                                }));
+                            }, 3000);
                         }
                     }
                 }
