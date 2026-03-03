@@ -1138,18 +1138,7 @@
                             setTimeout(function() { repopulateBase(newBaseId); }, 800);
                         }
                         state.baseId = newBaseId;
-                        // Auto-claim: if base ID is 0, pick random base and claim it
-                        if (state.baseId <= 0 && !state._claimSent) {
-                            var rndBase = Math.floor(Math.random() * 10) + 1; // 1-10
-                            console.log('[HUD] Auto-claiming random base ' + rndBase);
-                            state._claimSent = true;
-                            if (sdk) {
-                                sdk.sendMessageToUnity(JSON.stringify({
-                                    TaskName: 'claim_base_' + rndBase,
-                                    TaskTargetState: 'SetNotActiveToActive'
-                                }));
-                            }
-                        }
+                        // Base claim is initiated by claim:init message from room on login
                     }
                     // Parse carrying brainrot from server variable
                     if (params.My_Carrying_Brainrot !== undefined) {
@@ -1282,6 +1271,19 @@
                 } else if (msg.startsWith('repopulate:')) {
                     var baseNum = parseInt(msg.substring(11)) || 0;
                     if (baseNum > 0) repopulateBase(baseNum);
+                } else if (msg === 'claim:init') {
+                    // Room says player just logged in — pick a random base and claim it
+                    if (state.baseId <= 0 && !state._claimSent) {
+                        var rndBase = Math.floor(Math.random() * 10) + 1;
+                        console.log('[HUD] claim:init received, claiming base ' + rndBase);
+                        state._claimSent = true;
+                        if (sdk) {
+                            sdk.sendMessageToUnity(JSON.stringify({
+                                TaskName: 'claim_base_' + rndBase,
+                                TaskTargetState: 'SetNotActiveToActive'
+                            }));
+                        }
+                    }
                 }
             });
         }
