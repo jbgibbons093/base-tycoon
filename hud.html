@@ -511,26 +511,16 @@
         // Portals sends multiplayer vars as objects like {"player1":val1,"player2":val2}
         // or with = signs like {"player1"="val1","player2"="val2"}
         // This extracts only the local player's value using myUsername
-        // Two-step claim: reset quest from Active to NotActive, then activate
+        // Claim base: use SetActiveToCompleted (nonPersistent quests start Active for returning players)
         function tryClaimBase() {
             if (!sdk || state.baseId > 0) return;
             var rndBase = Math.floor(Math.random() * 10) + 1;
             var questName = 'claim_base_' + rndBase;
-            console.log('[HUD] tryClaimBase: resetting ' + questName + ' then activating');
-            // Step 1: force quest to NotActive (handles nonPersistent quests that start Active)
+            console.log('[HUD] tryClaimBase: ' + questName + ' (SetActiveToCompleted)');
             sdk.sendMessageToUnity(JSON.stringify({
                 TaskName: questName,
-                TaskTargetState: 'SetActiveToNotActive'
+                TaskTargetState: 'SetActiveToCompleted'
             }));
-            // Step 2: after 1.5s, activate (NotActive -> Active triggers FunctionEffector)
-            setTimeout(function() {
-                if (state.baseId > 0) return; // already claimed
-                console.log('[HUD] tryClaimBase: activating ' + questName);
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: questName,
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-            }, 1500);
         }
 
         function parseVarValue(raw) {
