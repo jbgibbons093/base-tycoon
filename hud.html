@@ -1137,6 +1137,7 @@
                     }
                     // Parse base ID — auto-repopulate on claim (baseId 0 -> N)
                     if (params.player_Base_num !== undefined) {
+                        console.log('[HUD] player_Base_num RAW=' + params.player_Base_num + ' parsed=' + parseVarValue(params.player_Base_num));
                         var newBaseId = Math.round(parseVarValue(params.player_Base_num));
                         // Fallback: if parseVarValue returned 0 but raw value has a number, extract it
                         if (newBaseId === 0 && params.player_Base_num !== '0') {
