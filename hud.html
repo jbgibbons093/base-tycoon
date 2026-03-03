@@ -1298,9 +1298,10 @@
                     var baseNum = parseInt(msg.substring(11)) || 0;
                     if (baseNum > 0) repopulateBase(baseNum);
                 } else if (msg === 'claim:init') {
-                    // Room says player just logged in — pick a random base and claim it
-                    if (state.baseId <= 0) {
-                        console.log('[HUD] claim:init received');
+                    // Room says player just logged in — always reclaim (server resets player_Base_num to 0)
+                    state.baseId = 0;
+                    {
+                        console.log('[HUD] claim:init received — resetting baseId and claiming');
                         tryClaimBase();
                         // Start retry loop in case first attempt fails
                         if (!state._claimInterval) {
