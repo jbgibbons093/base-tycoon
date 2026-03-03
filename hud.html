@@ -512,7 +512,7 @@
         // or with = signs like {"player1"="val1","player2"="val2"}
         // This extracts only the local player's value using myUsername
         // Base assignment is now handled server-side in the login init FunctionEffector.
-        // HUD just reads My_Base_ID from inv: messages.
+        // HUD just reads player_Base_num from inv: messages.
 
         function parseVarValue(raw) {
             if (typeof raw !== 'string') return parseFloat(raw) || 0;
@@ -1127,11 +1127,11 @@
                         }
                     }
                     // Parse base ID — auto-repopulate on claim (baseId 0 -> N)
-                    if (params.My_Base_ID !== undefined) {
-                        var newBaseId = Math.round(parseVarValue(params.My_Base_ID));
+                    if (params.player_Base_num !== undefined) {
+                        var newBaseId = Math.round(parseVarValue(params.player_Base_num));
                         // Fallback: if parseVarValue returned 0 but raw value has a number, extract it
-                        if (newBaseId === 0 && params.My_Base_ID !== '0') {
-                            var bidMatch = params.My_Base_ID.match(/[=:](\d+)/);
+                        if (newBaseId === 0 && params.player_Base_num !== '0') {
+                            var bidMatch = params.player_Base_num.match(/[=:](\d+)/);
                             if (bidMatch) newBaseId = parseInt(bidMatch[1]) || 0;
                         }
                         if (state.baseId <= 0 && newBaseId > 0) {
@@ -1187,7 +1187,7 @@
                     updateDisplay();
                     checkTutorial();
                 } else if (msg === 'collect:go') {
-                    // Room-side logic already gates on My_Base_ID — just collect
+                    // Room-side logic already gates on player_Base_num — just collect
                     if (state.pendingGold < 1) {
                         playSound('uipop');
                         notify('No cash to collect yet!', 'info');
@@ -1228,7 +1228,7 @@
                     // Parse base number from message: "Deposited brainrot at Base N!"
                     var baseMatch = msg.match(/Base (\d+)/);
                     var depositBase = baseMatch ? parseInt(baseMatch[1]) : 0;
-                    // Room-side logic already gates on My_Base_ID — just deposit
+                    // Room-side logic already gates on player_Base_num — just deposit
                     if (state.carrying <= 0) {
                         playSound('uipop');
                         notify('You\'re not carrying a brainrot!', 'error');

@@ -532,7 +532,7 @@
                     const val = parseVarValue(pair.substring(eq + 1));
                     if (key === 'Gold') state.gold = val;
                     else if (key === 'Rebirth') state.rebirth = val;
-                    else if (key === 'My_Base_ID') { state.baseId = val; state.hasBase = val > 0; }
+                    else if (key === 'player_Base_num') { state.baseId = val; state.hasBase = val > 0; }
                 }
                 // Sync unlock state from server variables
                 var ZONE_VAR_MAP = {

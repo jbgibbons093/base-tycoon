@@ -76,7 +76,7 @@
         <div class="section">
             <div class="section-title">ECONOMY</div>
             <div class="var-row"><span class="var-name">Gold</span><span class="var-val" id="v-Gold">0</span></div>
-            <div class="var-row"><span class="var-name">Base</span><span class="var-val" id="v-My_Base_ID">0</span></div>
+            <div class="var-row"><span class="var-name">Base</span><span class="var-val" id="v-player_Base_num">0</span></div>
             <div class="var-row"><span class="var-name">Timer</span><span class="var-val" id="v-CollectTimer">0</span></div>
         </div>
         <div class="section">
@@ -193,7 +193,7 @@
                 return;
             }
             if (msg.startsWith('gold:')) updateVar('Gold', parseFloat(msg.substring(5))||0);
-            else if (msg.startsWith('base:')) updateVar('My_Base_ID', parseInt(msg.substring(5))||0);
+            else if (msg.startsWith('base:')) updateVar('player_Base_num', parseInt(msg.substring(5))||0);
         }
 
         if (sdk) {

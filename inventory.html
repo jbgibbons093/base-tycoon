@@ -305,7 +305,7 @@
                 if (key.startsWith('Own_bv_')) {
                     var bvKey = key.substring(4); // "bv_Banana"
                     ownedBrainrots[bvKey] = Math.round(val);
-                } else if (key === 'My_Base_ID') {
+                } else if (key === 'player_Base_num') {
                     myBaseId = Math.round(val);
                 } else if (key.startsWith('PGold_')) {
                     var idx = parseInt(key.substring(6)) - 1;
@@ -355,13 +355,17 @@
         setTimeout(_doFocusGame, 300);
 
         // Request variable sync from Portals after iframe is loaded
+        function requestSync() {
+            if (!sdk) return;
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: 'hud_sync',
+                TaskTargetState: 'SetAnyToActive'
+            }));
+        }
         if (sdk) {
-            setTimeout(function() {
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: 'hud_sync',
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-            }, 500);
+            setTimeout(requestSync, 300);
+            setTimeout(requestSync, 1000);
+            setTimeout(requestSync, 2500);
         }
 
         render();
