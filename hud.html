@@ -511,8 +511,17 @@
         // Portals sends multiplayer vars as objects like {"player1":val1,"player2":val2}
         // or with = signs like {"player1"="val1","player2"="val2"}
         // This extracts only the local player's value using myUsername
-        // Base assignment is now handled server-side in the login init FunctionEffector.
-        // HUD just reads player_Base_num from inv: messages.
+        // Claim base: pick random base, activate its quest
+        function tryClaimBase() {
+            if (!sdk || state.baseId > 0) return;
+            var rndBase = Math.floor(Math.random() * 10) + 1;
+            var questName = 'claim_base_' + rndBase;
+            console.log('[HUD] tryClaimBase: ' + questName + ' (SetNotActiveToActive)');
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: questName,
+                TaskTargetState: 'SetNotActiveToActive'
+            }));
+        }
 
         function parseVarValue(raw) {
             if (typeof raw !== 'string') return parseFloat(raw) || 0;
@@ -1140,7 +1149,22 @@
                             setTimeout(function() { repopulateBase(newBaseId); }, 800);
                         }
                         state.baseId = newBaseId;
-                        // Base assignment handled server-side, no retry needed
+                        // If base ID is 0, start a retry loop to keep claiming until it works
+                        if (newBaseId === 0 && sdk && !state._claimInterval) {
+                            state._claimInterval = setInterval(function() {
+                                if (state.baseId > 0) {
+                                    clearInterval(state._claimInterval);
+                                    state._claimInterval = null;
+                                    return;
+                                }
+                                tryClaimBase();
+                            }, 4000);
+                        }
+                        // Also clear the interval if base was just claimed
+                        if (newBaseId > 0 && state._claimInterval) {
+                            clearInterval(state._claimInterval);
+                            state._claimInterval = null;
+                        }
                     }
                     // Parse carrying brainrot from server variable
                     if (params.My_Carrying_Brainrot !== undefined) {
@@ -1274,8 +1298,22 @@
                     var baseNum = parseInt(msg.substring(11)) || 0;
                     if (baseNum > 0) repopulateBase(baseNum);
                 } else if (msg === 'claim:init') {
-                    // Room handles base assignment server-side now
-                    console.log('[HUD] claim:init received (base assigned server-side)');
+                    // Room says player just logged in — pick a random base and claim it
+                    if (state.baseId <= 0) {
+                        console.log('[HUD] claim:init received');
+                        tryClaimBase();
+                        // Start retry loop in case first attempt fails
+                        if (!state._claimInterval) {
+                            state._claimInterval = setInterval(function() {
+                                if (state.baseId > 0) {
+                                    clearInterval(state._claimInterval);
+                                    state._claimInterval = null;
+                                    return;
+                                }
+                                tryClaimBase();
+                            }, 4000);
+                        }
+                    }
                 }
             });
         }
