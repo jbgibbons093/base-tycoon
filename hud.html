@@ -511,6 +511,28 @@
         // Portals sends multiplayer vars as objects like {"player1":val1,"player2":val2}
         // or with = signs like {"player1"="val1","player2"="val2"}
         // This extracts only the local player's value using myUsername
+        // Two-step claim: reset quest from Active to NotActive, then activate
+        function tryClaimBase() {
+            if (!sdk || state.baseId > 0) return;
+            var rndBase = Math.floor(Math.random() * 10) + 1;
+            var questName = 'claim_base_' + rndBase;
+            console.log('[HUD] tryClaimBase: resetting ' + questName + ' then activating');
+            // Step 1: force quest to NotActive (handles nonPersistent quests that start Active)
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: questName,
+                TaskTargetState: 'SetActiveToNotActive'
+            }));
+            // Step 2: after 1.5s, activate (NotActive -> Active triggers FunctionEffector)
+            setTimeout(function() {
+                if (state.baseId > 0) return; // already claimed
+                console.log('[HUD] tryClaimBase: activating ' + questName);
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: questName,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+            }, 1500);
+        }
+
         function parseVarValue(raw) {
             if (typeof raw !== 'string') return parseFloat(raw) || 0;
             raw = raw.trim();
@@ -1146,13 +1168,8 @@
                                     state._claimInterval = null;
                                     return;
                                 }
-                                var rndBase = Math.floor(Math.random() * 10) + 1;
-                                console.log('[HUD] retry claim: base ' + rndBase);
-                                sdk.sendMessageToUnity(JSON.stringify({
-                                    TaskName: 'claim_base_' + rndBase,
-                                    TaskTargetState: 'SetAnyToActive'
-                                }));
-                            }, 3000);
+                                tryClaimBase();
+                            }, 4000);
                         }
                         // Also clear the interval if base was just claimed
                         if (newBaseId > 0 && state._claimInterval) {
@@ -1294,14 +1311,8 @@
                 } else if (msg === 'claim:init') {
                     // Room says player just logged in — pick a random base and claim it
                     if (state.baseId <= 0) {
-                        var rndBase = Math.floor(Math.random() * 10) + 1;
-                        console.log('[HUD] claim:init received, claiming base ' + rndBase);
-                        if (sdk) {
-                            sdk.sendMessageToUnity(JSON.stringify({
-                                TaskName: 'claim_base_' + rndBase,
-                                TaskTargetState: 'SetAnyToActive'
-                            }));
-                        }
+                        console.log('[HUD] claim:init received');
+                        tryClaimBase();
                         // Start retry loop in case first attempt fails
                         if (!state._claimInterval) {
                             state._claimInterval = setInterval(function() {
@@ -1310,13 +1321,8 @@
                                     state._claimInterval = null;
                                     return;
                                 }
-                                var rb = Math.floor(Math.random() * 10) + 1;
-                                console.log('[HUD] retry claim: base ' + rb);
-                                sdk.sendMessageToUnity(JSON.stringify({
-                                    TaskName: 'claim_base_' + rb,
-                                    TaskTargetState: 'SetAnyToActive'
-                                }));
-                            }, 3000);
+                                tryClaimBase();
+                            }, 4000);
                         }
                     }
                 }
