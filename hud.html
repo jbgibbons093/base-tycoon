@@ -932,7 +932,6 @@
             // Check spawn cap — spawnCounts is synced from server ZC_ variables
             if ((spawnCounts[zone] || 0) >= MAX_PER_ZONE) return;
             var pick = pool[Math.floor(Math.random() * pool.length)];
-            playSound('cropready');
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
                     TaskName: pick,
