@@ -516,10 +516,10 @@
             if (!sdk || state.baseId > 0) return;
             var rndBase = Math.floor(Math.random() * 10) + 1;
             var questName = 'claim_base_' + rndBase;
-            console.log('[HUD] tryClaimBase: ' + questName + ' (SetNotActiveToActive)');
+            console.log('[HUD] tryClaimBase: ' + questName + ' (SetAnyToActive)');
             sdk.sendMessageToUnity(JSON.stringify({
                 TaskName: questName,
-                TaskTargetState: 'SetNotActiveToActive'
+                TaskTargetState: 'SetAnyToActive'
             }));
         }
 
@@ -1082,7 +1082,7 @@
                             if (sdk) {
                                 sdk.sendMessageToUnity(JSON.stringify({
                                     TaskName: 'claim_base_' + claimNum,
-                                    TaskTargetState: 'SetNotActiveToActive'
+                                    TaskTargetState: 'SetAnyToActive'
                                 }));
                             }
                             break;
