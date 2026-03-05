@@ -12,7 +12,7 @@
         .frame {
             position:fixed; top:50%; left:50%; transform:translate(-50%,-50%);
             width:520px; max-height:80vh;
-            background:white; border:5px solid #6C3483; border-radius:24px;
+            background:#1E1E2E; border:5px solid #6C3483; border-radius:24px;
             box-shadow:0 10px 0 rgba(0,0,0,0.15),0 15px 40px rgba(0,0,0,0.3);
             display:flex; flex-direction:column; overflow:hidden;
         }
@@ -32,17 +32,17 @@
         .hint { font-size:11px; color:rgba(255,255,255,0.7); margin-top:4px; }
 
         /* Tabs */
-        .tabs { display:flex; flex-shrink:0; background:#F0ECF5; border-bottom:3px solid #D2B4DE; }
+        .tabs { display:flex; flex-shrink:0; background:#252535; border-bottom:3px solid #3A3A4A; }
         .tab {
             flex:1; padding:10px 0; text-align:center; cursor:pointer;
             font-family:'Luckiest Guy',cursive; font-size:16px; color:#7D3C98;
             transition:background 0.15s;
         }
-        .tab:hover { background:#E8DAEF; }
-        .tab.active { background:white; color:#6C3483; border-bottom:3px solid #6C3483; margin-bottom:-3px; }
+        .tab:hover { background:#3A3A4A; }
+        .tab.active { background:#1E1E2E; color:#9B59B6; border-bottom:3px solid #9B59B6; margin-bottom:-3px; }
 
         /* Body */
-        .body { flex:1; overflow-y:auto; padding:12px; background:#FDFBFE; }
+        .body { flex:1; overflow-y:auto; padding:12px; background:#2A2A3A; }
         .body::-webkit-scrollbar { width:6px; }
         .body::-webkit-scrollbar-thumb { background:#D2B4DE; border-radius:3px; }
 
@@ -50,17 +50,17 @@
         .zone-header {
             font-family:'Luckiest Guy',cursive; font-size:15px; color:#6C3483;
             margin:12px 0 6px; padding:4px 10px;
-            background:linear-gradient(90deg,#F4ECF7,transparent); border-radius:8px;
+            background:linear-gradient(90deg,#2A2A3A,transparent); border-radius:8px;
         }
         .zone-header:first-child { margin-top:0; }
         .zone-header .zone-count { font-family:'Nunito',sans-serif; font-size:12px; font-weight:800; color:#9B59B6; margin-left:6px; }
 
         .br-row {
             display:flex; align-items:center; padding:6px 10px; border-radius:10px; margin:2px 0;
-            background:#FAFAFA; border:2px solid #F0ECF5;
+            background:#2A2A3A; border:2px solid #3A3A4A;
         }
-        .br-row.owned { background:#F0FFF0; border-color:#A9DFBF; }
-        .br-name { flex:1; font-size:13px; font-weight:800; color:#2C3E50; }
+        .br-row.owned { background:#1A2E1A; border-color:#2ECC40; }
+        .br-name { flex:1; font-size:13px; font-weight:800; color:#E0E0E0; }
         .br-name .br-pretty { }
         .br-gps { font-family:'Luckiest Guy',cursive; font-size:13px; color:#F39C12; margin:0 10px; white-space:nowrap; }
         .br-owned {
@@ -68,15 +68,15 @@
             border-radius:10px; min-width:30px; text-align:center;
         }
         .br-owned.has { background:#27AE60; color:white; }
-        .br-owned.none { background:#ECF0F1; color:#BDC3C7; }
+        .br-owned.none { background:#3A3A4A; color:#707080; }
 
         /* Players list */
         .player-card {
             display:flex; align-items:center; padding:10px 12px; margin:6px 0;
-            border-radius:14px; border:3px solid #E8DAEF; background:white;
+            border-radius:14px; border:3px solid #3A3A4A; background:#2A2A3A;
         }
         .player-card.empty { opacity:0.35; }
-        .player-card.carrying { border-color:#F39C12; background:#FFFBF0; }
+        .player-card.carrying { border-color:#F39C12; background:#2E2A1A; }
         .p-base {
             width:36px; height:36px; border-radius:50%;
             background:linear-gradient(180deg,#9B59B6,#6C3483); border:3px solid #5B2C6F;
@@ -85,14 +85,14 @@
             text-shadow:1px 1px 0 rgba(0,0,0,0.2); flex-shrink:0;
         }
         .p-info { flex:1; margin-left:10px; }
-        .p-label { font-family:'Luckiest Guy',cursive; font-size:14px; color:#2C3E50; }
+        .p-label { font-family:'Luckiest Guy',cursive; font-size:14px; color:#E0E0E0; }
         .p-gold { font-size:12px; font-weight:800; color:#27AE60; }
         .p-carry { font-size:11px; font-weight:800; color:#F39C12; margin-top:2px; }
-        .p-empty-label { font-size:13px; font-weight:800; color:#BDC3C7; }
+        .p-empty-label { font-size:13px; font-weight:800; color:#555; }
 
         /* Summary bar */
         .summary {
-            flex-shrink:0; padding:8px 16px; background:#F4ECF7; border-top:2px solid #E8DAEF;
+            flex-shrink:0; padding:8px 16px; background:#252535; border-top:2px solid #3A3A4A;
             display:flex; justify-content:space-between; font-size:12px; font-weight:800; color:#6C3483;
         }
     </style>

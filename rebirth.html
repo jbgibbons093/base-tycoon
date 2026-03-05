@@ -20,7 +20,7 @@
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: 460px;
-            background: white;
+            background: #1E1E2E;
             border: 5px solid #D63031;
             border-radius: 24px;
             box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
@@ -90,13 +90,13 @@
 
         .shop-body {
             padding: 20px;
-            background: #F0F3F5;
+            background: #2A2A3A;
             text-align: center;
         }
 
         /* Rebirth panel */
         .rebirth-panel {
-            background: white;
+            background: #2A2A3A;
             border: 4px solid #D63031;
             border-radius: 20px;
             padding: 20px;
@@ -111,7 +111,7 @@
             text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
         }
         .rebirth-panel .sub {
-            font-size: 12px; font-weight: 800; color: #636E72;
+            font-size: 12px; font-weight: 800; color: #A0A0B0;
         }
         .rebirth-cost-badge {
             display: inline-block;
@@ -129,7 +129,7 @@
             display: inline-block;
             padding: 6px 18px;
             border-radius: 14px;
-            background: linear-gradient(180deg, #E8FFE8, #D4FFD4);
+            background: linear-gradient(180deg, #1A2E1A, #1A3A1A);
             border: 3px solid #2ECC40;
             font-family: 'Luckiest Guy', cursive;
             font-size: 13px;
@@ -138,15 +138,15 @@
         }
         .rebirth-progress {
             margin: 12px 0;
-            font-size: 11px; font-weight: 800; color: #95A5A6;
+            font-size: 11px; font-weight: 800; color: #707080;
         }
         .rebirth-bar-track {
             width: 80%;
             margin: 6px auto;
             height: 14px;
-            background: #DFE6E9;
+            background: #3A3A4A;
             border-radius: 7px;
-            border: 2px solid #B2BEC3;
+            border: 2px solid #555;
             overflow: hidden;
         }
         .rebirth-bar-fill {
@@ -175,9 +175,9 @@
             color: white;
         }
         .rebirth-btn.not-ready {
-            background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
-            border-color: #95A5A6;
-            color: #95A5A6;
+            background: linear-gradient(180deg, #3A3A4A, #2A2A3A);
+            border-color: #707080;
+            color: #707080;
             cursor: not-allowed;
             text-shadow: none;
         }
@@ -217,7 +217,7 @@
         <div class="shop-header">
             <h1>REBIRTH</h1>
             <div class="header-badges">
-                <div class="gold-badge" id="gold-display">Cash: $0</div>
+                <div class="gold-badge" id="gold-display"><img src="cash.png" style="height:18px;vertical-align:middle;margin-right:4px">0</div>
                 <div class="rebirth-badge" id="rebirth-display">Rebirth: 0</div>
             </div>
             <div class="close-x" onclick="closeShop()">X</div>
@@ -256,7 +256,7 @@
         }
 
         function render() {
-            document.getElementById('gold-display').textContent = 'Cash: $' + fmt(state.gold);
+            document.getElementById('gold-display').innerHTML = '<img src="cash.png" style="height:18px;vertical-align:middle;margin-right:4px">' + fmt(state.gold);
             document.getElementById('rebirth-display').textContent = 'Rebirth: ' + state.rebirth;
             const el = document.getElementById('rebirth-content');
             const nextRebirth = state.rebirth + 1;
@@ -463,13 +463,17 @@
         setTimeout(_doFocusGame, 300);
 
         // Request variable sync from Portals after iframe is loaded
+        function requestSync() {
+            if (!sdk) return;
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: 'hud_sync',
+                TaskTargetState: 'SetAnyToActive'
+            }));
+        }
         if (sdk) {
-            setTimeout(function() {
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: 'hud_sync',
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-            }, 500);
+            setTimeout(requestSync, 300);
+            setTimeout(requestSync, 1000);
+            setTimeout(requestSync, 2500);
         }
 
         const params = new URLSearchParams(window.location.search);

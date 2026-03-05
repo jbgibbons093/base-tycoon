@@ -20,7 +20,7 @@
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: 420px;
-            background: white;
+            background: #1E1E2E;
             border: 5px solid #B8860B;
             border-radius: 24px;
             box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
@@ -86,15 +86,15 @@
 
         .shop-body {
             padding: 16px;
-            background: #F8F6F0;
+            background: #2A2A3A;
         }
 
         .info-text {
             text-align: center;
             font-size: 13px;
             font-weight: 800;
-            color: #92400E;
-            background: linear-gradient(180deg, #FEF3C7, #FDE68A);
+            color: #FCD34D;
+            background: linear-gradient(180deg, #3A3020, #2E2A1A);
             border: 2px solid #F59E0B;
             border-radius: 12px;
             padding: 8px 12px;
@@ -104,7 +104,7 @@
         .section-label {
             font-family: 'Luckiest Guy', cursive;
             font-size: 18px;
-            color: #78350F;
+            color: #FCD34D;
             text-shadow: 1px 1px 0 rgba(0,0,0,0.08);
             margin-bottom: 8px;
         }
@@ -401,13 +401,17 @@
         setTimeout(_doFocusGame, 300);
 
         // Request variable sync from Portals after iframe is loaded
+        function requestSync() {
+            if (!sdk) return;
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: 'hud_sync',
+                TaskTargetState: 'SetAnyToActive'
+            }));
+        }
         if (sdk) {
-            setTimeout(function() {
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: 'hud_sync',
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-            }, 500);
+            setTimeout(requestSync, 300);
+            setTimeout(requestSync, 1000);
+            setTimeout(requestSync, 2500);
         }
 
         render();

@@ -20,7 +20,7 @@
             top: 50%; left: 50%;
             transform: translate(-50%, -50%);
             width: 480px;
-            background: white;
+            background: #1E1E2E;
             border: 5px solid #C0392B;
             border-radius: 24px;
             box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
@@ -79,13 +79,13 @@
             padding: 16px;
             display: flex;
             gap: 12px;
-            background: #F0F3F5;
+            background: #2A2A3A;
         }
 
         .weapon-card {
             flex: 1;
-            background: white;
-            border: 3px solid #DFE6E9;
+            background: #2A2A3A;
+            border: 3px solid #3A3A4A;
             border-radius: 18px;
             padding: 14px 10px;
             text-align: center;
@@ -95,7 +95,7 @@
         .weapon-card:hover { transform: translateY(-3px); border-color: #3498DB; }
         .weapon-card.owned {
             border-color: #2ECC40;
-            background: linear-gradient(180deg, #E8FFE8 0%, #D4FFD4 100%);
+            background: linear-gradient(180deg, #1A2E1A 0%, #1A3A1A 100%);
             box-shadow: 0 4px 0 rgba(0,180,0,0.15);
         }
 
@@ -103,7 +103,7 @@
         .w-name {
             font-family: 'Luckiest Guy', cursive;
             font-size: 18px;
-            color: #2C3E50;
+            color: #E0E0E0;
             margin: 6px 0 4px;
         }
         .w-tier {
@@ -116,7 +116,7 @@
             display: inline-block;
             margin-bottom: 8px;
         }
-        .tier-standard { background: #DFE6E9; color: #636E72; }
+        .tier-standard { background: #DFE6E9; color: #A0A0B0; }
         .tier-premium { background: #74B9FF; color: white; }
         .tier-elite { background: linear-gradient(135deg, #FFD700, #FFA500); color: #4A2800; }
 
@@ -130,17 +130,17 @@
         .stat-row .label {
             font-size: 11px;
             font-weight: 800;
-            color: #636E72;
+            color: #A0A0B0;
             width: 40px;
             text-align: right;
         }
         .stat-track {
             flex: 1;
             height: 10px;
-            background: #DFE6E9;
+            background: #3A3A4A;
             border-radius: 5px;
             overflow: hidden;
-            border: 1px solid #B2BEC3;
+            border: 1px solid #555;
         }
         .stat-fill {
             height: 100%;
@@ -181,9 +181,9 @@
             cursor: default;
         }
         .btn-locked {
-            background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
-            border-color: #95A5A6;
-            color: #95A5A6;
+            background: linear-gradient(180deg, #3A3A4A, #2A2A3A);
+            border-color: #707080;
+            color: #707080;
             cursor: not-allowed;
         }
 
@@ -236,7 +236,7 @@
     <div class="shop-frame">
         <div class="shop-header">
             <h1>SHOP</h1>
-            <div class="gold-badge" id="gold-display">$0</div>
+            <div class="gold-badge" id="gold-display"><img src="cash.png" style="height:18px;vertical-align:middle;margin-right:4px">0</div>
             <div class="close-x" onclick="closeShop()">X</div>
         </div>
         <div class="shop-body" id="weapons-grid"></div>
@@ -313,7 +313,7 @@
         }
 
         function render() {
-            document.getElementById('gold-display').innerHTML = '$' + fmt(state.gold);
+            document.getElementById('gold-display').innerHTML = '<img src="cash.png" style="height:18px;vertical-align:middle;margin-right:4px">' + fmt(state.gold);
             const grid = document.getElementById('weapons-grid');
             grid.innerHTML = '';
 
@@ -448,13 +448,17 @@
         setTimeout(_doFocusGame, 300);
 
         // Request variable sync from Portals after iframe is loaded
+        function requestSync() {
+            if (!sdk) return;
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: 'hud_sync',
+                TaskTargetState: 'SetAnyToActive'
+            }));
+        }
         if (sdk) {
-            setTimeout(function() {
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: 'hud_sync',
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-            }, 500);
+            setTimeout(requestSync, 300);
+            setTimeout(requestSync, 1000);
+            setTimeout(requestSync, 2500);
         }
 
         const p=new URLSearchParams(window.location.search);
