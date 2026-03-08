@@ -501,7 +501,7 @@
             } catch(e) {}
         }
 
-        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false };
+        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false, pendingClaim: false, claimRetryId: null };
         var myUsername = '';
 
         /* ---- MULTIPLAYER VALUE PARSER ---- */
@@ -560,6 +560,81 @@
                 }
             } catch(e2) {}
             return 0;
+        }
+
+        function anyPlayerActive(raw) {
+            if (raw === undefined || raw === null || raw === '') return false;
+            if (typeof raw !== 'string') return (parseFloat(raw) || 0) > 0;
+
+            raw = raw.trim();
+            if (!raw) return false;
+            if (raw.charAt(0) !== '{') return (parseFloat(raw) || 0) > 0;
+
+            try {
+                var obj = JSON.parse(raw);
+                if (typeof obj === 'object' && obj !== null) {
+                    var keys = Object.keys(obj);
+                    for (var i = 0; i < keys.length; i++) {
+                        if ((parseFloat(obj[keys[i]]) || 0) > 0) return true;
+                    }
+                    return false;
+                }
+            } catch(e) {}
+
+            try {
+                var inner = raw.substring(1, raw.length - 1).trim();
+                if (!inner) return false;
+                var entries = inner.split(/[&,]/);
+                for (var j = 0; j < entries.length; j++) {
+                    var entry = entries[j].trim();
+                    if (!entry) continue;
+                    var sep = entry.indexOf('=');
+                    if (sep < 0) sep = entry.indexOf(':');
+                    if (sep < 0) continue;
+                    var v = entry.substring(sep + 1).trim().replace(/^[\"']|[\"']$/g, '');
+                    if ((parseFloat(v) || 0) > 0) return true;
+                }
+            } catch(e2) {}
+            return false;
+        }
+
+        function stopClaimRetry() {
+            if (state.claimRetryId) {
+                clearInterval(state.claimRetryId);
+                state.claimRetryId = null;
+            }
+        }
+
+        function startClaimRetry() {
+            if (state.claimRetryId || !sdk) return;
+            state.claimRetryId = setInterval(function() {
+                if (!state.pendingClaim || state.baseId > 0) {
+                    stopClaimRetry();
+                    return;
+                }
+                attemptVacancyAwareClaim(lastHudParams);
+            }, 4000);
+        }
+
+        function pickOpenBase(params) {
+            if (!params) return 0;
+            var open = [];
+            for (var i = 1; i <= 10; i++) {
+                if (!anyPlayerActive(params['Base_' + i + '_Owner'])) open.push(i);
+            }
+            if (!open.length) return 0;
+            return open[Math.floor(Math.random() * open.length)];
+        }
+
+        function attemptVacancyAwareClaim(params) {
+            if (!sdk || !state.pendingClaim || state.baseId > 0 || !params) return false;
+            var baseNum = pickOpenBase(params);
+            if (!baseNum) return false;
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: 'claim_base_' + baseNum,
+                TaskTargetState: 'SetAnyToActive'
+            }));
+            return true;
         }
 
         const valGold = document.getElementById('val-gold');
@@ -1028,6 +1103,8 @@
             }, 1000);
         }
 
+        var lastHudParams = null;
+
         /* ---- MESSAGE DEDUP ---- */
         var lastMsgHash = '';
         var lastMsgTime = 0;
@@ -1132,37 +1209,32 @@
                             pop(document.getElementById('pill-gold'));
                         }
                     }
-                    // Parse base ID — auto-repopulate on claim (baseId 0 -> N)
+                    // Parse base ID - auto-repopulate on claim (baseId 0 -> N)
+                    var newBaseId = state.baseId;
                     if (params.player_Base_num !== undefined) {
                         console.log('[HUD] player_Base_num RAW=' + params.player_Base_num + ' parsed=' + parseVarValue(params.player_Base_num));
-                        var newBaseId = Math.round(parseVarValue(params.player_Base_num));
+                        newBaseId = Math.round(parseVarValue(params.player_Base_num));
                         // Fallback: if parseVarValue returned 0 but raw value has a number, extract it
                         if (newBaseId === 0 && params.player_Base_num !== '0') {
                             var bidMatch = params.player_Base_num.match(/[=:](\d+)/);
                             if (bidMatch) newBaseId = parseInt(bidMatch[1]) || 0;
                         }
-                        if (state.baseId <= 0 && newBaseId > 0) {
-                            // Base just claimed — show banner and repopulate
-                            state.claimedBase = newBaseId;
-                            setTimeout(function() { repopulateBase(newBaseId); }, 800);
-                        }
-                        state.baseId = newBaseId;
-                        // If base ID is 0, start a retry loop to keep claiming until it works
-                        if (newBaseId === 0 && sdk && !state._claimInterval) {
-                            state._claimInterval = setInterval(function() {
-                                if (state.baseId > 0) {
-                                    clearInterval(state._claimInterval);
-                                    state._claimInterval = null;
-                                    return;
-                                }
-                                tryClaimBase();
-                            }, 4000);
-                        }
-                        // Also clear the interval if base was just claimed
-                        if (newBaseId > 0 && state._claimInterval) {
-                            clearInterval(state._claimInterval);
-                            state._claimInterval = null;
-                        }
+                    } else if (params.My_Base_ID !== undefined) {
+                        newBaseId = Math.round(parseVarValue(params.My_Base_ID));
+                    }
+                    if (state.baseId <= 0 && newBaseId > 0) {
+                        // Base just claimed - show banner and repopulate
+                        state.claimedBase = newBaseId;
+                        setTimeout(function() { repopulateBase(newBaseId); }, 800);
+                    }
+                    state.baseId = newBaseId;
+                    if (state.baseId > 0) {
+                        state.pendingClaim = false;
+                        stopClaimRetry();
+                    }
+                    lastHudParams = params;
+                    if (state.pendingClaim && state.baseId <= 0) {
+                        attemptVacancyAwareClaim(params);
                     }
                     // Parse carrying brainrot from server variable
                     if (params.My_Carrying_Brainrot !== undefined) {
@@ -1296,23 +1368,13 @@
                     var baseNum = parseInt(msg.substring(11)) || 0;
                     if (baseNum > 0) repopulateBase(baseNum);
                 } else if (msg === 'claim:init') {
-                    // Room says player just logged in — always reclaim (server resets player_Base_num to 0)
+                    console.log('[HUD] claim:init received - vacancy-aware reclaim');
                     state.baseId = 0;
-                    {
-                        console.log('[HUD] claim:init received — resetting baseId and claiming');
-                        tryClaimBase();
-                        // Start retry loop in case first attempt fails
-                        if (!state._claimInterval) {
-                            state._claimInterval = setInterval(function() {
-                                if (state.baseId > 0) {
-                                    clearInterval(state._claimInterval);
-                                    state._claimInterval = null;
-                                    return;
-                                }
-                                tryClaimBase();
-                            }, 4000);
-                        }
-                    }
+                    state.pendingClaim = true;
+                    attemptVacancyAwareClaim(lastHudParams);
+                    startClaimRetry();
+                    updateDisplay();
+                    checkTutorial();
                 }
             });
         }
