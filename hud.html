@@ -626,17 +626,6 @@
             return open[Math.floor(Math.random() * open.length)];
         }
 
-        function inferLocalOwnedBase(params) {
-            if (!params) return 0;
-            var ownedBase = 0;
-            for (var i = 1; i <= 10; i++) {
-                if (!anyPlayerActive(params['Base_' + i + '_Owner'])) continue;
-                if (ownedBase > 0) return 0;
-                ownedBase = i;
-            }
-            return ownedBase;
-        }
-
         function attemptVacancyAwareClaim(params) {
             if (!sdk || !state.pendingClaim || state.baseId > 0 || !params) return false;
             var baseNum = pickOpenBase(params);
@@ -1232,13 +1221,6 @@
                         }
                     } else if (params.My_Base_ID !== undefined) {
                         newBaseId = Math.round(parseVarValue(params.My_Base_ID));
-                    }
-                    if (newBaseId <= 0) {
-                        var inferredBaseId = inferLocalOwnedBase(params);
-                        if (inferredBaseId > 0) {
-                            console.log('[HUD] inferred baseId from owner vars: ' + inferredBaseId);
-                            newBaseId = inferredBaseId;
-                        }
                     }
                     if (state.baseId <= 0 && newBaseId > 0) {
                         // Base just claimed - show banner and repopulate
