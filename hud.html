@@ -501,25 +501,13 @@
             } catch(e) {}
         }
 
-        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false, pendingClaim: false, claimRetryId: null };
+        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false };
         var myUsername = '';
 
         /* ---- MULTIPLAYER VALUE PARSER ---- */
         // Portals sends multiplayer vars as objects like {"player1":val1,"player2":val2}
         // or with = signs like {"player1"="val1","player2"="val2"}
         // This extracts only the local player's value using myUsername
-        // Claim base: pick random base, activate its quest
-        function tryClaimBase() {
-            if (!sdk || state.baseId > 0) return;
-            var rndBase = Math.floor(Math.random() * 10) + 1;
-            var questName = 'claim_base_' + rndBase;
-            console.log('[HUD] tryClaimBase: ' + questName + ' (SetAnyToActive)');
-            sdk.sendMessageToUnity(JSON.stringify({
-                TaskName: questName,
-                TaskTargetState: 'SetAnyToActive'
-            }));
-        }
-
         function parseVarValue(raw) {
             if (typeof raw !== 'string') return parseFloat(raw) || 0;
             raw = raw.trim();
@@ -560,81 +548,6 @@
                 }
             } catch(e2) {}
             return 0;
-        }
-
-        function anyPlayerActive(raw) {
-            if (raw === undefined || raw === null || raw === '') return false;
-            if (typeof raw !== 'string') return (parseFloat(raw) || 0) > 0;
-
-            raw = raw.trim();
-            if (!raw) return false;
-            if (raw.charAt(0) !== '{') return (parseFloat(raw) || 0) > 0;
-
-            try {
-                var obj = JSON.parse(raw);
-                if (typeof obj === 'object' && obj !== null) {
-                    var keys = Object.keys(obj);
-                    for (var i = 0; i < keys.length; i++) {
-                        if ((parseFloat(obj[keys[i]]) || 0) > 0) return true;
-                    }
-                    return false;
-                }
-            } catch(e) {}
-
-            try {
-                var inner = raw.substring(1, raw.length - 1).trim();
-                if (!inner) return false;
-                var entries = inner.split(/[&,]/);
-                for (var j = 0; j < entries.length; j++) {
-                    var entry = entries[j].trim();
-                    if (!entry) continue;
-                    var sep = entry.indexOf('=');
-                    if (sep < 0) sep = entry.indexOf(':');
-                    if (sep < 0) continue;
-                    var v = entry.substring(sep + 1).trim().replace(/^[\"']|[\"']$/g, '');
-                    if ((parseFloat(v) || 0) > 0) return true;
-                }
-            } catch(e2) {}
-            return false;
-        }
-
-        function stopClaimRetry() {
-            if (state.claimRetryId) {
-                clearInterval(state.claimRetryId);
-                state.claimRetryId = null;
-            }
-        }
-
-        function startClaimRetry() {
-            if (state.claimRetryId || !sdk) return;
-            state.claimRetryId = setInterval(function() {
-                if (!state.pendingClaim || state.baseId > 0) {
-                    stopClaimRetry();
-                    return;
-                }
-                attemptVacancyAwareClaim(lastHudParams);
-            }, 4000);
-        }
-
-        function pickOpenBase(params) {
-            if (!params) return 0;
-            var open = [];
-            for (var i = 1; i <= 10; i++) {
-                if (!anyPlayerActive(params['Base_' + i + '_Owner'])) open.push(i);
-            }
-            if (!open.length) return 0;
-            return open[Math.floor(Math.random() * open.length)];
-        }
-
-        function attemptVacancyAwareClaim(params) {
-            if (!sdk || !state.pendingClaim || state.baseId > 0 || !params) return false;
-            var baseNum = pickOpenBase(params);
-            if (!baseNum) return false;
-            sdk.sendMessageToUnity(JSON.stringify({
-                TaskName: 'claim_base_' + baseNum,
-                TaskTargetState: 'SetAnyToActive'
-            }));
-            return true;
         }
 
         const valGold = document.getElementById('val-gold');
@@ -1103,8 +1016,6 @@
             }, 1000);
         }
 
-        var lastHudParams = null;
-
         /* ---- MESSAGE DEDUP ---- */
         var lastMsgHash = '';
         var lastMsgTime = 0;
@@ -1139,31 +1050,6 @@
                     updateDisplay();
                     return;
                 } catch(e) {}
-                // avail:0,1,0,... — base availability from room (0=open, 1=taken)
-                // Pick lowest open base and send claim quest to Portals
-                if (msg.startsWith('avail:')) {
-                    console.log('[HUD] avail raw: ' + msg);
-                    console.log('[HUD] myUsername=' + myUsername + ' baseId=' + state.baseId);
-                    if (state.baseId > 0) return; // already have a base
-                    var vals = msg.substring(6).split(';');
-                    console.log('[HUD] avail vals count=' + vals.length + ' vals[0]=' + vals[0]);
-                    for (var ai = 0; ai < vals.length; ai++) {
-                        var pv = parseVarValue(vals[ai]);
-                        console.log('[HUD] avail[' + ai + '] raw=' + vals[ai] + ' parsed=' + pv);
-                        if (pv === 0) {
-                            var claimNum = ai + 1;
-                            console.log('[HUD] Auto-claiming base ' + claimNum);
-                            if (sdk) {
-                                sdk.sendMessageToUnity(JSON.stringify({
-                                    TaskName: 'claim_base_' + claimNum,
-                                    TaskTargetState: 'SetAnyToActive'
-                                }));
-                            }
-                            break;
-                        }
-                    }
-                    return;
-                }
                 // String-based messages
                 if (msg.startsWith('inv:')) {
                     // Parse key=value pairs: inv:username=bob&Gold=123&health={"bob"=100&"Hugh"=175}
@@ -1228,14 +1114,6 @@
                         setTimeout(function() { repopulateBase(newBaseId); }, 800);
                     }
                     state.baseId = newBaseId;
-                    if (state.baseId > 0) {
-                        state.pendingClaim = false;
-                        stopClaimRetry();
-                    }
-                    lastHudParams = params;
-                    if (state.pendingClaim && state.baseId <= 0) {
-                        attemptVacancyAwareClaim(params);
-                    }
                     // Parse carrying brainrot from server variable
                     if (params.My_Carrying_Brainrot !== undefined) {
                         var carryNum = Math.round(parseVarValue(params.My_Carrying_Brainrot));
@@ -1367,15 +1245,6 @@
                 } else if (msg.startsWith('repopulate:')) {
                     var baseNum = parseInt(msg.substring(11)) || 0;
                     if (baseNum > 0) repopulateBase(baseNum);
-                } else if (msg === 'claim:init') {
-                    console.log('[HUD] claim:init received - vacancy-aware reclaim');
-                    state.baseId = 0;
-                    state.pendingClaim = true;
-                    attemptVacancyAwareClaim(lastHudParams);
-                    startClaimRetry();
-                    updateDisplay();
-                    checkTutorial();
-                }
             });
         }
 
@@ -1946,3 +1815,4 @@
     </script>
 </body>
 </html>
+
