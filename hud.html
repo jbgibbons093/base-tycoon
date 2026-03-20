@@ -455,6 +455,13 @@
 
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+        // DEBUG: visible status indicator
+        var _dbg = document.createElement('div');
+        _dbg.id = 'dbg';
+        _dbg.style.cssText = 'position:fixed;top:4px;left:4px;background:rgba(0,0,0,0.8);color:lime;font:11px monospace;padding:4px 8px;z-index:99999;border-radius:4px;';
+        _dbg.textContent = 'SDK: ' + (sdk ? 'OK' : 'NULL');
+        document.body.appendChild(_dbg);
+        function dbg(msg) { _dbg.textContent = msg; }
 
         // ---- SOUND SYSTEM (Web Audio API — HUD has noPointerEvents so no user gestures) ----
         // Match farming sim HUD pattern: create AudioContext eagerly, resume before each play
@@ -1788,14 +1795,16 @@
         /* ---- INIT ---- */
         updateDisplay();
         if (sdk) {
+            dbg('SDK OK, resetting brainrots...');
             resetAllBrainrots();
             // Reset ZC_ variables server-side on login
             sdk.sendMessageToUnity(JSON.stringify({
                 TaskName: 'reset_zc_login',
                 TaskTargetState: 'SetNotActiveToActive'
             }));
+            dbg('Reset sent, timers in 7s...');
             // Start spawn timers after reset completes (~6s for 99 brainrots at 60ms each)
-            setTimeout(function() { startSpawnTimers(); }, 7000);
+            setTimeout(function() { dbg('Starting spawn timers!'); startSpawnTimers(); dbg('Timers running'); }, 7000);
             startGoldAccumulator();
             // Load tutorial progress from storage
             loadTutorialStorage(function() {
