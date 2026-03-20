@@ -1,0 +1,1824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Brainrot Tycoon HUD</title>
+    <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0; padding: 0;
+            background: transparent !important;
+            overflow: hidden;
+            font-family: 'Nunito', sans-serif;
+            color: white;
+            user-select: none;
+            -webkit-text-stroke: 0.5px rgba(0,0,0,0.15);
+        }
+
+        /* ---- BOTTOM-LEFT HUD STACK ---- */
+        .hud-stack {
+            position: fixed;
+            bottom: 120px;
+            left: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 6px;
+            z-index: 10;
+        }
+
+        .currency-pill {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 16px 8px 10px;
+            border-radius: 10px;
+            border: 3px solid rgba(0,0,0,0.25);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.15);
+            position: relative;
+            min-width: 200px;
+        }
+        .currency-pill .icon-circle {
+            width: 48px; height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            border: 3px solid rgba(0,0,0,0.2);
+            flex-shrink: 0;
+        }
+        .currency-pill .val {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 28px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
+            letter-spacing: 0.5px;
+        }
+
+        /* Cash pill */
+        .pill-gold {
+            background: linear-gradient(180deg, #5BDB5B 0%, #2EAA2E 100%);
+            border-color: #1E8A1E;
+        }
+        .pill-gold .icon-circle { background: #228B22; border-color: #1A6B1A; }
+        .pill-gold .val { color: #0A2A0A; }
+
+        /* Cash stack icon (CSS-drawn) */
+        .cash-icon {
+            width: 26px; height: 20px;
+            position: relative;
+        }
+        .cash-bill {
+            position: absolute;
+            width: 22px; height: 10px;
+            border-radius: 2px;
+            border: 1.5px solid rgba(0,0,0,0.3);
+            left: 50%; transform: translateX(-50%);
+        }
+        .cash-bill:nth-child(1) { background: #1B5E20; bottom: 0; }
+        .cash-bill:nth-child(2) { background: #2E7D32; bottom: 4px; }
+        .cash-bill:nth-child(3) { background: #43A047; bottom: 8px; }
+        .cash-bill .dollar {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8px;
+            font-weight: 900;
+            color: rgba(255,255,255,0.8);
+            font-family: 'Nunito', sans-serif;
+        }
+
+        /* ---- CARRY BANNER (below cash in stack) ---- */
+        .carry-banner {
+            padding: 4px 14px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #FFB347 0%, #FF8C00 100%);
+            border: 3px solid #CC6600;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 14px;
+            color: #3A1800;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+            display: none;
+            white-space: nowrap;
+        }
+        .carry-banner.show { display: block; }
+
+        /* ---- CLAIM BASE BANNER ---- */
+        .claim-banner {
+            padding: 8px 20px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #74B9FF 0%, #0984E3 100%);
+            border: 3px solid #0660A0;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 15px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            display: none;
+            white-space: nowrap;
+            animation: claimPulse 2.5s ease-in-out infinite;
+        }
+        .claim-banner.show { display: block; }
+        @keyframes claimPulse {
+            0%, 100% { box-shadow: 0 3px 0 rgba(0,0,0,0.2); }
+            50% { box-shadow: 0 3px 0 rgba(0,0,0,0.2), 0 0 12px rgba(9,132,227,0.4); }
+        }
+        /* ---- SPECTATOR BANNER ---- */
+        .spectator-banner {
+            padding: 6px 18px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #636E72 0%, #2D3436 100%);
+            border: 3px solid #1A1A2E;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 15px;
+            color: #DFE6E9;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+            display: none;
+            white-space: nowrap;
+        }
+        .spectator-banner.show { display: block; }
+
+        /* ---- SPAWN TIMERS (vertical, above notifs) ---- */
+        .spawn-strip {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-start;
+        }
+        .spawn-pip {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            position: relative;
+        }
+        .spawn-pip .pip-name {
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 11px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+            white-space: nowrap;
+            min-width: 90px;
+            text-align: right;
+        }
+        .spawn-pip .pip-ring {
+            position: relative;
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+        .spawn-pip .pip-ring svg {
+            width: 28px;
+            height: 28px;
+            transform: rotate(-90deg);
+        }
+        .spawn-pip .pip-ring-bg {
+            fill: none;
+            stroke: rgba(0,0,0,0.3);
+            stroke-width: 3;
+        }
+        .spawn-pip .pip-ring-fill {
+            fill: none;
+            stroke-width: 3.5;
+            stroke-linecap: round;
+            transition: stroke-dashoffset 0.9s linear;
+        }
+        .spawn-pip .pip-secs {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Nunito', sans-serif;
+            font-weight: 900;
+            font-size: 9px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+        }
+        .spawn-pip.full .pip-name {
+            opacity: 0.4;
+        }
+        .spawn-pip.full .pip-ring {
+            opacity: 0.4;
+        }
+
+        /* ---- NOTIFICATION FEED (above cash in stack) ---- */
+        .notif-container {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            align-items: flex-start;
+            pointer-events: none;
+        }
+        .notif {
+            padding: 5px 12px;
+            border-radius: 12px;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 12px;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+            white-space: nowrap;
+            animation: notifSlide 0.3s ease, notifOut 0.4s ease 3s forwards;
+        }
+        .notif-gold {
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border: 3px solid #CC8800;
+            color: #4A2800;
+        }
+        .notif-pickup {
+            background: linear-gradient(180deg, #FFB347, #FF8C00);
+            border: 3px solid #CC6600;
+            color: #3A1800;
+        }
+        .notif-deposit {
+            background: linear-gradient(180deg, #6EF06E, #2ECC40);
+            border: 3px solid #1FA030;
+            color: #0A3A0A;
+        }
+        .notif-spawn {
+            background: linear-gradient(180deg, #74B9FF, #3498DB);
+            border: 3px solid #2176AA;
+            color: #0A1A3A;
+        }
+        .notif-info {
+            background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
+            border: 3px solid #95A5A6;
+            color: #2C3E50;
+        }
+        .notif-error {
+            background: linear-gradient(180deg, #FF6B6B, #E74C3C);
+            border: 3px solid #C0392B;
+            color: #FFFFFF;
+        }
+        @keyframes notifSlide {
+            0% { transform: translateX(-80px); opacity: 0; }
+            70% { transform: translateX(3px); }
+            100% { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes notifOut {
+            to { opacity: 0; transform: translateX(-40px); }
+        }
+
+        /* ---- LEGACY TOAST (keep for compat) ---- */
+        .toast-container {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+            z-index: 30;
+        }
+        .toast {
+            padding: 8px 20px;
+            border-radius: 14px;
+            background: linear-gradient(180deg, #FFE44D, #FFB800);
+            border: 3px solid #CC8800;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 16px;
+            color: #4A2800;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
+            animation: toastPop 0.3s ease, toastOut 0.3s ease 2s forwards;
+            white-space: nowrap;
+        }
+        @keyframes toastPop {
+            0% { transform: scale(0.5); opacity: 0; }
+            70% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateY(-10px) scale(0.9); }
+        }
+
+        /* Pending gold sub-text */
+        .gold-pending {
+            font-family: 'Nunito', sans-serif;
+            font-size: 14px;
+            font-weight: 800;
+            color: #8B6914;
+            opacity: 0.8;
+            margin-top: -2px;
+        }
+        .gold-rate {
+            font-family: 'Nunito', sans-serif;
+            font-size: 12px;
+            font-weight: 700;
+            color: #8B6914;
+            opacity: 0.6;
+        }
+        .pill-gold .gold-row { display: flex; align-items: center; gap: 6px; }
+        .pill-gold .right-col { display: flex; flex-direction: column; }
+
+        /* Pop animation */
+        .pop { animation: popBounce 0.3s ease; }
+        @keyframes popBounce {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        /* Cash particle animation */
+        .cash-particle {
+            position: absolute;
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 16px;
+            font-weight: 900;
+            pointer-events: none;
+            z-index: 100;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            animation: cashFly 1s ease-out forwards;
+        }
+        .cash-particle.earn { color: #2ECC40; }
+        .cash-particle.spend { color: #E74C3C; }
+        @keyframes cashFly {
+            0% { opacity: 1; transform: translate(0, 0) scale(1); }
+            100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.5); }
+        }
+
+        /* ---- KILL NOTIFICATION ---- */
+        .notif-kill {
+            background: linear-gradient(180deg, #6EF06E, #2ECC40);
+            border: 3px solid #1FA030;
+            color: #0A3A0A;
+        }
+
+        /* ---- DEATH/KILL SCREEN FLASH ---- */
+        .screen-flash {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            pointer-events: none;
+            z-index: 50;
+            animation: flashFade 0.6s ease-out forwards;
+        }
+        .screen-flash.death { background: rgba(231, 76, 60, 0.35); }
+        .screen-flash.kill { background: rgba(46, 204, 64, 0.25); }
+        @keyframes flashFade {
+            0% { opacity: 1; }
+            100% { opacity: 0; }
+        }
+
+        /* ---- TUTORIAL NOTIFICATION ---- */
+        .tutorial-banner {
+            padding: 8px 20px;
+            border-radius: 16px;
+            background: linear-gradient(180deg, #74B9FF 0%, #0984E3 100%);
+            border: 3px solid #0660A0;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 15px;
+            color: white;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            white-space: nowrap;
+            display: none;
+            animation: tutorialPulse 2.5s ease-in-out infinite;
+        }
+        .tutorial-banner.show { display: block; }
+        @keyframes tutorialPulse {
+            0%, 100% { box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3); }
+            50% { box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 24px rgba(9,132,227,0.5); }
+        }
+
+        /* ---- CENTER KILL/DEATH TEXT ---- */
+        .center-alert {
+            position: fixed;
+            top: 30%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-family: 'Luckiest Guy', cursive;
+            font-size: 32px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.4), 0 0 20px rgba(0,0,0,0.3);
+            pointer-events: none;
+            z-index: 51;
+            animation: alertPop 0.4s ease, alertOut 0.4s ease 1.5s forwards;
+            white-space: nowrap;
+        }
+        .center-alert.death { color: #FF4444; }
+        .center-alert.kill { color: #2ECC40; }
+        @keyframes alertPop {
+            0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+            60% { transform: translate(-50%, -50%) scale(1.15); }
+            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+        }
+        @keyframes alertOut {
+            to { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+        }
+    </style>
+</head>
+<body>
+    <!-- BOTTOM-LEFT HUD STACK (top to bottom: timers, notifs, cash, carry) -->
+    <div class="hud-stack">
+        <div class="spawn-strip" id="spawn-strip"></div>
+
+        <!-- NOTIFICATION FEED (above cash) -->
+        <div class="notif-container" id="notifs"></div>
+
+        <!-- CASH PILL -->
+        <div class="currency-pill pill-gold" id="pill-gold">
+            <div class="icon-circle">
+                <img src="cash.png" style="height:40px;width:40px;object-fit:contain">
+            </div>
+            <div class="right-col">
+                <span class="val" id="val-gold">0</span>
+                <div class="gold-pending" id="gold-pending" style="display:none">+0 pending</div>
+                <div class="gold-rate" id="gold-rate" style="display:none">0/s</div>
+            </div>
+        </div>
+
+        <!-- CARRY BANNER (below cash) -->
+        <div class="carry-banner" id="carry-banner">
+            &#x1F9F8; Carrying <span id="carry-name">???</span> ($<span id="carry-gold">0</span>/s)
+        </div>
+
+        <!-- SPECTATOR BANNER -->
+        <div class="spectator-banner" id="spectator-banner">
+            &#x1F441; Spectator Mode — All bases taken
+        </div>
+    </div>
+
+    <!-- TOP CENTER BANNERS (stacked vertically) -->
+    <div style="position:fixed;top:12px;left:50%;transform:translateX(-50%);display:flex;flex-direction:column;align-items:center;gap:8px;z-index:40;pointer-events:none;">
+        <div class="claim-banner" id="claim-banner">
+            &#x1F3E0; Find a base and claim it!
+        </div>
+        <div class="tutorial-banner" id="tutorial-banner"></div>
+    </div>
+
+    <!-- TOAST (legacy) -->
+    <div class="toast-container" id="toasts"></div>
+
+    <script>
+        const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+        // DEBUG: visible status indicator
+        var _dbg = document.createElement('div');
+        _dbg.id = 'dbg';
+        _dbg.style.cssText = 'position:fixed;top:4px;left:4px;background:rgba(0,0,0,0.8);color:lime;font:11px monospace;padding:4px 8px;z-index:99999;border-radius:4px;';
+        _dbg.textContent = 'SDK: ' + (sdk ? 'OK' : 'NULL');
+        document.body.appendChild(_dbg);
+        function dbg(msg) { _dbg.textContent = msg; }
+
+        // ---- SOUND SYSTEM (Web Audio API — HUD has noPointerEvents so no user gestures) ----
+        // Match farming sim HUD pattern: create AudioContext eagerly, resume before each play
+        var _audioCtx = null;
+        var _audioBuffers = {};
+
+        (function() {
+            try {
+                _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch(e) {}
+            if (!_audioCtx) return;
+            var files = {
+                purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3',
+                uipop: 'ui-pop.mp3', harvest: 'harvest.mp3', talent: 'talent.mp3',
+                xp: 'xp-gain.mp3', cropready: 'cropready.mp3',
+                notification: 'notification.mp3', pickup: 'brainrot-collect.mp3',
+                deposit: 'deposit-brainrot.mp3', death: 'death.mp3', kill: 'kill.mp3'
+            };
+            for (var k in files) {
+                (function(key, url) {
+                    fetch(url)
+                        .then(function(r) { return r.arrayBuffer(); })
+                        .then(function(buf) { return _audioCtx.decodeAudioData(buf); })
+                        .then(function(decoded) { _audioBuffers[key] = decoded; })
+                        .catch(function() {});
+                })(k, files[k]);
+            }
+        })();
+
+        function playSound(type) {
+            try {
+                if (!_audioCtx || !_audioBuffers[type]) return;
+                if (_audioCtx.state === 'suspended') _audioCtx.resume();
+                var source = _audioCtx.createBufferSource();
+                var gain = _audioCtx.createGain();
+                source.buffer = _audioBuffers[type];
+                gain.gain.value = (type === 'click') ? 0.5 : 0.3;
+                source.connect(gain);
+                gain.connect(_audioCtx.destination);
+                source.start(0);
+            } catch(e) {}
+        }
+
+        let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false };
+        var myUsername = '';
+
+        /* ---- MULTIPLAYER VALUE PARSER ---- */
+        // Portals sends multiplayer vars as objects like {"player1":val1,"player2":val2}
+        // or with = signs like {"player1"="val1","player2"="val2"}
+        // This extracts only the local player's value using myUsername
+        function parseVarValue(raw) {
+            if (typeof raw !== 'string') return parseFloat(raw) || 0;
+            raw = raw.trim();
+            if (raw.charAt(0) !== '{') return parseFloat(raw) || 0;
+            if (!myUsername) return parseFloat(raw) || 0;
+            // Try standard JSON first
+            try {
+                var obj = JSON.parse(raw);
+                if (typeof obj === 'object' && obj !== null) {
+                    // Case-insensitive username match
+                    var keys = Object.keys(obj);
+                    for (var i = 0; i < keys.length; i++) {
+                        if (keys[i].toLowerCase() === myUsername.toLowerCase()) {
+                            return parseFloat(obj[keys[i]]) || 0;
+                        }
+                    }
+                    return 0;
+                }
+                return parseFloat(raw) || 0;
+            } catch(e) {}
+            // Fallback: parse Portals format {"name"="val"&"name2"="val2"} or comma-separated
+            try {
+                var inner = raw.substring(1, raw.length - 1).trim();
+                // Split on & or , (Portals may use either as separator inside braces)
+                var entries = inner.split(/[&,]/);
+                for (var j = 0; j < entries.length; j++) {
+                    var entry = entries[j].trim();
+                    if (!entry) continue;
+                    // Split on first = or :
+                    var sep = entry.indexOf('=');
+                    if (sep < 0) sep = entry.indexOf(':');
+                    if (sep < 0) continue;
+                    var k = entry.substring(0, sep).trim().replace(/^["']|["']$/g, '');
+                    var v = entry.substring(sep + 1).trim().replace(/^["']|["']$/g, '');
+                    if (k.toLowerCase() === myUsername.toLowerCase()) {
+                        return parseFloat(v) || 0;
+                    }
+                }
+            } catch(e2) {}
+            return 0;
+        }
+
+        const valGold = document.getElementById('val-gold');
+        const carryBanner = document.getElementById('carry-banner');
+        const carryGoldEl = document.getElementById('carry-gold');
+        const carryNameEl = document.getElementById('carry-name');
+        const toastContainer = document.getElementById('toasts');
+        const notifContainer = document.getElementById('notifs');
+
+        /* ---- FORMAT ---- */
+        function fmt(n) {
+            if (n >= 1e9) return (n/1e9).toFixed(1)+'B';
+            if (n >= 1e6) return (n/1e6).toFixed(1)+'M';
+            if (n >= 1e3) return (n/1e3).toFixed(1)+'K';
+            return Math.floor(n).toLocaleString();
+        }
+
+        /* ---- DISPLAY ---- */
+        function updateDisplay() {
+            valGold.textContent = fmt(state.gold);
+            if (state.carrying > 0) {
+                carryBanner.classList.add('show');
+                carryNameEl.textContent = state.carryName || '???';
+                carryGoldEl.textContent = state.carryGold;
+            } else {
+                carryBanner.classList.remove('show');
+            }
+            // Claimed base banner — shown after auto-claim, hidden on first pickup
+            var claimBanner = document.getElementById('claim-banner');
+            if (claimBanner) {
+                if (state.claimedBase > 0 && !state.claimDismissed) {
+                    claimBanner.innerHTML = '&#x1F3E0; You claimed Base ' + state.claimedBase + '!';
+                    claimBanner.classList.add('show');
+                } else {
+                    claimBanner.classList.remove('show');
+                }
+            }
+            // Spectator banner
+            var specBanner = document.getElementById('spectator-banner');
+            if (specBanner) {
+                if (state.spectator && state.baseId <= 0) specBanner.classList.add('show');
+                else specBanner.classList.remove('show');
+            }
+        }
+
+        function pop(el) {
+            el.classList.remove('pop');
+            void el.offsetWidth;
+            el.classList.add('pop');
+        }
+
+        /* ---- CASH PARTICLE BURST ---- */
+        function spawnCashParticles(type, count) {
+            // type: 'earn' (green $) or 'spend' (red -$)
+            count = count || 6;
+            var pill = document.getElementById('pill-gold');
+            if (!pill) return;
+            for (var i = 0; i < count; i++) {
+                (function(idx) {
+                    setTimeout(function() {
+                        var p = document.createElement('div');
+                        p.className = 'cash-particle ' + type;
+                        p.textContent = type === 'earn' ? '$' : '-$';
+                        // Random direction — mostly upward
+                        var dx = (Math.random() - 0.5) * 80;
+                        var dy = -(30 + Math.random() * 60);
+                        p.style.setProperty('--dx', dx + 'px');
+                        p.style.setProperty('--dy', dy + 'px');
+                        p.style.left = (10 + Math.random() * 30) + 'px';
+                        p.style.top = '0px';
+                        pill.appendChild(p);
+                        setTimeout(function() { if (p.parentNode) p.remove(); }, 1100);
+                    }, idx * 60);
+                })(i);
+            }
+        }
+
+        /* ---- NOTIFICATION SYSTEM ---- */
+        // types: gold, pickup, deposit, spawn, info
+        function notify(text, type) {
+            type = type || 'info';
+            const el = document.createElement('div');
+            el.className = 'notif notif-' + type;
+            el.textContent = text;
+            notifContainer.appendChild(el);
+            // Cap at 5 visible
+            while (notifContainer.children.length > 5) {
+                notifContainer.removeChild(notifContainer.firstChild);
+            }
+            setTimeout(function() { if (el.parentNode) el.remove(); }, 3500);
+        }
+
+        /* ---- DEATH/KILL ALERTS ---- */
+        function showScreenFlash(type) {
+            var flash = document.createElement('div');
+            flash.className = 'screen-flash ' + type;
+            document.body.appendChild(flash);
+            setTimeout(function() { if (flash.parentNode) flash.remove(); }, 700);
+        }
+
+        function showCenterAlert(text, type) {
+            var alert = document.createElement('div');
+            alert.className = 'center-alert ' + type;
+            alert.textContent = text;
+            document.body.appendChild(alert);
+            setTimeout(function() { if (alert.parentNode) alert.remove(); }, 2000);
+        }
+
+        function showDeathAlert(goldLost) {
+            showScreenFlash('death');
+            showCenterAlert('YOU DIED', 'death');
+            playSound('death');
+            state.hasDied = true;
+            // Wipe uncollected pending gold on death
+            var lostPending = Math.floor(state.pendingGold);
+            state.pendingGold = 0;
+            updateGoldDisplay();
+            if (goldLost) {
+                var totalLost = parseInt(goldLost) + (lostPending > 0 ? lostPending : 0);
+                notify('Lost $' + fmt(totalLost) + ' cash!', 'error');
+            } else {
+                notify('You died! Lost all your cash!', 'error');
+            }
+            spawnCashParticles('spend', 6);
+        }
+
+        function showKillAlert(goldGained) {
+            showScreenFlash('kill');
+            showCenterAlert('KILL! +$' + (goldGained || '?'), 'kill');
+            playSound('kill');
+            notify('+$' + (goldGained || '?') + ' cash from kill!', 'kill');
+            spawnCashParticles('earn', 8);
+            pop(document.getElementById('pill-gold'));
+        }
+
+        // Legacy toast (still works for old messages)
+        function showToast(text) {
+            const t = document.createElement('div');
+            t.className = 'toast';
+            t.textContent = text;
+            toastContainer.appendChild(t);
+            setTimeout(function() { if (t.parentNode) t.remove(); }, 2500);
+        }
+
+        /* ---- SPAWN SYSTEM ---- */
+        const ZONES = {
+            Beach: ["bv_Banana","bv_BurbaloniLuliloli","bv_Noobini_Pizzanini","bv_Tim_Cheese","bv_Image_removebg_preview_29","bv_Fluriflura","bv_Pandaccini_Bananini","bv_Puffaball","bv_Liliri_Lalira","bv_Pipi_Kiwi"],
+            Meadow: ["bv_Pakrah","bv_Lionel_Cactuseli","bv_Cocofanto","bv_ChimpanziniBananini","bv_Africa_by_toto_to_sahur","bv_Ballerinolololo","bv_POTATO","bv_Cocosini_Mama"],
+            Forest: ["bv_PIGEONS_ARE_SPIES_MADE_BY","bv_Teenage_turtle","bv_Dolphini_Jetskini","bv_Slitta_Sprinta","bv_Trippi_Troppi","bv_Clickerinocrabo","bv_Astronaut","bv_Cant_come_up_with_a_funny","bv_Lol_Fridge"],
+            Jungle: ["bv_Boneca_Ambalabu","bv_Cupcake_Koala","bv_Lavadorito_Spinito","bv_Cacto_Hipopotamo1","bv_TaTas","bv_Pintealotto","bv_Moby","bv_Watermelon_Doggy","bv_Garamadundung","bv_Trenostruzzo_Turbo_3000"],
+            Cave: ["bv_Cappuccino_Assassino","bv_Burguro_And_Fryuro","bv_AvocadiniGuffo","bv_Homicidio_doloso","bv_Brri_Brri_Bicus_Dicus_Bom","bv_Skibidi_toilet"],
+            Crystal_Cove: ["bv_PeroLemonfulldetial","bv_Avocadini_Antilopini","bv_Dolphin_But_Banana","bv_wombo","bv_Berry_berry_bicus_dickus","bv_Cerberus"],
+            Boss_Arena: ["bv_NewBlueberrinni","bv_Quackula","bv_Sig_ma_Boy","bv_GOAT","bv_Strawberrelli_Flamingelli","bv_Pi_Pi_Watermelon","bv_GlorboFruttodrillo","bv_Time_moving_slow","bv_Quivioli_Ameleonni","bv_Lebron_james","bv_SigmaGirl","bv_Tartaruga_Cisternaaaa"],
+            Volcano: ["bv_Tracoducotulu","bv_Toiletto","bv_Mythic_lucky_block","bv_Ballerina_cappucinaaaa21pct","bv_King_von","bv_Jacko_Spaventosa","bv_Travis_scott","bv_Cavallo_Virtuoso","bv_Lil_wayne","bv_Bombardiro_Crocodilo","bv_Te_Te_Te_Sahur","bv_Carti"],
+            Ancient_Ruins: ["bv_Tralalita","bv_Everybody_hates_Chihuanin","bv_TractorDino","bv_BrainrotGodLuckyBlock","bv_Tukanno_Bananno","bv_Gorillo_Watermelondrillo","bv_Money_Money_Man","bv_Matteofr","bv_Trippi_Troppi_Troppa_Trip"],
+            Sky_Platform: ["bv_Dragon_Gingerini","bv_Graipuss","bv_TangTangVfx","bv_Nuclearo_Dinosauro","bv_LasTralaleritas","bv_Job","bv_Los_Tralaleritos","bv_Chicliterita_bicicliterit","bv_SecretLuckyBlock","bv_KetupatKepat","bv_La_vacca_no_effects"],
+            The_Void: ["bv_Chicleteira","bv_TralaleroTralala","bv_Strawberryelephant","bv_Magi_Ribbitini","bv_Meowl","bv_Money_money_puggy"]
+        };
+
+        /* ---- GOLD PER SECOND (from brainrot_economy.xlsx) ---- */
+        var GOLD_PER_SECOND = {
+            'bv_Banana': 1.3, 'bv_BurbaloniLuliloli': 1.4, 'bv_Noobini_Pizzanini': 1.9,
+            'bv_Tim_Cheese': 1.9, 'bv_Image_removebg_preview_29': 2.4, 'bv_Fluriflura': 1.7,
+            'bv_Pandaccini_Bananini': 2.0, 'bv_Puffaball': 2.5, 'bv_Liliri_Lalira': 2.7,
+            'bv_Pipi_Kiwi': 1.3, 'bv_Pakrah': 1.4, 'bv_Lionel_Cactuseli': 1.8,
+            'bv_Cocofanto': 1.1, 'bv_ChimpanziniBananini': 1.7,
+            'bv_Africa_by_toto_to_sahur': 2.8, 'bv_Ballerinolololo': 2.6,
+            'bv_POTATO': 1.0, 'bv_Cocosini_Mama': 1.2,
+            'bv_PIGEONS_ARE_SPIES_MADE_BY': 7.4, 'bv_Teenage_turtle': 9.5,
+            'bv_Dolphini_Jetskini': 7.4, 'bv_Slitta_Sprinta': 6.8,
+            'bv_Trippi_Troppi': 7.2, 'bv_Clickerinocrabo': 7.4,
+            'bv_Astronaut': 6.4, 'bv_Cant_come_up_with_a_funny': 8.9, 'bv_Lol_Fridge': 8.8,
+            'bv_Boneca_Ambalabu': 9.4, 'bv_Cupcake_Koala': 5.8,
+            'bv_Lavadorito_Spinito': 7.9, 'bv_Cacto_Hipopotamo1': 9.0,
+            'bv_TaTas': 5.4, 'bv_Pintealotto': 5.3, 'bv_Moby': 5.4,
+            'bv_Watermelon_Doggy': 9.3, 'bv_Garamadundung': 9.2,
+            'bv_Trenostruzzo_Turbo_3000': 8.6, 'bv_Cappuccino_Assassino': 10.8,
+            'bv_Burguro_And_Fryuro': 16.8, 'bv_AvocadiniGuffo': 17.5,
+            'bv_Homicidio_doloso': 15.6, 'bv_Brri_Brri_Bicus_Dicus_Bom': 16.9,
+            'bv_Skibidi_toilet': 15.2, 'bv_PeroLemonfulldetial': 19.9,
+            'bv_Avocadini_Antilopini': 16.0, 'bv_Dolphin_But_Banana': 15.7,
+            'bv_wombo': 15.2, 'bv_Berry_berry_bicus_dickus': 19.3, 'bv_Cerberus': 14.9,
+            'bv_NewBlueberrinni': 25.0, 'bv_Quackula': 26.7, 'bv_Sig_ma_Boy': 33.3,
+            'bv_GOAT': 29.5, 'bv_Strawberrelli_Flamingelli': 24.3,
+            'bv_Pi_Pi_Watermelon': 25.3, 'bv_GlorboFruttodrillo': 25.5,
+            'bv_Time_moving_slow': 33.3, 'bv_Quivioli_Ameleonni': 22.5,
+            'bv_Lebron_james': 31.0, 'bv_SigmaGirl': 38.2,
+            'bv_Tartaruga_Cisternaaaa': 29.3, 'bv_Tracoducotulu': 44.5,
+            'bv_Toiletto': 59.7, 'bv_Mythic_lucky_block': 79.5,
+            'bv_Ballerina_cappucinaaaa21pct': 55.9, 'bv_King_von': 53.7,
+            'bv_Jacko_Spaventosa': 76.0, 'bv_Travis_scott': 78.4,
+            'bv_Cavallo_Virtuoso': 41.9, 'bv_Lil_wayne': 74.3,
+            'bv_Bombardiro_Crocodilo': 72.8, 'bv_Te_Te_Te_Sahur': 54.3,
+            'bv_Carti': 48.7, 'bv_Tralalita': 139.1,
+            'bv_Everybody_hates_Chihuanin': 145.6, 'bv_TractorDino': 94.2,
+            'bv_BrainrotGodLuckyBlock': 87.8, 'bv_Tukanno_Bananno': 97.2,
+            'bv_Gorillo_Watermelondrillo': 142.2, 'bv_Money_Money_Man': 148.8,
+            'bv_Matteofr': 98.1, 'bv_Trippi_Troppi_Troppa_Trip': 148.6,
+            'bv_Dragon_Gingerini': 204.5, 'bv_Graipuss': 169.4,
+            'bv_TangTangVfx': 198.0, 'bv_Nuclearo_Dinosauro': 156.0,
+            'bv_LasTralaleritas': 219.4, 'bv_Job': 266.4,
+            'bv_Los_Tralaleritos': 228.2, 'bv_Chicliterita_bicicliterit': 246.1,
+            'bv_SecretLuckyBlock': 211.1, 'bv_KetupatKepat': 165.2,
+            'bv_La_vacca_no_effects': 227.8, 'bv_Chicleteira': 428.9,
+            'bv_TralaleroTralala': 405.3, 'bv_Strawberryelephant': 443.1,
+            'bv_Magi_Ribbitini': 413.9, 'bv_Meowl': 456.6,
+            'bv_Money_money_puggy': 448.5
+        };
+
+        /* ---- GOLD ACCUMULATION SYSTEM ---- */
+        var ownedBrainrots = {};  // bv_Name -> count owned
+        var goldPendingEl = document.getElementById('gold-pending');
+        var goldRateEl = document.getElementById('gold-rate');
+        var DENOM_VALUES = [100000, 50000, 10000, 5000, 1000, 500, 100, 50, 10, 5, 1];
+        var DENOM_TASKS = {
+            1: 'add_gold_1', 5: 'add_gold_5', 10: 'add_gold_10',
+            50: 'add_gold_50', 100: 'add_gold_100', 500: 'add_gold_500',
+            1000: 'add_gold_1000', 5000: 'add_gold_5000', 10000: 'add_gold_10000',
+            50000: 'add_gold_50000', 100000: 'add_gold_100000'
+        };
+
+        function calcEarningRate() {
+            var rate = 0;
+            var keys = Object.keys(ownedBrainrots);
+            for (var i = 0; i < keys.length; i++) {
+                var count = ownedBrainrots[keys[i]];
+                var gps = GOLD_PER_SECOND[keys[i]] || 0;
+                rate += count * gps;
+            }
+            state.earningRate = rate;
+            return rate;
+        }
+
+        // Accumulate gold every second
+        function startGoldAccumulator() {
+            setInterval(function() {
+                if (state.earningRate > 0) {
+                    state.pendingGold += state.earningRate;
+                    updateGoldDisplay();
+                }
+            }, 1000);
+        }
+
+        function updateGoldDisplay() {
+            if (state.pendingGold > 0) {
+                goldPendingEl.textContent = '+' + fmt(Math.floor(state.pendingGold)) + ' pending';
+                goldPendingEl.style.display = 'block';
+            } else {
+                goldPendingEl.style.display = 'none';
+            }
+            if (state.earningRate > 0) {
+                goldRateEl.textContent = fmt(state.earningRate) + '/s';
+                goldRateEl.style.display = 'block';
+            } else {
+                goldRateEl.style.display = 'none';
+            }
+        }
+
+        function triggerTask(taskName) {
+            if (sdk) {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: taskName,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+            }
+        }
+
+        function collectGold() {
+            var amount = Math.floor(state.pendingGold);
+            if (amount <= 0) return;
+            state.pendingGold = state.pendingGold - amount; // keep fractional remainder
+
+            // Break into denomination tasks
+            var tasks = [];
+            var remaining = amount;
+            for (var i = 0; i < DENOM_VALUES.length; i++) {
+                var d = DENOM_VALUES[i];
+                while (remaining >= d) {
+                    tasks.push(DENOM_TASKS[d]);
+                    remaining -= d;
+                }
+            }
+
+            // Fire tasks staggered 200ms apart
+            for (var t = 0; t < tasks.length; t++) {
+                (function(task, delay) {
+                    setTimeout(function() { triggerTask(task); }, delay);
+                })(tasks[t], t * 200);
+            }
+
+            // Show notification + cash burst
+            playSound('xp');
+            notify('+$' + fmt(amount) + ' Cash collected!', 'gold');
+            pop(document.getElementById('pill-gold'));
+            spawnCashParticles('earn', 8);
+            updateGoldDisplay();
+        }
+
+        // Parse owned brainrot counts from inv: messages
+        function parseOwnedBrainrots(params) {
+            var keys = Object.keys(params);
+            for (var i = 0; i < keys.length; i++) {
+                var k = keys[i];
+                if (k.startsWith('Own_bv_')) {
+                    var bvKey = k.substring(4); // "bv_Banana"
+                    var val = parseVarValue(params[k]);
+                    if (val > 0) {
+                        ownedBrainrots[bvKey] = val;
+                    } else {
+                        delete ownedBrainrots[bvKey];
+                    }
+                }
+            }
+            calcEarningRate();
+            updateGoldDisplay();
+        }
+
+        const SPAWN_INTERVAL = 30; // default fallback
+        const MAX_PER_ZONE = 3;
+        // Per-zone spawn intervals — higher tier zones = longer timers = rarer brainrots
+        const ZONE_SPAWN_INTERVALS = {
+            Beach: 15,           // Common — fast spawns
+            Meadow: 20,          // Common — slightly slower
+            Forest: 30,          // Rare tier starts
+            Jungle: 35,          // Rare
+            Cave: 45,            // Epic
+            Crystal_Cove: 50,    // Epic
+            Boss_Arena: 60,      // Legendary
+            Volcano: 75,         // Mythic
+            Ancient_Ruins: 90,   // Brainrot God
+            Sky_Platform: 105,   // Secret
+            The_Void: 120        // OG — rarest, 2 min spawns
+        };
+        const ZONE_COLORS = {
+            Beach: '#FFD700', Meadow: '#2ECC40', Forest: '#228B22', Jungle: '#32CD32',
+            Cave: '#8B4513', Crystal_Cove: '#00CED1', Boss_Arena: '#E74C3C', Volcano: '#FF4500',
+            Ancient_Ruins: '#DAA520', Sky_Platform: '#87CEEB', The_Void: '#9B59B6'
+        };
+        const ZONE_LABELS = {
+            Beach: 'Beach', Meadow: 'Meadow', Forest: 'Forest', Jungle: 'Jungle',
+            Cave: 'Cave', Crystal_Cove: 'Crystal Cove', Boss_Arena: 'Boss Arena', Volcano: 'Volcano',
+            Ancient_Ruins: 'Ancient Ruins', Sky_Platform: 'Sky Platform', The_Void: 'The Void'
+        };
+
+        /* ---- QUEST NUMBER -> BV NAME (for My_Carrying_Brainrot variable) ---- */
+        var QUEST_NUM_TO_BV = {112:"bv_Banana",114:"bv_BurbaloniLuliloli",116:"bv_Noobini_Pizzanini",118:"bv_Tim_Cheese",120:"bv_Image_removebg_preview_29",122:"bv_Fluriflura",124:"bv_Pandaccini_Bananini",126:"bv_Puffaball",128:"bv_Liliri_Lalira",130:"bv_Pipi_Kiwi",132:"bv_Pakrah",134:"bv_Lionel_Cactuseli",136:"bv_Cocofanto",138:"bv_ChimpanziniBananini",140:"bv_Africa_by_toto_to_sahur",142:"bv_Ballerinolololo",144:"bv_POTATO",146:"bv_Cocosini_Mama",148:"bv_PIGEONS_ARE_SPIES_MADE_BY",150:"bv_Teenage_turtle",152:"bv_Dolphini_Jetskini",154:"bv_Slitta_Sprinta",156:"bv_Trippi_Troppi",158:"bv_Clickerinocrabo",160:"bv_Astronaut",162:"bv_Cant_come_up_with_a_funny",164:"bv_Lol_Fridge",166:"bv_Boneca_Ambalabu",168:"bv_Cupcake_Koala",170:"bv_Lavadorito_Spinito",172:"bv_Cacto_Hipopotamo1",174:"bv_TaTas",176:"bv_Pintealotto",178:"bv_Moby",180:"bv_Watermelon_Doggy",182:"bv_Garamadundung",184:"bv_Trenostruzzo_Turbo_3000",186:"bv_Cappuccino_Assassino",188:"bv_Burguro_And_Fryuro",190:"bv_AvocadiniGuffo",192:"bv_Homicidio_doloso",194:"bv_Brri_Brri_Bicus_Dicus_Bom",196:"bv_Skibidi_toilet",198:"bv_PeroLemonfulldetial",200:"bv_Avocadini_Antilopini",202:"bv_Dolphin_But_Banana",204:"bv_wombo",206:"bv_Berry_berry_bicus_dickus",208:"bv_Cerberus",210:"bv_NewBlueberrinni",212:"bv_Quackula",214:"bv_Sig_ma_Boy",216:"bv_GOAT",218:"bv_Strawberrelli_Flamingelli",220:"bv_Pi_Pi_Watermelon",222:"bv_GlorboFruttodrillo",224:"bv_Time_moving_slow",226:"bv_Quivioli_Ameleonni",228:"bv_Lebron_james",230:"bv_SigmaGirl",232:"bv_Tartaruga_Cisternaaaa",234:"bv_Tracoducotulu",236:"bv_Toiletto",238:"bv_Mythic_lucky_block",240:"bv_Ballerina_cappucinaaaa21pct",242:"bv_King_von",244:"bv_Jacko_Spaventosa",246:"bv_Travis_scott",248:"bv_Cavallo_Virtuoso",250:"bv_Lil_wayne",252:"bv_Bombardiro_Crocodilo",254:"bv_Te_Te_Te_Sahur",256:"bv_Carti",258:"bv_Tralalita",260:"bv_Everybody_hates_Chihuanin",262:"bv_TractorDino",264:"bv_BrainrotGodLuckyBlock",266:"bv_Tukanno_Bananno",268:"bv_Gorillo_Watermelondrillo",270:"bv_Money_Money_Man",272:"bv_Matteofr",274:"bv_Trippi_Troppi_Troppa_Trip",276:"bv_Dragon_Gingerini",278:"bv_Graipuss",280:"bv_TangTangVfx",282:"bv_Nuclearo_Dinosauro",284:"bv_LasTralaleritas",286:"bv_Job",288:"bv_Los_Tralaleritos",290:"bv_Chicliterita_bicicliterit",292:"bv_SecretLuckyBlock",294:"bv_KetupatKepat",296:"bv_La_vacca_no_effects",298:"bv_Chicleteira",300:"bv_TralaleroTralala",302:"bv_Strawberryelephant",304:"bv_Magi_Ribbitini",306:"bv_Meowl",308:"bv_Money_money_puggy"};
+
+        // Reverse lookup: brainrot name -> zone
+        var BV_TO_ZONE = {};
+        (function() {
+            var zoneNames = Object.keys(ZONES);
+            for (var i = 0; i < zoneNames.length; i++) {
+                var z = zoneNames[i];
+                for (var j = 0; j < ZONES[z].length; j++) {
+                    BV_TO_ZONE[ZONES[z][j]] = z;
+                }
+            }
+        })();
+
+        // Track remaining seconds per zone and active count per zone
+        var spawnTimers = {};
+        var spawnCounts = {};
+
+        function spawnRandom(zone) {
+            var pool = ZONES[zone];
+            if (!pool || pool.length === 0) return;
+            // Check spawn cap — spawnCounts is synced from server ZC_ variables
+            if ((spawnCounts[zone] || 0) >= MAX_PER_ZONE) return;
+            var pick = pool[Math.floor(Math.random() * pool.length)];
+            if (sdk) {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: pick,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+                // Don't optimistically increment — let server ZC_ sync be source of truth
+                // The timer will pause on next ZC sync if zone reaches MAX
+            }
+        }
+
+        var RING_CIRCUMFERENCE = 2 * Math.PI * 10; // r=10 for SVG circle
+
+        function buildTimerUI() {
+            var strip = document.getElementById('spawn-strip');
+            var html = '';
+            var zoneNames = Object.keys(ZONES);
+            for (var i = 0; i < zoneNames.length; i++) {
+                var z = zoneNames[i];
+                var col = ZONE_COLORS[z] || '#888';
+                var label = ZONE_LABELS[z] || z;
+                var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
+                html += '<div class="spawn-pip" id="pip-' + z + '">' +
+                    '<span class="pip-name" style="color:' + col + '">' + label + '</span>' +
+                    '<div class="pip-ring">' +
+                        '<svg viewBox="0 0 28 28">' +
+                            '<circle class="pip-ring-bg" cx="14" cy="14" r="10"/>' +
+                            '<circle class="pip-ring-fill" id="pip-fill-' + z + '" cx="14" cy="14" r="10" ' +
+                                'stroke="' + col + '" ' +
+                                'stroke-dasharray="' + RING_CIRCUMFERENCE.toFixed(1) + '" ' +
+                                'stroke-dashoffset="0" ' +
+                                'style="filter:drop-shadow(0 0 3px ' + col + '80)"/>' +
+                        '</svg>' +
+                        '<div class="pip-secs" id="pip-secs-' + z + '">' + interval + '</div>' +
+                    '</div>' +
+                    '</div>';
+                spawnTimers[z] = interval;
+                spawnCounts[z] = 0;
+            }
+            strip.innerHTML = html;
+        }
+
+        function updateTimerUI() {
+            var zoneNames = Object.keys(ZONES);
+            for (var i = 0; i < zoneNames.length; i++) {
+                var z = zoneNames[i];
+                var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
+                var remaining = spawnTimers[z] || 0;
+                var pct = (interval - remaining) / interval; // 0 to 1
+                var pipEl = document.getElementById('pip-' + z);
+                var fillEl = document.getElementById('pip-fill-' + z);
+                var secsEl = document.getElementById('pip-secs-' + z);
+                var isFull = (spawnCounts[z] || 0) >= MAX_PER_ZONE;
+                if (pipEl) {
+                    if (isFull) { pipEl.classList.add('full'); } else { pipEl.classList.remove('full'); }
+                }
+                if (fillEl) {
+                    var offset = RING_CIRCUMFERENCE * (1 - pct);
+                    fillEl.setAttribute('stroke-dashoffset', offset.toFixed(1));
+                }
+                if (secsEl) {
+                    secsEl.textContent = isFull ? '\u2713' : remaining;
+                }
+            }
+        }
+
+        function startSpawnTimers() {
+            buildTimerUI();
+            var zoneNames = Object.keys(ZONES);
+            // Staggered initial spawn
+            for (var i = 0; i < zoneNames.length; i++) {
+                (function(zone, delay) {
+                    var interval = ZONE_SPAWN_INTERVALS[zone] || SPAWN_INTERVAL;
+                    spawnTimers[zone] = Math.ceil(delay / 1000);
+                    setTimeout(function() {
+                        spawnRandom(zone);
+                        spawnTimers[zone] = interval;
+                    }, delay);
+                })(zoneNames[i], 1000 + i * 500);
+            }
+            // Tick every second: countdown + trigger spawns
+            // Timer PAUSES when zone is at max capacity, resumes when count drops
+            setInterval(function() {
+                for (var i = 0; i < zoneNames.length; i++) {
+                    var z = zoneNames[i];
+                    var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
+                    // Only tick down if zone is below max
+                    if ((spawnCounts[z] || 0) >= MAX_PER_ZONE) continue;
+                    if (spawnTimers[z] > 0) {
+                        spawnTimers[z]--;
+                    }
+                    if (spawnTimers[z] <= 0) {
+                        spawnRandom(z);
+                        spawnTimers[z] = interval;
+                    }
+                }
+                updateTimerUI();
+            }, 1000);
+        }
+
+        /* ---- MESSAGE DEDUP ---- */
+        var lastMsgHash = '';
+        var lastMsgTime = 0;
+        function isDupe(msg) {
+            var now = Date.now();
+            var hash = msg + '|' + Math.floor(now / 100);
+            if (hash === lastMsgHash && now - lastMsgTime < 200) return true;
+            lastMsgHash = hash;
+            lastMsgTime = now;
+            return false;
+        }
+
+        /* ---- MESSAGE LISTENER ---- */
+        if (sdk) {
+            sdk.setMessageListener(function(msg) {
+                console.log('[HUD] MSG received: ' + (msg.length > 120 ? msg.substring(0, 120) + '...' : msg));
+                if (isDupe(msg)) return;
+                try {
+                    var d = JSON.parse(msg);
+                    if (d.gold !== undefined) { state.gold = parseFloat(d.gold)||0; pop(document.getElementById('pill-gold')); }
+                    if (d.baseId !== undefined) state.baseId = parseInt(d.baseId)||0;
+                    if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying)||0;
+                    if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold)||0;
+                    if (d.rebirth !== undefined) {
+                        state.rebirth = parseInt(d.rebirth)||0;
+                        state.pendingGold = 0;
+                        state.earningRate = 0;
+                        updateGoldDisplay();
+                    }
+                    if (d.toast) showToast(d.toast);
+                    if (d.notif) notify(d.notif, d.notifType || 'info');
+                    updateDisplay();
+                    return;
+                } catch(e) {}
+                // String-based messages
+                if (msg.startsWith('inv:')) {
+                    // Parse key=value pairs: inv:username=bob&Gold=123&health={"bob"=100&"Hugh"=175}
+                    // Bracket-aware split: don't split on & inside {} braces
+                    var raw = msg.substring(4);
+                    var pairs = [];
+                    var depth = 0, start = 0;
+                    for (var ci = 0; ci < raw.length; ci++) {
+                        if (raw.charAt(ci) === '{') depth++;
+                        else if (raw.charAt(ci) === '}') depth--;
+                        else if (raw.charAt(ci) === '&' && depth === 0) {
+                            pairs.push(raw.substring(start, ci));
+                            start = ci + 1;
+                        }
+                    }
+                    if (start < raw.length) pairs.push(raw.substring(start));
+                    var params = {};
+                    for (var pi = 0; pi < pairs.length; pi++) {
+                        var eq = pairs[pi].indexOf('=');
+                        if (eq > 0) params[pairs[pi].substring(0, eq)] = pairs[pi].substring(eq + 1);
+                    }
+                    // Store local player username
+                    if (params.username) {
+                        var uraw = params.username;
+                        // If pipe interpolation returned a JSON-like object, extract first key as username
+                        if (uraw.charAt(0) === '{') {
+                            try {
+                                var uobj = JSON.parse(uraw);
+                                var ukeys = Object.keys(uobj);
+                                if (ukeys.length > 0) uraw = ukeys[0];
+                            } catch(eu) {
+                                // Portals format {"name"="val"} — extract first key
+                                var um = uraw.match(/^\{"?([^"=&}]+)/);
+                                if (um) uraw = um[1];
+                            }
+                        }
+                        myUsername = uraw.replace(/^["']|["']$/g, '');
+                    }
+                    if (params.Gold !== undefined) {
+                        var gv = parseVarValue(params.Gold);
+                        if (gv !== state.gold) {
+                            state.gold = gv;
+                            pop(document.getElementById('pill-gold'));
+                        }
+                    }
+                    // Parse base ID - auto-repopulate on claim (baseId 0 -> N)
+                    var newBaseId = state.baseId;
+                    if (params.player_Base_num !== undefined) {
+                        console.log('[HUD] player_Base_num RAW=' + params.player_Base_num + ' parsed=' + parseVarValue(params.player_Base_num));
+                        newBaseId = Math.round(parseVarValue(params.player_Base_num));
+                        // Fallback: if parseVarValue returned 0 but raw value has a number, extract it
+                        if (newBaseId === 0 && params.player_Base_num !== '0') {
+                            var bidMatch = params.player_Base_num.match(/[=:](\d+)/);
+                            if (bidMatch) newBaseId = parseInt(bidMatch[1]) || 0;
+                        }
+                    } else if (params.My_Base_ID !== undefined) {
+                        newBaseId = Math.round(parseVarValue(params.My_Base_ID));
+                    }
+                    if (state.baseId <= 0 && newBaseId > 0) {
+                        // Base just claimed - show banner and repopulate
+                        state.claimedBase = newBaseId;
+                        setTimeout(function() { repopulateBase(newBaseId); }, 800);
+                    }
+                    state.baseId = newBaseId;
+                    // Parse carrying brainrot from server variable
+                    if (params.My_Carrying_Brainrot !== undefined) {
+                        var carryNum = Math.round(parseVarValue(params.My_Carrying_Brainrot));
+                        if (carryNum > 0 && QUEST_NUM_TO_BV[carryNum]) {
+                            var bvKey = QUEST_NUM_TO_BV[carryNum];
+                            state.carrying = 1;
+                            state.carryBvKey = bvKey;
+                            state.carryName = bvKey.substring(3).replace(/_/g, ' ');
+                            state.carryGold = GOLD_PER_SECOND[bvKey] || 0;
+                        } else if (carryNum === 0) {
+                            // Save last name for deposit notification (sync may arrive before deposit: msg)
+                            state.lastCarryName = state.carryName || state.lastCarryName || '';
+                            state.carrying = 0;
+                            state.carryBvKey = '';
+                            state.carryName = '';
+                            state.carryGold = 0;
+                        }
+                    }
+                    // Parse owned brainrot counts
+                    parseOwnedBrainrots(params);
+                    // Sync zone counts from server ZC_ variables
+                    var zoneNames = Object.keys(ZONES);
+                    for (var zi = 0; zi < zoneNames.length; zi++) {
+                        var z = zoneNames[zi];
+                        var zk = 'ZC_' + z;
+                        if (params[zk] !== undefined) {
+                            var oldCount = spawnCounts[z] || 0;
+                            var newCount = Math.round(parseVarValue(params[zk]));
+                            spawnCounts[z] = newCount;
+                            var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
+                            // Zone went from full to not full — restart timer
+                            if (oldCount >= MAX_PER_ZONE && newCount < MAX_PER_ZONE) {
+                                spawnTimers[z] = interval;
+                            }
+                            // Zone dropped count — reset timer to full interval
+                            if (newCount < oldCount && newCount < MAX_PER_ZONE) {
+                                spawnTimers[z] = interval;
+                            }
+                        }
+                    }
+                    updateTimerUI();
+                    parseTutorialVars(params);
+                    updateDisplay();
+                    checkTutorial();
+                } else if (msg === 'collect:go') {
+                    // Room-side logic already gates on player_Base_num — just collect
+                    if (state.pendingGold < 1) {
+                        playSound('uipop');
+                        notify('No cash to collect yet!', 'info');
+                    } else {
+                        collectGold();
+                    }
+                } else if (msg.startsWith('gold:')) {
+                    var v = parseFloat(msg.substring(5))||0;
+                    var diff = v - state.gold;
+                    state.gold = v; updateDisplay(); pop(document.getElementById('pill-gold'));
+                    if (diff > 0) notify('+$' + fmt(diff) + ' Cash', 'gold');
+                } else if (msg.startsWith('pickup:')) {
+                    if (state.carrying > 0) {
+                        // Already carrying — show warning instead of fake pickup
+                        playSound('uipop');
+                        notify('Already carrying a brainrot!', 'info');
+                    } else {
+                        playSound('pickup');
+                        // Dismiss claimed-base banner on first pickup
+                        if (!state.claimDismissed) { state.claimDismissed = true; }
+                        var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
+                        if (pMatch) {
+                            state.carrying = 1;
+                            state.carryName = pMatch[1].replace(/_/g, ' ');
+                            state.carryBvKey = 'bv_' + pMatch[1];
+                            state.carryGold = parseFloat(pMatch[2]) || 0;
+                            notify('Picked up ' + state.carryName + '! (' + state.carryGold + ' cash/s)', 'pickup');
+                            // Decrement zone spawn count
+                            var pickupZone = BV_TO_ZONE[state.carryBvKey];
+                            if (pickupZone && spawnCounts[pickupZone] > 0) spawnCounts[pickupZone]--;
+                            updateDisplay();
+                            checkTutorial();
+                        } else {
+                            notify(msg.substring(7), 'pickup');
+                        }
+                    }
+                } else if (msg.startsWith('deposit:')) {
+                    // Parse base number from message: "Deposited brainrot at Base N!"
+                    var baseMatch = msg.match(/Base (\d+)/);
+                    var depositBase = baseMatch ? parseInt(baseMatch[1]) : 0;
+                    // Room-side logic already gates on player_Base_num — just deposit
+                    if (state.carrying <= 0) {
+                        playSound('uipop');
+                        notify('You\'re not carrying a brainrot!', 'error');
+                    } else {
+                        playSound('deposit');
+                        var depositName = state.carryName || state.lastCarryName || 'brainrot';
+                        notify('Deposited ' + depositName + '!', 'deposit');
+                        state.lastCarryName = '';
+                        // Increment owned brainrot count locally
+                        if (state.carryBvKey) {
+                            ownedBrainrots[state.carryBvKey] = (ownedBrainrots[state.carryBvKey] || 0) + 1;
+                            calcEarningRate();
+                            updateGoldDisplay();
+                        }
+                        state.carrying = 0;
+                        state.carryName = '';
+                        state.carryBvKey = '';
+                        state.carryGold = 0;
+                        updateDisplay();
+                        checkTutorial();
+                    }
+                } else if (msg.startsWith('carry:')) {
+                    var p = msg.substring(6).split(',');
+                    state.carrying = parseFloat(p[0])||0;
+                    state.carryGold = parseFloat(p[1])||0;
+                    updateDisplay();
+                } else if (msg.startsWith('rebirth:')) {
+                    state.rebirth = parseInt(msg.substring(8))||0;
+                    state.pendingGold = 0;
+                    state.earningRate = 0;
+                    updateGoldDisplay();
+                    updateDisplay();
+                } else if (msg.startsWith('toast:')) {
+                    playSound('notification');
+                    showToast(msg.substring(6));
+                } else if (msg.startsWith('death:')) {
+                    var deathGold = msg.substring(6);
+                    showDeathAlert(deathGold);
+                } else if (msg.startsWith('kill:')) {
+                    var killGold = msg.substring(5);
+                    showKillAlert(killGold);
+                } else if (msg.startsWith('repopulate:')) {
+                    var baseNum = parseInt(msg.substring(11)) || 0;
+                    if (baseNum > 0) repopulateBase(baseNum);
+            });
+        }
+
+        /* ---- REPOPULATE BASE (fire DuplicateItem for all owned brainrots) ---- */
+        var BV_DROP_MAP = {
+            'bv_Africa_by_toto_to_sahur': 'drop_bv_Africa_by_toto_to_sahur',
+            'bv_Astronaut': 'drop_bv_Astronaut',
+            'bv_AvocadiniGuffo': 'drop_bv_AvocadiniGuffo',
+            'bv_Avocadini_Antilopini': 'drop_bv_Avocadini_Antilopini',
+            'bv_Ballerina_cappucinaaaa21pct': 'drop_bv_Ballerina_cappucinaaaa21pct',
+            'bv_Ballerinolololo': 'drop_bv_Ballerinolololo',
+            'bv_Banana': 'drop_bv_Banana',
+            'bv_Berry_berry_bicus_dickus': 'drop_bv_Berry_berry_bicus_dickus',
+            'bv_Bombardiro_Crocodilo': 'drop_bv_Bombardiro_Crocodilo',
+            'bv_Boneca_Ambalabu': 'drop_bv_Boneca_Ambalabu',
+            'bv_BrainrotGodLuckyBlock': 'drop_bv_BrainrotGodLuckyBlock',
+            'bv_Brri_Brri_Bicus_Dicus_Bom': 'drop_bv_Brri_Brri_Bicus_Dicus_Bom',
+            'bv_BurbaloniLuliloli': 'drop_bv_BurbaloniLuliloli',
+            'bv_Burguro_And_Fryuro': 'drop_bv_Burguro_And_Fryuro',
+            'bv_Cacto_Hipopotamo1': 'drop_bv_Cacto_Hipopotamo1',
+            'bv_Cant_come_up_with_a_funny': 'drop_bv_Cant_come_up_with_a_funny',
+            'bv_Cappuccino_Assassino': 'drop_bv_Cappuccino_Assassino',
+            'bv_Carti': 'drop_bv_Carti',
+            'bv_Cavallo_Virtuoso': 'drop_bv_Cavallo_Virtuoso',
+            'bv_Cerberus': 'drop_bv_Cerberus',
+            'bv_Chicleteira': 'drop_bv_Chicleteira',
+            'bv_Chicliterita_bicicliterit': 'drop_bv_Chicliterita_bicicliterit',
+            'bv_ChimpanziniBananini': 'drop_bv_ChimpanziniBananini',
+            'bv_Clickerinocrabo': 'drop_bv_Clickerinocrabo',
+            'bv_Cocofanto': 'drop_bv_Cocofanto',
+            'bv_Cocosini_Mama': 'drop_bv_Cocosini_Mama',
+            'bv_Cupcake_Koala': 'drop_bv_Cupcake_Koala',
+            'bv_Dolphin_But_Banana': 'drop_bv_Dolphin_But_Banana',
+            'bv_Dolphini_Jetskini': 'drop_bv_Dolphini_Jetskini',
+            'bv_Dragon_Gingerini': 'drop_bv_Dragon_Gingerini',
+            'bv_Everybody_hates_Chihuanin': 'drop_bv_Everybody_hates_Chihuanin',
+            'bv_Fluriflura': 'drop_bv_Fluriflura',
+            'bv_GOAT': 'drop_bv_GOAT',
+            'bv_Garamadundung': 'drop_bv_Garamadundung',
+            'bv_GlorboFruttodrillo': 'drop_bv_GlorboFruttodrillo',
+            'bv_Gorillo_Watermelondrillo': 'drop_bv_Gorillo_Watermelondrillo',
+            'bv_Graipuss': 'drop_bv_Graipuss',
+            'bv_Homicidio_doloso': 'drop_bv_Homicidio_doloso',
+            'bv_Image_removebg_preview_29': 'drop_bv_Image_removebg_preview_29',
+            'bv_Jacko_Spaventosa': 'drop_bv_Jacko_Spaventosa',
+            'bv_Job': 'drop_bv_Job',
+            'bv_KetupatKepat': 'drop_bv_KetupatKepat',
+            'bv_King_von': 'drop_bv_King_von',
+            'bv_La_vacca_no_effects': 'drop_bv_La_vacca_no_effects',
+            'bv_LasTralaleritas': 'drop_bv_LasTralaleritas',
+            'bv_Lavadorito_Spinito': 'drop_bv_Lavadorito_Spinito',
+            'bv_Lebron_james': 'drop_bv_Lebron_james',
+            'bv_Lil_wayne': 'drop_bv_Lil_wayne',
+            'bv_Liliri_Lalira': 'drop_bv_Liliri_Lalira',
+            'bv_Lionel_Cactuseli': 'drop_bv_Lionel_Cactuseli',
+            'bv_Lol_Fridge': 'drop_bv_Lol_Fridge',
+            'bv_Los_Tralaleritos': 'drop_bv_Los_Tralaleritos',
+            'bv_Magi_Ribbitini': 'drop_bv_Magi_Ribbitini',
+            'bv_Matteofr': 'drop_bv_Matteofr',
+            'bv_Meowl': 'drop_bv_Meowl',
+            'bv_Moby': 'drop_bv_Moby',
+            'bv_Money_Money_Man': 'drop_bv_Money_Money_Man',
+            'bv_Money_money_puggy': 'drop_bv_Money_money_puggy',
+            'bv_Mythic_lucky_block': 'drop_bv_Mythic_lucky_block',
+            'bv_NewBlueberrinni': 'drop_bv_NewBlueberrinni',
+            'bv_Noobini_Pizzanini': 'drop_bv_Noobini_Pizzanini',
+            'bv_Nuclearo_Dinosauro': 'drop_bv_Nuclearo_Dinosauro',
+            'bv_PIGEONS_ARE_SPIES_MADE_BY': 'drop_bv_PIGEONS_ARE_SPIES_MADE_BY',
+            'bv_POTATO': 'drop_bv_POTATO',
+            'bv_Pakrah': 'drop_bv_Pakrah',
+            'bv_Pandaccini_Bananini': 'drop_bv_Pandaccini_Bananini',
+            'bv_PeroLemonfulldetial': 'drop_bv_PeroLemonfulldetial',
+            'bv_Pi_Pi_Watermelon': 'drop_bv_Pi_Pi_Watermelon',
+            'bv_Pintealotto': 'drop_bv_Pintealotto',
+            'bv_Pipi_Kiwi': 'drop_bv_Pipi_Kiwi',
+            'bv_Puffaball': 'drop_bv_Puffaball',
+            'bv_Quackula': 'drop_bv_Quackula',
+            'bv_Quivioli_Ameleonni': 'drop_bv_Quivioli_Ameleonni',
+            'bv_SecretLuckyBlock': 'drop_bv_SecretLuckyBlock',
+            'bv_Sig_ma_Boy': 'drop_bv_Sig_ma_Boy',
+            'bv_SigmaGirl': 'drop_bv_SigmaGirl',
+            'bv_Skibidi_toilet': 'drop_bv_Skibidi_toilet',
+            'bv_Slitta_Sprinta': 'drop_bv_Slitta_Sprinta',
+            'bv_Strawberrelli_Flamingelli': 'drop_bv_Strawberrelli_Flamingelli',
+            'bv_Strawberryelephant': 'drop_bv_Strawberryelephant',
+            'bv_TaTas': 'drop_bv_TaTas',
+            'bv_TangTangVfx': 'drop_bv_TangTangVfx',
+            'bv_Tartaruga_Cisternaaaa': 'drop_bv_Tartaruga_Cisternaaaa',
+            'bv_Te_Te_Te_Sahur': 'drop_bv_Te_Te_Te_Sahur',
+            'bv_Teenage_turtle': 'drop_bv_Teenage_turtle',
+            'bv_Tim_Cheese': 'drop_bv_Tim_Cheese',
+            'bv_Time_moving_slow': 'drop_bv_Time_moving_slow',
+            'bv_Toiletto': 'drop_bv_Toiletto',
+            'bv_Tracoducotulu': 'drop_bv_Tracoducotulu',
+            'bv_TractorDino': 'drop_bv_TractorDino',
+            'bv_TralaleroTralala': 'drop_bv_TralaleroTralala',
+            'bv_Tralalita': 'drop_bv_Tralalita',
+            'bv_Travis_scott': 'drop_bv_Travis_scott',
+            'bv_Trenostruzzo_Turbo_3000': 'drop_bv_Trenostruzzo_Turbo_3000',
+            'bv_Trippi_Troppi': 'drop_bv_Trippi_Troppi',
+            'bv_Trippi_Troppi_Troppa_Trip': 'drop_bv_Trippi_Troppi_Troppa_Trip',
+            'bv_Tukanno_Bananno': 'drop_bv_Tukanno_Bananno',
+            'bv_Watermelon_Doggy': 'drop_bv_Watermelon_Doggy',
+            'bv_wombo': 'drop_bv_wombo'
+        };
+
+        function repopulateBase(baseNum) {
+            if (!sdk) return;
+            console.log('[HUD] Repopulating base ' + baseNum + ' with owned brainrots');
+            var delay = 0;
+            var keys = Object.keys(ownedBrainrots);
+            var totalFired = 0;
+            for (var i = 0; i < keys.length; i++) {
+                var bvKey = keys[i];
+                var count = ownedBrainrots[bvKey] || 0;
+                var dropStem = BV_DROP_MAP[bvKey];
+                if (!dropStem || count <= 0) continue;
+                var taskName = dropStem + '_b' + baseNum;
+                // Fire once per copy owned (duplicate stacks at same position)
+                for (var c = 0; c < count; c++) {
+                    (function(tn, d) {
+                        setTimeout(function() {
+                            sdk.sendMessageToUnity(JSON.stringify({
+                                TaskName: tn,
+                                TaskTargetState: 'SetNotActiveToActive'
+                            }));
+                            // Reset back to NotActive after 100ms so it can fire again
+                            setTimeout(function() {
+                                sdk.sendMessageToUnity(JSON.stringify({
+                                    TaskName: tn,
+                                    TaskTargetState: 'SetActiveToNotActive'
+                                }));
+                            }, 100);
+                        }, d);
+                    })(taskName, delay);
+                    delay += 50;
+                    totalFired++;
+                }
+            }
+            console.log('[HUD] Fired ' + totalFired + ' DuplicateItem tasks over ' + delay + 'ms');
+            if (totalFired > 0) {
+                notify('Restoring ' + totalFired + ' brainrots...', 'info');
+            }
+        }
+
+        /* ---- KEYBOARD REFOCUS ---- */
+        function _doFocusGame() {
+            if (sdk && sdk.focusGameKeyboard) sdk.focusGameKeyboard();
+        }
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('button')) {
+                _doFocusGame();
+            }
+        });
+        document.addEventListener('keydown', _doFocusGame);
+        setTimeout(_doFocusGame, 100);
+        setTimeout(_doFocusGame, 300);
+        setTimeout(_doFocusGame, 600);
+
+        /* ---- RESET ALL BRAINROTS ON LOGIN ---- */
+        function resetAllBrainrots() {
+            if (!sdk) return;
+            // Collect all brainrot keys from all zones
+            var allBv = [];
+            var zNames = Object.keys(ZONES);
+            for (var i = 0; i < zNames.length; i++) {
+                var pool = ZONES[zNames[i]];
+                for (var j = 0; j < pool.length; j++) {
+                    allBv.push(pool[j]);
+                }
+            }
+            // Stagger to avoid flooding — send two resets per brainrot
+            // (Active->NotActive and Completed->NotActive) since SetAnyToNotActive doesn't exist
+            for (var k = 0; k < allBv.length; k++) {
+                (function(bvKey, delay) {
+                    setTimeout(function() {
+                        sdk.sendMessageToUnity(JSON.stringify({
+                            TaskName: bvKey,
+                            TaskTargetState: 'SetActiveToNotActive'
+                        }));
+                    }, delay);
+                    setTimeout(function() {
+                        sdk.sendMessageToUnity(JSON.stringify({
+                            TaskName: bvKey,
+                            TaskTargetState: 'SetCompletedToNotActive'
+                        }));
+                    }, delay + 25);
+                })(allBv[k], k * 60);
+            }
+            // Reset all zone counts to 0
+            for (var zi = 0; zi < zNames.length; zi++) {
+                spawnCounts[zNames[zi]] = 0;
+            }
+        }
+
+        /* ---- TUTORIAL SYSTEM ---- */
+        var tutorialBanner = document.getElementById('tutorial-banner');
+        var tutorialStorage = {}; // local cache of storage flags
+        var tutorialLoaded = false;
+        var tutorialFirstSync = true;
+
+        var TUTORIAL_STEPS = [
+            {
+                id: 'tut_claim_base',
+                msg: '\u{1F3E0} Your base is being assigned...',
+                showIf: function() { return state.baseId <= 0; },
+                doneIf: function() { return state.baseId > 0; },
+                stackable: false
+            },
+            {
+                id: 'tut_collect_brainrot',
+                msg: '\u{1F99C} Hunt brainrots across the Meadow and Beach \u2014 rarer ones are worth more gold! Bring them back to your base to start earning.',
+                showIf: function() { return state.baseId > 0 && state.carrying <= 0 && countOwnedBrainrots() === 0; },
+                doneIf: function() { return state.carrying > 0 || countOwnedBrainrots() > 0; },
+                stackable: false
+            },
+            {
+                id: 'tut_deposit',
+                msg: '\u{1F4E6} Bring it back to your base! Walk into the deposit zone.',
+                showIf: function() { return state.carrying > 0; },
+                doneIf: function() { return countOwnedBrainrots() > 0; },
+                stackable: false
+            },
+            {
+                id: 'tut_keep_collecting',
+                msg: '\u{1F4AA} Keep collecting! The more brainrots at your base, the faster you earn gold.',
+                showIf: function() { return countOwnedBrainrots() > 0 && countOwnedBrainrots() < 3 && state.gold <= 0; },
+                doneIf: function() { return countOwnedBrainrots() >= 3 || state.gold > 0; },
+                stackable: false
+            },
+            {
+                id: 'tut_collect_gold',
+                msg: '\u{1F4B0} Your brainrots generate cash! Walk into the collect zone at your base.',
+                showIf: function() { return countOwnedBrainrots() > 0 && state.gold <= 0; },
+                doneIf: function() { return state.gold > 0; },
+                stackable: false
+            },
+            {
+                id: 'tut_marketplace',
+                msg: '\u{1F6D2} Head to the marketplace to spend your gold! You\'ll find shops for weapons, gear, items, and upgrades.',
+                showIf: function() { return state.gold > 0; },
+                doneIf: function() { return true; },
+                stackable: false
+            },
+            {
+                id: 'tut_pvp_warning',
+                msg: '\u{26A0}\uFE0F Watch out for other players \u2014 they can kill you and steal ALL your cash!',
+                showIf: function() { return state.gold > 0; },
+                doneIf: function() { return true; },
+                stackable: false
+            },
+            {
+                id: 'tut_buy_floor',
+                msg: '\u{1F3D7}\uFE0F Unlock a new floor at the UPGRADE SHOP to get rarer brainrots and unlock new zones!',
+                showIf: function() { return !hasAnyFloorUnlock() && state.gold > 1000; },
+                doneIf: function() { return hasAnyFloorUnlock(); },
+                stackable: true
+            },
+            {
+                id: 'tut_buy_gun',
+                msg: '\u{1F52B} Visit the WEAPONS SHOP in the marketplace to buy a gun!',
+                showIf: function() { return !hasAnyWeapon() && state.gold > 1000; },
+                doneIf: function() { return hasAnyWeapon(); },
+                stackable: true
+            },
+            {
+                id: 'tut_equip_gun',
+                msg: '\u{1F3AF} Click Slot 1 in your action bar and select a gun to equip it!',
+                showIf: function() { return hasAnyWeapon() && !hasGunEquipped(); },
+                doneIf: function() { return hasGunEquipped(); },
+                stackable: false
+            },
+            {
+                id: 'tut_kill_reward',
+                msg: '\u{1F4B5} You earn $10,000 for every player you kill! Hunt down other players to get rich fast.',
+                showIf: function() { return hasGunEquipped(); },
+                doneIf: function() { return true; },
+                stackable: false
+            },
+            {
+                id: 'tut_buy_items',
+                msg: '\u{1F48A} Visit the ITEM SHOP in the marketplace for health packs and potions!',
+                showIf: function() { return !hasAnyItem() && state.gold > 800; },
+                doneIf: function() { return hasAnyItem(); },
+                stackable: true
+            },
+            {
+                id: 'tut_buy_gear',
+                msg: '\u{1F45F} Visit the GEAR SHOP in the marketplace for speed boots and armor!',
+                showIf: function() { return !hasAnyGear() && state.gold > 3000; },
+                doneIf: function() { return hasAnyGear(); },
+                stackable: true
+            },
+            {
+                id: 'tut_unlock_zone',
+                msg: '\u{1F5FA}\uFE0F Unlock new zones for rarer brainrots at the UPGRADE SHOP!',
+                showIf: function() { return hasAnyFloorUnlock() && countZonesUnlocked() === 0 && state.gold > 2000; },
+                doneIf: function() { return hasAnyZoneUnlock(); },
+                stackable: true
+            },
+            {
+                id: 'tut_death_vault',
+                msg: '\u{1F512} Store gold in the Vault to protect it! You lose all carried cash on death.',
+                showIf: function() { return state.hasDied; },
+                doneIf: function() { return true; },
+                stackable: false
+            },
+            {
+                id: 'tut_more_floors',
+                msg: '\u{2B06}\uFE0F Unlock more base floors at the UPGRADE SHOP for even rarer brainrots!',
+                showIf: function() { return purchaseVars.Floor_2_Unlocked > 0 && !(purchaseVars.Floor_3_Unlocked > 0) && state.gold > 5000; },
+                doneIf: function() { return purchaseVars.Floor_3_Unlocked > 0; },
+                stackable: true
+            },
+            {
+                id: 'tut_rebirth',
+                msg: '\u{1F504} Ready for more power? Visit the Rebirth shrine for permanent multipliers!',
+                showIf: function() { return state.gold >= 500000 && state.rebirth <= 0; },
+                doneIf: function() { return state.rebirth > 0; },
+                stackable: true
+            }
+        ];
+
+        // Track purchase/zone/weapon variables from inv: messages
+        var purchaseVars = {};
+        var zoneUnlockVars = {};
+
+        function countOwnedBrainrots() {
+            var total = 0;
+            var keys = Object.keys(ownedBrainrots);
+            for (var i = 0; i < keys.length; i++) total += ownedBrainrots[keys[i]] || 0;
+            return total;
+        }
+
+        function hasAnyPurchase() {
+            return (purchaseVars.Own_Pistol > 0 || purchaseVars.Own_Rifle > 0 ||
+                    purchaseVars.Own_Shotgun > 0 || purchaseVars.Gear_Armor > 0 ||
+                    purchaseVars.Gear_SpeedBoots > 0 || purchaseVars.Gear_CarryPack > 0 ||
+                    purchaseVars.Inv_Health_Pack > 0 || purchaseVars.Inv_Speed_Potion > 0 ||
+                    purchaseVars.Inv_Base_Teleport > 0 || purchaseVars.Inv_Shield > 0 ||
+                    purchaseVars.anyItemBought > 0);
+        }
+
+        function hasAnyItem() {
+            return (purchaseVars.Inv_Health_Pack > 0 || purchaseVars.Inv_Speed_Potion > 0 ||
+                    purchaseVars.Inv_Base_Teleport > 0 || purchaseVars.Inv_Shield > 0);
+        }
+
+        function hasAnyGear() {
+            return (purchaseVars.Gear_SpeedBoots > 0 || purchaseVars.Gear_Armor > 0);
+        }
+
+        function hasGunEquipped() {
+            return purchaseVars.Equipped_Weapon > 0;
+        }
+
+        function hasAnyFloorUnlock() {
+            return (purchaseVars.Floor_2_Unlocked > 0 || purchaseVars.Floor_3_Unlocked > 0 ||
+                    purchaseVars.Floor_4_Unlocked > 0);
+        }
+
+        function countZonesUnlocked() {
+            var count = 0;
+            var keys = Object.keys(zoneUnlockVars);
+            for (var i = 0; i < keys.length; i++) {
+                if (zoneUnlockVars[keys[i]] > 0) count++;
+            }
+            return count;
+        }
+
+        function hasAnyWeapon() {
+            return (purchaseVars.Own_Pistol > 0 || purchaseVars.Own_Rifle > 0 ||
+                    purchaseVars.Own_Shotgun > 0);
+        }
+
+        function hasAnyZoneUnlock() {
+            var keys = Object.keys(zoneUnlockVars);
+            for (var i = 0; i < keys.length; i++) {
+                if (zoneUnlockVars[keys[i]] > 0) return true;
+            }
+            return false;
+        }
+
+        // Load all tutorial flags from Portals storage
+        function loadTutorialStorage(callback) {
+            var steps = TUTORIAL_STEPS;
+            var remaining = steps.length;
+            if (!sdk) { callback(); return; }
+            for (var i = 0; i < steps.length; i++) {
+                (function(step) {
+                    sdk.storageGet(step.id, function(val) {
+                        if (val === 'done') tutorialStorage[step.id] = true;
+                        remaining--;
+                        if (remaining <= 0) {
+                            tutorialLoaded = true;
+                            callback();
+                        }
+                    });
+                })(steps[i]);
+            }
+            // Timeout fallback in case storageGet doesn't call back
+            setTimeout(function() {
+                if (!tutorialLoaded) {
+                    tutorialLoaded = true;
+                    callback();
+                }
+            }, 3000);
+        }
+
+        function markTutorialDone(stepId) {
+            if (tutorialStorage[stepId]) return;
+            tutorialStorage[stepId] = true;
+            if (sdk) sdk.storageSet(stepId, 'done');
+        }
+
+        // Auto-skip completed steps for returning players
+        function autoSkipTutorial() {
+            if (state.baseId > 0) markTutorialDone('tut_claim_base');
+            if (countOwnedBrainrots() > 0) {
+                markTutorialDone('tut_claim_base');
+                markTutorialDone('tut_collect_brainrot');
+                markTutorialDone('tut_deposit');
+            }
+            if (state.gold > 0 || hasAnyPurchase()) {
+                markTutorialDone('tut_claim_base');
+                markTutorialDone('tut_collect_brainrot');
+                markTutorialDone('tut_deposit');
+                markTutorialDone('tut_collect_gold');
+            }
+            if (hasAnyWeapon()) {
+                markTutorialDone('tut_buy_gun');
+            }
+            if (hasGunEquipped()) {
+                markTutorialDone('tut_buy_gun');
+                markTutorialDone('tut_equip_gun');
+                markTutorialDone('tut_pvp');
+            }
+            if (hasAnyItem()) {
+                markTutorialDone('tut_buy_items');
+            }
+            if (hasAnyGear()) {
+                markTutorialDone('tut_buy_gear');
+            }
+            if (hasAnyFloorUnlock()) {
+                markTutorialDone('tut_buy_floor');
+            }
+            if (hasAnyZoneUnlock()) {
+                markTutorialDone('tut_unlock_zone');
+            }
+            if (state.rebirth > 0) {
+                markTutorialDone('tut_rebirth');
+            }
+        }
+
+        var currentTutorialSteps = [];
+
+        function checkTutorial() {
+            if (!tutorialLoaded) return;
+
+            // On first sync, auto-skip already-completed steps
+            if (tutorialFirstSync) {
+                tutorialFirstSync = false;
+                autoSkipTutorial();
+            }
+
+            // Collect all active steps: first non-stackable, or all stackable whose conditions are met
+            var activeSteps = [];
+            var foundNonStackable = false;
+            for (var i = 0; i < TUTORIAL_STEPS.length; i++) {
+                var step = TUTORIAL_STEPS[i];
+                if (tutorialStorage[step.id]) continue; // already done
+
+                // Check if this step should complete
+                if (step.doneIf()) {
+                    markTutorialDone(step.id);
+                    continue;
+                }
+
+                // Check if this step should show
+                if (step.showIf()) {
+                    if (!step.stackable) {
+                        // Non-stackable step: show only this one, stop looking
+                        activeSteps = [step];
+                        foundNonStackable = true;
+                        break;
+                    } else {
+                        activeSteps.push(step);
+                    }
+                }
+            }
+
+            // Build a key string to detect changes
+            var stepIds = [];
+            for (var s = 0; s < activeSteps.length; s++) stepIds.push(activeSteps[s].id);
+            var key = stepIds.join(',');
+
+            if (activeSteps.length > 0 && key !== currentTutorialSteps.join(',')) {
+                currentTutorialSteps = stepIds;
+                // Build stacked banner content
+                if (activeSteps.length === 1) {
+                    tutorialBanner.textContent = activeSteps[0].msg;
+                } else {
+                    tutorialBanner.innerHTML = '';
+                    for (var m = 0; m < activeSteps.length; m++) {
+                        var line = document.createElement('div');
+                        line.textContent = activeSteps[m].msg;
+                        if (m > 0) line.style.marginTop = '4px';
+                        tutorialBanner.appendChild(line);
+                    }
+                }
+                tutorialBanner.classList.add('show');
+            } else if (activeSteps.length === 0) {
+                currentTutorialSteps = [];
+                tutorialBanner.classList.remove('show');
+            }
+        }
+
+        // Parse purchase/zone variables from inv: params
+        function parseTutorialVars(params) {
+            var purchaseKeys = ['Own_Pistol', 'Own_Rifle', 'Own_Shotgun', 'Gear_Armor', 'Gear_SpeedBoots', 'Gear_CarryPack',
+                                'Inv_Health_Pack', 'Inv_Speed_Potion', 'Inv_Base_Teleport', 'Inv_Shield',
+                                'Floor_2_Unlocked', 'Floor_3_Unlocked', 'Floor_4_Unlocked', 'Equipped_Weapon'];
+            for (var i = 0; i < purchaseKeys.length; i++) {
+                if (params[purchaseKeys[i]] !== undefined) {
+                    purchaseVars[purchaseKeys[i]] = parseVarValue(params[purchaseKeys[i]]);
+                }
+            }
+            // Check for any item purchase (weapons, gear, inventory items, etc.)
+            var paramKeys = Object.keys(params);
+            for (var j = 0; j < paramKeys.length; j++) {
+                var k = paramKeys[j];
+                if ((k.startsWith('Own_') && !k.startsWith('Own_bv_')) ||
+                    k.startsWith('Gear_') || k.startsWith('Inv_') || k.startsWith('Floor_')) {
+                    var v = parseVarValue(params[k]);
+                    if (v > 0) purchaseVars.anyItemBought = 1;
+                }
+                // Zone unlock variables (Zone_Forest_Zone_Unlocked, Zone_Cave_Zone_Unlocked, etc.)
+                if (k.startsWith('Zone_') && k.endsWith('_Unlocked')) {
+                    zoneUnlockVars[k] = parseVarValue(params[k]);
+                }
+            }
+        }
+
+        /* ---- INIT ---- */
+        updateDisplay();
+        if (sdk) {
+            dbg('SDK OK, resetting brainrots...');
+            resetAllBrainrots();
+            // Reset ZC_ variables server-side on login
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: 'reset_zc_login',
+                TaskTargetState: 'SetNotActiveToActive'
+            }));
+            dbg('Reset sent, timers in 7s...');
+            // Start spawn timers after reset completes (~6s for 99 brainrots at 60ms each)
+            setTimeout(function() { dbg('Starting spawn timers!'); startSpawnTimers(); dbg('Timers running'); }, 7000);
+            startGoldAccumulator();
+            // Load tutorial progress from storage
+            loadTutorialStorage(function() {
+                checkTutorial();
+            });
+        } else {
+            // Dev preview
+            state.gold = 42350; state.baseId = 3; state.carrying = 1; state.carryGold = 14.6; state.rebirth = 1;
+            updateDisplay();
+            notify('+125 Gold', 'gold');
+            setTimeout(function() { notify('Picked up Banana! (1.3g)', 'pickup'); }, 500);
+            setTimeout(function() { notify('Deposited Banana!', 'deposit'); }, 1000);
+        }
+    </script>
+</body>
+</html>
+
