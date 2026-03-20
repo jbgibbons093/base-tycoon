@@ -1255,6 +1255,11 @@
                         spawnTimersStarted = true;
                         startSpawnTimers();
                     }
+                    // Activate carry system
+                    if (sdk) sdk.sendMessageToUnity(JSON.stringify({
+                        TaskName: 'carry_attach',
+                        TaskTargetState: 'SetNotActiveToActive'
+                    }));
                 }
             });
         }
@@ -1813,6 +1818,11 @@
                     spawnTimersStarted = true;
                     startSpawnTimers();
                 }
+                // Activate carry system
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: 'carry_attach',
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
             }, 10000);
             startGoldAccumulator();
             // Load tutorial progress from storage
