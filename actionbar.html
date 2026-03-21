@@ -683,20 +683,41 @@
         // These must exactly match quest Names in the room
         const EQUIP_QUEST = { pistol: '603_equip_pistol', rifle: '604_equip_rifle', shotgun: '605_equip_shotgun' };
 
+        function sendTaskToUnity(taskName, delayMs) {
+            if (!sdk || !taskName) return;
+            const send = function() {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: taskName,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+                sdk.focusGameKeyboard();
+            };
+            if (delayMs && delayMs > 0) setTimeout(send, delayMs);
+            else send();
+        }
+
         function equipWeapon(id) {
             if (!state.ownedWeapons.includes(id)) return;
+            if (!EQUIP_QUEST[id]) return;
+
+            const previousWeapon = state.equippedWeapon;
             state.equippedWeapon = id;
             render();
             renderWeaponDropup();
             playSound('click');
             closeAllDropups();
-            if (sdk && EQUIP_QUEST[id]) {
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: EQUIP_QUEST[id],
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-                sdk.focusGameKeyboard();
+
+            if (!sdk) return;
+
+            // Swapping between equipped guns is more reliable if the current one is
+            // explicitly tossed before the next EquipGunEffect fires.
+            if (previousWeapon && previousWeapon !== id) {
+                sendTaskToUnity('606_unequip_weapon', 0);
+                sendTaskToUnity(EQUIP_QUEST[id], 180);
+                return;
             }
+
+            sendTaskToUnity(EQUIP_QUEST[id], 0);
         }
 
         function unequipWeapon() {
@@ -705,13 +726,7 @@
             renderWeaponDropup();
             playSound('click');
             closeAllDropups();
-            if (sdk) {
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: '606_unequip_weapon',
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-                sdk.focusGameKeyboard();
-            }
+            sendTaskToUnity('606_unequip_weapon', 0);
         }
 
         function useItem(id) {
@@ -737,13 +752,7 @@
             closeAllDropups();
 
             // Send quest activation to Portals (room-side handles the effect)
-            if (sdk) {
-                sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: item.task,
-                    TaskTargetState: 'SetNotActiveToActive'
-                }));
-                sdk.focusGameKeyboard();
-            }
+            sendTaskToUnity(item.task, 0);
         }
 
         function useSlotItem(slotIdx) {
