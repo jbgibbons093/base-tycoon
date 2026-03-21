@@ -681,7 +681,7 @@
         // ---- ACTIONS ----
         // Quest names for iframe → Portals communication
         // These must exactly match quest Names in the room
-        const EQUIP_QUEST = { pistol: '603_equip_pistol', rifle: '604_equip_rifle', shotgun: '605_equip_shotgun' };
+        const EQUIP_QUEST = { pistol: 'equip_pistol', rifle: 'equip_rifle', shotgun: 'equip_shotgun' };
 
         function sendTaskToUnity(taskName, delayMs) {
             if (!sdk || !taskName) return;
@@ -712,7 +712,7 @@
             // Swapping between equipped guns is more reliable if the current one is
             // explicitly tossed before the next EquipGunEffect fires.
             if (previousWeapon && previousWeapon !== id) {
-                sendTaskToUnity('606_unequip_weapon', 0);
+                sendTaskToUnity('unequip_weapon', 0);
                 sendTaskToUnity(EQUIP_QUEST[id], 180);
                 return;
             }
@@ -726,7 +726,7 @@
             renderWeaponDropup();
             playSound('click');
             closeAllDropups();
-            sendTaskToUnity('606_unequip_weapon', 0);
+            sendTaskToUnity('unequip_weapon', 0);
         }
 
         function useItem(id) {
