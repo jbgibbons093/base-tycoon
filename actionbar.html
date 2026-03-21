@@ -1,6 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><base href="https://jbgibbons093.github.io/base-tycoon/">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Action Bar</title>
@@ -681,7 +681,7 @@
         // ---- ACTIONS ----
         // Quest names for iframe → Portals communication
         // These must exactly match quest Names in the room
-        const EQUIP_QUEST = { pistol: 'equip_pistol', rifle: 'equip_rifle', shotgun: 'equip_shotgun' };
+        const EQUIP_QUEST = { pistol: '603_equip_pistol', rifle: '604_equip_rifle', shotgun: '605_equip_shotgun' };
 
         function equipWeapon(id) {
             if (!state.ownedWeapons.includes(id)) return;
@@ -707,7 +707,7 @@
             closeAllDropups();
             if (sdk) {
                 sdk.sendMessageToUnity(JSON.stringify({
-                    TaskName: 'unequip_weapon',
+                    TaskName: '606_unequip_weapon',
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
                 sdk.focusGameKeyboard();
@@ -849,6 +849,53 @@
             return 0;
         }
 
+        function splitTopLevelPairs(payload) {
+            const pairs = [];
+            let depth = 0;
+            let quote = '';
+            let current = '';
+
+            for (let i = 0; i < payload.length; i++) {
+                const ch = payload.charAt(i);
+                const prev = i > 0 ? payload.charAt(i - 1) : '';
+
+                if (quote) {
+                    current += ch;
+                    if (ch === quote && prev !== '\\') quote = '';
+                    continue;
+                }
+
+                if (ch === '"' || ch === "'") {
+                    quote = ch;
+                    current += ch;
+                    continue;
+                }
+
+                if (ch === '{' || ch === '[' || ch === '(') {
+                    depth++;
+                    current += ch;
+                    continue;
+                }
+
+                if (ch === '}' || ch === ']' || ch === ')') {
+                    if (depth > 0) depth--;
+                    current += ch;
+                    continue;
+                }
+
+                if (ch === '&' && depth === 0) {
+                    pairs.push(current);
+                    current = '';
+                    continue;
+                }
+
+                current += ch;
+            }
+
+            if (current) pairs.push(current);
+            return pairs;
+        }
+
         /**
          * Parse an inventory message from Portals.
          * Format: "inv:Key1=Val1&Key2=Val2&..."
@@ -858,7 +905,7 @@
             if (!msg.startsWith('inv:')) return null;
             const payload = msg.substring(4);
             const result = {};
-            const pairs = payload.split('&');
+            const pairs = splitTopLevelPairs(payload);
             // Extract username FIRST (raw string, not numeric)
             for (const pair of pairs) {
                 const eqIdx = pair.indexOf('=');
@@ -897,15 +944,14 @@
             // Update gold
             if (vars['Gold'] !== undefined) state.gold = vars['Gold'];
 
-            // Update weapon ownership
+            // Update weapon ownership authoritatively for any vars present in this update.
+            const ownedWeapons = new Set(state.ownedWeapons);
             for (const [varName, weaponId] of Object.entries(VAR_TO_WEAPON)) {
-                if (vars[varName] !== undefined) {
-                    const owned = vars[varName] > 0;
-                    if (owned && !state.ownedWeapons.includes(weaponId)) {
-                        state.ownedWeapons.push(weaponId);
-                    }
-                }
+                if (vars[varName] === undefined) continue;
+                if (vars[varName] > 0) ownedWeapons.add(weaponId);
+                else ownedWeapons.delete(weaponId);
             }
+            state.ownedWeapons = ['pistol', 'rifle', 'shotgun'].filter(id => ownedWeapons.has(id));
 
             // Update equipped weapon
             if (vars['Equipped_Weapon'] !== undefined) {
