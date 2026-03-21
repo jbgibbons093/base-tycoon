@@ -1,0 +1,1114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><base href="https://jbgibbons093.github.io/base-tycoon/">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Action Bar</title>
+    <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@700;900&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            background: transparent !important;
+            overflow: visible;
+            font-family: 'Nunito', sans-serif;
+            color: white;
+            user-select: none;
+        }
+
+        /* ---- ACTION BAR CONTAINER ---- */
+        .action-bar {
+            position: fixed;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            padding: 6px 10px 8px;
+            background: rgba(20, 20, 30, 0.88);
+            border-top: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 14px 14px 0 0;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(8px);
+            z-index: 10;
+        }
+
+        /* ---- SLOT ---- */
+        .slot {
+            position: relative;
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.12s ease;
+            flex-shrink: 0;
+        }
+
+        .slot:hover {
+            background: rgba(255, 255, 255, 0.12);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        .slot.active {
+            border-color: #FFD700;
+            background: rgba(255, 215, 0, 0.12);
+            box-shadow: 0 0 10px rgba(255, 215, 0, 0.25), inset 0 0 8px rgba(255, 215, 0, 0.08);
+        }
+
+        .slot.empty {
+            opacity: 0.3;
+            cursor: default;
+        }
+
+        .slot.empty:hover {
+            background: rgba(255, 255, 255, 0.06);
+            border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        .slot-icon {
+            font-size: 24px;
+            line-height: 1;
+        }
+
+        .slot-label {
+            font-size: 7px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            opacity: 0.6;
+            margin-top: 2px;
+            text-align: center;
+            line-height: 1.2;
+            max-width: 56px;
+            word-wrap: break-word;
+            overflow-wrap: break-word;
+        }
+
+        .slot.active .slot-label {
+            opacity: 1;
+            color: #FFD700;
+        }
+
+        .slot-key {
+            position: absolute;
+            top: -6px;
+            right: -4px;
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            background: rgba(40, 40, 50, 0.95);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            font-family: 'Fredoka One', cursive;
+            font-size: 9px;
+            color: rgba(255, 255, 255, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            line-height: 1;
+        }
+
+        /* ---- SEPARATOR ---- */
+        .bar-sep {
+            width: 1px;
+            height: 42px;
+            background: rgba(255, 255, 255, 0.1);
+            margin: 0 4px;
+            align-self: center;
+            flex-shrink: 0;
+        }
+
+        /* ---- DROP-UP MENU (items) ---- */
+        .dropup {
+            position: absolute;
+            bottom: calc(100% + 8px);
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(25, 25, 35, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 6px;
+            min-width: 120px;
+            box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            display: none;
+            z-index: 30;
+        }
+
+        .dropup.show {
+            display: block;
+            animation: dropupIn 0.15s ease;
+        }
+
+        @keyframes dropupIn {
+            from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+            to { opacity: 1; transform: translateX(-50%) translateY(0); }
+        }
+
+        /* ---- FLYOUT MENU (weapons - slides left) ---- */
+        .flyout-left {
+            position: absolute;
+            right: calc(100% + 8px);
+            bottom: 0;
+            background: rgba(25, 25, 35, 0.95);
+            border: 2px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 6px;
+            box-shadow: -6px 0 24px rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(10px);
+            display: none;
+            z-index: 30;
+            white-space: nowrap;
+            width: max-content;
+        }
+
+        .flyout-left.show {
+            display: flex;
+            animation: flyoutLeftIn 0.15s ease;
+        }
+
+        @keyframes flyoutLeftIn {
+            from { opacity: 0; transform: translateX(6px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .dropup-title {
+            font-family: 'Fredoka One', cursive;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.5);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding: 2px 8px 6px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+            margin-bottom: 4px;
+        }
+
+        .dropup-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 10px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background 0.1s;
+            white-space: nowrap;
+        }
+
+        .dropup-item:hover {
+            background: rgba(255, 255, 255, 0.08);
+        }
+
+        .dropup-item.equipped {
+            background: rgba(255, 215, 0, 0.12);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+        }
+
+        .dropup-item.locked {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .dropup-item .di-icon {
+            font-size: 18px;
+        }
+
+        .dropup-item .di-info {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .dropup-item .di-name {
+            font-weight: 900;
+            font-size: 12px;
+            color: white;
+        }
+
+        .dropup-item.equipped .di-name {
+            color: #FFD700;
+        }
+
+        .dropup-item .di-stat {
+            font-size: 9px;
+            opacity: 0.5;
+            font-weight: 700;
+        }
+
+        .dropup-item .di-tag {
+            margin-left: auto;
+            font-family: 'Fredoka One', cursive;
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 6px;
+        }
+
+        .tag-equipped {
+            background: rgba(255, 215, 0, 0.2);
+            color: #FFD700;
+        }
+
+        .tag-locked {
+            background: rgba(255, 255, 255, 0.06);
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* ---- CARRY INDICATOR ---- */
+        .carry-indicator {
+            position: fixed;
+            bottom: 82px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 4px 14px;
+            border-radius: 10px;
+            background: rgba(255, 165, 0, 0.9);
+            border: 2px solid rgba(200, 120, 0, 0.8);
+            font-family: 'Fredoka One', cursive;
+            font-size: 13px;
+            color: #3A1800;
+            box-shadow: 0 3px 12px rgba(255, 165, 0, 0.3);
+            z-index: 10;
+            display: none;
+            white-space: nowrap;
+        }
+
+        .carry-indicator.show {
+            display: block;
+            animation: dropupIn 0.2s ease;
+        }
+
+        /* ---- HP BAR ---- */
+        .hp-bar-wrap {
+            position: fixed;
+            bottom: 76px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 280px;
+            height: 18px;
+            background: rgba(20, 20, 30, 0.85);
+            border: 2px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            z-index: 10;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(6px);
+        }
+        .hp-bar-fill {
+            height: 100%;
+            border-radius: 8px;
+            transition: width 0.3s ease, background 0.3s ease;
+            background: linear-gradient(180deg, #4ADE80, #22C55E);
+        }
+        .hp-bar-fill.mid {
+            background: linear-gradient(180deg, #FBBF24, #F59E0B);
+        }
+        .hp-bar-fill.low {
+            background: linear-gradient(180deg, #F87171, #EF4444);
+        }
+        .hp-bar-text {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: 'Fredoka One', cursive;
+            font-size: 10px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.6);
+            pointer-events: none;
+        }
+
+        /* ---- SLOT BUFF TIMER ---- */
+        .slot.buff-active {
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .slot-timer-fill {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            border-radius: 0 0 10px 10px;
+            transition: height 0.9s linear;
+            pointer-events: none;
+        }
+        .slot-timer-fill.speed {
+            background: linear-gradient(180deg, rgba(91,221,255,0.35), rgba(91,221,255,0.15));
+        }
+        .slot-timer-fill.shield {
+            background: linear-gradient(180deg, rgba(212,160,255,0.35), rgba(212,160,255,0.15));
+        }
+        .slot-timer-text {
+            font-family: 'Fredoka One', cursive;
+            font-size: 16px;
+            color: white;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.7);
+            font-variant-numeric: tabular-nums;
+            z-index: 1;
+            position: relative;
+        }
+        .slot-timer-label {
+            font-size: 6px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            opacity: 0.7;
+            z-index: 1;
+            position: relative;
+        }
+
+        /* ---- QUANTITY BADGE ---- */
+        .slot-qty {
+            position: absolute;
+            bottom: -4px;
+            right: -4px;
+            min-width: 16px;
+            height: 16px;
+            border-radius: 8px;
+            background: #FF6B6B;
+            border: 1.5px solid rgba(0, 0, 0, 0.3);
+            font-family: 'Fredoka One', cursive;
+            font-size: 9px;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 3px;
+            line-height: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- HP BAR (above action bar) -->
+    <div class="hp-bar-wrap" id="hp-bar-wrap">
+        <div class="hp-bar-fill" id="hp-bar-fill" style="width:100%"></div>
+        <div class="hp-bar-text" id="hp-bar-text">100 / 100</div>
+    </div>
+
+    <!-- CARRY INDICATOR (shown above bar when carrying brainrot) -->
+    <div class="carry-indicator" id="carry-indicator">
+        Carrying: <img src="cash.png" style="height:14px;vertical-align:middle"><span id="carry-gold">0</span>/s
+    </div>
+
+    <!-- ACTION BAR -->
+    <div class="action-bar" id="action-bar">
+        <!-- Weapon slot (with left flyout) -->
+        <div style="position:relative;">
+            <div class="slot active" id="slot-weapon" onclick="toggleDropup('weapon')">
+                <span class="slot-key">1</span>
+                <span class="slot-icon" id="weapon-icon">&#x1F52B;</span>
+                <span class="slot-label" id="weapon-label">Pistol</span>
+            </div>
+            <!-- WEAPON FLYOUT (slides left) -->
+            <div class="flyout-left" id="dropup-weapon">
+                <div id="weapon-list"></div>
+            </div>
+        </div>
+
+        <div class="bar-sep"></div>
+
+        <!-- Consumable slots -->
+        <div class="slot" id="slot-item1" onclick="useSlotItem(0)">
+            <span class="slot-key">2</span>
+            <span class="slot-icon" id="item1-icon">&#x2795;</span>
+            <span class="slot-label" id="item1-label">Empty</span>
+        </div>
+        <div class="slot" id="slot-item2" onclick="useSlotItem(1)">
+            <span class="slot-key">3</span>
+            <span class="slot-icon" id="item2-icon">&#x2795;</span>
+            <span class="slot-label" id="item2-label">Empty</span>
+        </div>
+        <div class="slot" id="slot-item3" onclick="useSlotItem(2)">
+            <span class="slot-key">4</span>
+            <span class="slot-icon" id="item3-icon">&#x2795;</span>
+            <span class="slot-label" id="item3-label">Empty</span>
+        </div>
+        <div class="slot" id="slot-item4" onclick="useSlotItem(3)">
+            <span class="slot-key">5</span>
+            <span class="slot-icon" id="item4-icon">&#x2795;</span>
+            <span class="slot-label" id="item4-label">Empty</span>
+        </div>
+
+        <!-- ITEMS DROP-UP -->
+        <div class="dropup" id="dropup-items">
+            <div class="dropup-title">Items</div>
+            <div id="items-list"></div>
+        </div>
+    </div>
+
+    <script>
+        const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+
+        // ---- SOUND SYSTEM ----
+        var _mp3Sounds = {};
+        (function() {
+            var files = { purchase: 'purchase.mp3', click: 'click.mp3', uipop: 'ui-pop.mp3' };
+            for (var k in files) { var a = new Audio(files[k]); a.preload = 'auto'; a.volume = (k === 'click') ? 0.5 : 0.3; _mp3Sounds[k] = a; }
+        })();
+        function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
+
+        // ---- MULTIPLAYER USERNAME ----
+        var myUsername = '';
+
+        // ---- DATA ----
+        const WEAPONS = [
+            { id: 'pistol', name: 'Pistol', icon: '\u{1F52B}', stat: 'Fast \u2022 Low DMG' },
+            { id: 'rifle', name: 'Rifle', icon: '\u{1F3AF}', stat: 'Balanced' },
+            { id: 'shotgun', name: 'Shotgun', icon: '\u{1F4A5}', stat: 'Slow \u2022 High DMG' }
+        ];
+
+        const CONSUMABLES = [
+            { id: 'health_pack', name: 'Health\nPack', icon: '\u{1FA79}', stat: 'Heal to full HP', task: 'act_health_pack', varName: 'Inv_Health_Pack' },
+            { id: 'speed_potion', name: 'Speed\nPotion', icon: '\u{26A1}', stat: '2x speed 2min', task: 'act_speed_potion', cooldown: 120, varName: 'Inv_Speed_Potion' },
+            { id: 'base_teleport', name: 'Base TP', icon: '\u{1F300}', stat: 'Teleport to base', task: 'act_base_teleport', varName: 'Inv_Base_Teleport' },
+            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Immune 30s', task: 'act_shield', cooldown: 60, varName: 'Inv_Shield' }
+        ];
+
+        // ---- STATE ----
+        let state = {
+            gold: 0,
+            equippedWeapon: null,
+            ownedWeapons: [],
+            equippedItems: ['health_pack', 'speed_potion', 'base_teleport', 'shield'],   // 4 consumable slots
+            cooldowns: {},
+            itemCounts: {},   // e.g. { health_pack: 3, speed_potion: 1, ... }
+            carrying: 0,
+            carryGold: 0,
+            health: 100,
+            armorLevel: 0,
+            buffs: {
+                speed: { active: false, endTime: 0, duration: 120 },
+                shield: { active: false, endTime: 0, duration: 30 }
+            }
+        };
+
+        const ARMOR_MAX_HP = { 0: 100, 1: 125, 2: 150, 3: 175, 4: 200 };
+
+        let openDropup = null;
+
+        // ---- DOM ----
+        const weaponIcon = document.getElementById('weapon-icon');
+        const weaponLabel = document.getElementById('weapon-label');
+        const weaponList = document.getElementById('weapon-list');
+        const itemsList = document.getElementById('items-list');
+        const carryIndicator = document.getElementById('carry-indicator');
+        const carryGoldEl = document.getElementById('carry-gold');
+
+        // ---- RENDERING ----
+        function render() {
+            // Weapon slot
+            const w = state.equippedWeapon ? WEAPONS.find(w => w.id === state.equippedWeapon) : null;
+            if (w) {
+                weaponIcon.innerHTML = w.icon;
+                weaponLabel.textContent = w.name;
+            } else {
+                weaponIcon.innerHTML = '\u2014';
+                weaponLabel.textContent = 'None';
+            }
+
+            // Buff-to-slot mapping
+            var BUFF_MAP = { speed_potion: 'speed', shield: 'shield' };
+            var BUFF_COLORS = { speed: 'speed', shield: 'shield' };
+            var now = Date.now();
+
+            // Consumable slots
+            for (let i = 0; i < 4; i++) {
+                const slotEl = document.getElementById('slot-item' + (i + 1));
+                const iconEl = document.getElementById('item' + (i + 1) + '-icon');
+                const labelEl = document.getElementById('item' + (i + 1) + '-label');
+
+                // Remove old badges and timer fills
+                const oldQty = slotEl.querySelector('.slot-qty');
+                if (oldQty) oldQty.remove();
+                const oldFill = slotEl.querySelector('.slot-timer-fill');
+                if (oldFill) oldFill.remove();
+                slotEl.classList.remove('buff-active');
+
+                const itemId = state.equippedItems[i];
+                if (itemId) {
+                    const item = CONSUMABLES.find(c => c.id === itemId);
+                    if (item) {
+                        slotEl.classList.remove('empty');
+
+                        // Check if this slot has an active buff timer
+                        var buffKey = BUFF_MAP[itemId];
+                        var buffData = buffKey ? state.buffs[buffKey] : null;
+                        var buffActive = buffData && buffData.active && buffData.endTime > now;
+
+                        if (buffActive) {
+                            // Show countdown timer in the slot
+                            var secs = Math.ceil((buffData.endTime - now) / 1000);
+                            var pctRemain = Math.max(0, (buffData.endTime - now) / (buffData.duration * 1000));
+                            slotEl.classList.add('buff-active');
+                            iconEl.innerHTML = '<span class="slot-timer-text">' + secs + '</span>';
+                            labelEl.innerHTML = '<span class="slot-timer-label">' + (buffKey === 'speed' ? 'SPEED' : 'SHIELD') + '</span>';
+                            slotEl.style.opacity = '1';
+
+                            // Add fill bar
+                            var fill = document.createElement('div');
+                            fill.className = 'slot-timer-fill ' + BUFF_COLORS[buffKey];
+                            fill.style.height = Math.round(pctRemain * 100) + '%';
+                            slotEl.appendChild(fill);
+                        } else {
+                            // Normal display
+                            iconEl.innerHTML = item.icon;
+                            const onCd = item.cooldown && state.cooldowns[itemId] && state.cooldowns[itemId] > now;
+                            if (onCd) {
+                                const cdSec = Math.ceil((state.cooldowns[itemId] - now) / 1000);
+                                labelEl.innerHTML = cdSec + 's';
+                                slotEl.style.opacity = '0.5';
+                            } else {
+                                labelEl.innerHTML = item.name.replace(/\n/g, '<br>');
+                                slotEl.style.opacity = (state.itemCounts[itemId] || 0) > 0 ? '1' : '0.5';
+                            }
+                        }
+
+                        // Show count badge (even during buff, so player sees remaining stock)
+                        const qty = state.itemCounts[itemId] || 0;
+                        if (qty > 0) {
+                            const badge = document.createElement('div');
+                            badge.className = 'slot-qty';
+                            badge.textContent = qty;
+                            slotEl.appendChild(badge);
+                        }
+                    }
+                } else {
+                    slotEl.classList.add('empty');
+                    iconEl.innerHTML = '\u2795';
+                    labelEl.textContent = 'Empty';
+                    slotEl.style.opacity = '';
+                }
+            }
+
+            // HP bar
+            var maxHp = Math.max(ARMOR_MAX_HP[state.armorLevel] || 100, state.health);
+            var hp = state.health;
+            var pct = maxHp > 0 ? Math.max(0, Math.min(100, (hp / maxHp) * 100)) : 100;
+            var hpFill = document.getElementById('hp-bar-fill');
+            var hpText = document.getElementById('hp-bar-text');
+            hpFill.style.width = pct + '%';
+            hpFill.className = 'hp-bar-fill' + (pct <= 25 ? ' low' : pct <= 50 ? ' mid' : '');
+            hpText.textContent = Math.round(hp) + ' / ' + Math.round(maxHp);
+
+            // Carry indicator
+            if (state.carrying > 0) {
+                carryIndicator.classList.add('show');
+                carryGoldEl.textContent = state.carryGold;
+            } else {
+                carryIndicator.classList.remove('show');
+            }
+        }
+
+        function renderWeaponDropup() {
+            weaponList.innerHTML = '';
+            weaponList.style.display = 'flex';
+            weaponList.style.gap = '4px';
+            weaponList.style.flexWrap = 'nowrap';
+
+            // "None" option (unequip)
+            var noneActive = state.equippedWeapon === null;
+            var noneDiv = document.createElement('div');
+            noneDiv.style.cssText = 'width:56px;height:56px;flex-shrink:0;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:' + (noneActive ? 'default' : 'pointer') + ';border:2px solid ' + (noneActive ? 'rgba(255,215,0,0.5)' : 'rgba(255,255,255,0.1)') + ';background:' + (noneActive ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.06)') + ';transition:background 0.1s;';
+            noneDiv.innerHTML = '<span style="font-size:22px;line-height:1">\u2014</span>' +
+                '<span style="font-size:7px;font-weight:900;text-transform:uppercase;margin-top:2px;color:' + (noneActive ? '#FFD700' : 'rgba(255,255,255,0.6)') + '">None</span>';
+            if (!noneActive) {
+                noneDiv.onmouseenter = function() { noneDiv.style.background = 'rgba(255,255,255,0.12)'; };
+                noneDiv.onmouseleave = function() { noneDiv.style.background = 'rgba(255,255,255,0.06)'; };
+                noneDiv.onclick = function(e) { e.stopPropagation(); unequipWeapon(); };
+            }
+            weaponList.appendChild(noneDiv);
+
+            WEAPONS.forEach(w => {
+                const owned = state.ownedWeapons.includes(w.id);
+                const equipped = state.equippedWeapon === w.id;
+                const div = document.createElement('div');
+                div.style.cssText = 'width:56px;height:56px;flex-shrink:0;border-radius:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:' + (owned && !equipped ? 'pointer' : !owned ? 'not-allowed' : 'default') + ';border:2px solid ' + (equipped ? 'rgba(255,215,0,0.5)' : 'rgba(255,255,255,0.1)') + ';background:' + (equipped ? 'rgba(255,215,0,0.12)' : 'rgba(255,255,255,0.06)') + ';opacity:' + (!owned ? '0.35' : '1') + ';transition:background 0.1s;';
+                div.innerHTML = '<span style="font-size:22px;line-height:1">' + w.icon + '</span>' +
+                    '<span style="font-size:7px;font-weight:900;text-transform:uppercase;margin-top:2px;color:' + (equipped ? '#FFD700' : 'rgba(255,255,255,0.6)') + '">' + w.name + '</span>';
+                if (owned && !equipped) {
+                    div.onmouseenter = function() { div.style.background = 'rgba(255,255,255,0.12)'; };
+                    div.onmouseleave = function() { div.style.background = 'rgba(255,255,255,0.06)'; };
+                    div.onclick = function(e) {
+                        e.stopPropagation();
+                        equipWeapon(w.id);
+                    };
+                } else if (owned && equipped) {
+                    div.style.cursor = 'pointer';
+                    div.onmouseenter = function() { div.style.background = 'rgba(255,100,100,0.15)'; div.style.borderColor = 'rgba(255,100,100,0.5)'; };
+                    div.onmouseleave = function() { div.style.background = 'rgba(255,215,0,0.12)'; div.style.borderColor = 'rgba(255,215,0,0.5)'; };
+                    div.onclick = function(e) {
+                        e.stopPropagation();
+                        unequipWeapon();
+                    };
+                }
+                weaponList.appendChild(div);
+            });
+        }
+
+        function renderItemsDropup() {
+            itemsList.innerHTML = '';
+            CONSUMABLES.forEach(c => {
+                const count = state.itemCounts[c.id] || 0;
+                const onCd = c.cooldown && state.cooldowns[c.id] && state.cooldowns[c.id] > Date.now();
+                const canUse = count > 0 && !onCd;
+                const div = document.createElement('div');
+                div.className = 'dropup-item' + (!canUse ? ' locked' : '');
+                div.innerHTML =
+                    '<span class="di-icon">' + c.icon + '</span>' +
+                    '<div class="di-info">' +
+                        '<span class="di-name">' + c.name + '</span>' +
+                        '<span class="di-stat">' + c.stat + '</span>' +
+                    '</div>' +
+                    (onCd ? '<span class="di-tag tag-locked">' + Math.ceil((state.cooldowns[c.id] - Date.now()) / 1000) + 's</span>' :
+                     '<span class="di-tag tag-equipped">x' + count + '</span>');
+                if (canUse) {
+                    div.onclick = function(e) {
+                        e.stopPropagation();
+                        useItem(c.id);
+                    };
+                }
+                itemsList.appendChild(div);
+            });
+        }
+
+        // ---- ACTIONS ----
+        // Quest names for iframe → Portals communication
+        // These must exactly match quest Names in the room
+        const EQUIP_QUEST = { pistol: 'equip_pistol', rifle: 'equip_rifle', shotgun: 'equip_shotgun' };
+
+        function sendTaskToUnity(taskName, delayMs) {
+            if (!sdk || !taskName) return;
+            const send = function() {
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: taskName,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+                sdk.focusGameKeyboard();
+            };
+            if (delayMs && delayMs > 0) setTimeout(send, delayMs);
+            else send();
+        }
+
+        function equipWeapon(id) {
+            if (!state.ownedWeapons.includes(id)) return;
+            if (!EQUIP_QUEST[id]) return;
+
+            const previousWeapon = state.equippedWeapon;
+            state.equippedWeapon = id;
+            render();
+            renderWeaponDropup();
+            playSound('click');
+            closeAllDropups();
+
+            if (!sdk) return;
+
+            // Swapping between equipped guns is more reliable if the current one is
+            // explicitly tossed before the next EquipGunEffect fires.
+            if (previousWeapon && previousWeapon !== id) {
+                sendTaskToUnity('unequip_weapon', 0);
+                sendTaskToUnity(EQUIP_QUEST[id], 180);
+                return;
+            }
+
+            sendTaskToUnity(EQUIP_QUEST[id], 0);
+        }
+
+        function unequipWeapon() {
+            state.equippedWeapon = null;
+            render();
+            renderWeaponDropup();
+            playSound('click');
+            closeAllDropups();
+            sendTaskToUnity('unequip_weapon', 0);
+        }
+
+        function useItem(id) {
+            const item = CONSUMABLES.find(c => c.id === id);
+            if (!item || !item.task) return;
+
+            // Check cooldown
+            if (item.cooldown && state.cooldowns[id] && state.cooldowns[id] > Date.now()) return;
+
+            // Check inventory count
+            const count = state.itemCounts[id] || 0;
+            if (count <= 0) return;
+
+            // Optimistic inventory deduction
+            state.itemCounts[id] = count - 1;
+            if (item.cooldown) {
+                state.cooldowns[id] = Date.now() + (item.cooldown * 1000);
+            }
+
+            render();
+            renderItemsDropup();
+            playSound('click');
+            closeAllDropups();
+
+            // Send quest activation to Portals (room-side handles the effect)
+            sendTaskToUnity(item.task, 0);
+        }
+
+        function useSlotItem(slotIdx) {
+            const itemId = state.equippedItems[slotIdx];
+            if (itemId) useItem(itemId);
+        }
+
+        // ---- DROP-UP TOGGLE ----
+        function toggleDropup(which) {
+            const el = document.getElementById('dropup-' + which);
+            if (openDropup === which) {
+                closeAllDropups();
+                return;
+            }
+            playSound('uipop');
+            closeAllDropups();
+            if (which === 'weapon') renderWeaponDropup();
+            if (which === 'items') renderItemsDropup();
+
+            // Position items dropup above its slot (weapon flyout is CSS-positioned)
+            if (which === 'items') {
+                const slotEl = document.getElementById('slot-item1');
+                if (slotEl) {
+                    const bar = document.getElementById('action-bar');
+                    const slotRect = slotEl.getBoundingClientRect();
+                    const barRect = bar.getBoundingClientRect();
+                    const slotCenter = slotRect.left + slotRect.width / 2 - barRect.left;
+                    el.style.left = slotCenter + 'px';
+                }
+            }
+
+            el.classList.add('show');
+            openDropup = which;
+        }
+
+        function closeAllDropups() {
+            document.querySelectorAll('.dropup, .flyout-left').forEach(d => d.classList.remove('show'));
+            openDropup = null;
+        }
+
+        // Close dropups when clicking outside
+        document.addEventListener('click', function(e) {
+            if (!e.target.closest('.dropup') && !e.target.closest('.flyout-left') && !e.target.closest('.slot')) {
+                closeAllDropups();
+            }
+        });
+
+        // ---- VARIABLE PARSER (from inv: sync messages) ----
+
+        // Map Portals variable names to action bar state
+        const VAR_TO_WEAPON = {
+            'Own_Pistol': 'pistol',
+            'Own_Rifle': 'rifle',
+            'Own_Shotgun': 'shotgun'
+        };
+        const EQUIPPED_WEAPON_MAP = { 1: 'pistol', 2: 'rifle', 3: 'shotgun' };
+
+        /**
+         * Parse a value from Portals variable interpolation.
+         * Handles: raw numbers ("3"), multiplayer JSON objects ({"Player1": 100, "Player2": 87}),
+         * and Portals = format ({"Player1"="100"}).
+         * Uses myUsername to extract the LOCAL player's value in multiplayer.
+         */
+        function parseVarValue(raw) {
+            if (raw === undefined || raw === null || raw === '') return 0;
+            if (typeof raw !== 'string') return parseFloat(raw) || 0;
+            raw = raw.trim();
+            // Plain number — single player or already resolved
+            if (raw.charAt(0) !== '{') return parseFloat(raw) || 0;
+            // Multiplayer JSON object — need username to extract local player's value
+            if (!myUsername) return parseFloat(raw) || 0;
+            // Try standard JSON first: {"Player1": 100, "Player2": 87}
+            try {
+                var obj = JSON.parse(raw);
+                if (typeof obj === 'object' && obj !== null) {
+                    var keys = Object.keys(obj);
+                    for (var i = 0; i < keys.length; i++) {
+                        if (keys[i].toLowerCase() === myUsername.toLowerCase()) {
+                            return parseFloat(obj[keys[i]]) || 0;
+                        }
+                    }
+                    return 0;
+                }
+                return parseFloat(raw) || 0;
+            } catch(e) {}
+            // Fallback: Portals format {"name"="val"&"name2"="val2"} or comma-separated
+            try {
+                var inner = raw.substring(1, raw.length - 1).trim();
+                var entries = inner.split(/[&,]/);
+                for (var j = 0; j < entries.length; j++) {
+                    var entry = entries[j].trim();
+                    if (!entry) continue;
+                    var sep = entry.indexOf('=');
+                    if (sep < 0) sep = entry.indexOf(':');
+                    if (sep < 0) continue;
+                    var k = entry.substring(0, sep).trim().replace(/^["']|["']$/g, '');
+                    var v = entry.substring(sep + 1).trim().replace(/^["']|["']$/g, '');
+                    if (k.toLowerCase() === myUsername.toLowerCase()) {
+                        return parseFloat(v) || 0;
+                    }
+                }
+            } catch(e2) {}
+            return 0;
+        }
+
+        function splitTopLevelPairs(payload) {
+            const pairs = [];
+            let depth = 0;
+            let quote = '';
+            let current = '';
+
+            for (let i = 0; i < payload.length; i++) {
+                const ch = payload.charAt(i);
+                const prev = i > 0 ? payload.charAt(i - 1) : '';
+
+                if (quote) {
+                    current += ch;
+                    if (ch === quote && prev !== '\\') quote = '';
+                    continue;
+                }
+
+                if (ch === '"' || ch === "'") {
+                    quote = ch;
+                    current += ch;
+                    continue;
+                }
+
+                if (ch === '{' || ch === '[' || ch === '(') {
+                    depth++;
+                    current += ch;
+                    continue;
+                }
+
+                if (ch === '}' || ch === ']' || ch === ')') {
+                    if (depth > 0) depth--;
+                    current += ch;
+                    continue;
+                }
+
+                if (ch === '&' && depth === 0) {
+                    pairs.push(current);
+                    current = '';
+                    continue;
+                }
+
+                current += ch;
+            }
+
+            if (current) pairs.push(current);
+            return pairs;
+        }
+
+        /**
+         * Parse an inventory message from Portals.
+         * Format: "inv:Key1=Val1&Key2=Val2&..."
+         * Returns object of {key: numericValue}
+         */
+        function parseInventoryMessage(msg) {
+            if (!msg.startsWith('inv:')) return null;
+            const payload = msg.substring(4);
+            const result = {};
+            const pairs = splitTopLevelPairs(payload);
+            // Extract username FIRST (raw string, not numeric)
+            for (const pair of pairs) {
+                const eqIdx = pair.indexOf('=');
+                if (eqIdx < 0) continue;
+                const key = pair.substring(0, eqIdx).trim();
+                const rawVal = pair.substring(eqIdx + 1);
+                if (key === 'username') {
+                    myUsername = rawVal.trim().replace(/^["']|["']$/g, '');
+                    result[key] = myUsername;
+                    continue;
+                }
+            }
+            // Now parse all other values as numbers (using myUsername for multiplayer resolution)
+            for (const pair of pairs) {
+                const eqIdx = pair.indexOf('=');
+                if (eqIdx < 0) continue;
+                const key = pair.substring(0, eqIdx).trim();
+                if (key === 'username') continue; // already handled
+                const rawVal = pair.substring(eqIdx + 1);
+                result[key] = parseVarValue(rawVal);
+            }
+            return result;
+        }
+
+        // Map Portals variable names to consumable IDs
+        const VAR_TO_ITEM = {};
+        CONSUMABLES.forEach(function(c) { if (c.varName) VAR_TO_ITEM[c.varName] = c.id; });
+
+        /**
+         * Apply parsed inventory variables to action bar state.
+         */
+        function applyInventoryUpdate(vars) {
+            // Store local player username (always plain string, never JSON)
+            if (vars['username']) myUsername = vars['username'];
+
+            // Update gold
+            if (vars['Gold'] !== undefined) state.gold = vars['Gold'];
+
+            // Update weapon ownership authoritatively for any vars present in this update.
+            const ownedWeapons = new Set(state.ownedWeapons);
+            for (const [varName, weaponId] of Object.entries(VAR_TO_WEAPON)) {
+                if (vars[varName] === undefined) continue;
+                if (vars[varName] > 0) ownedWeapons.add(weaponId);
+                else ownedWeapons.delete(weaponId);
+            }
+            state.ownedWeapons = ['pistol', 'rifle', 'shotgun'].filter(id => ownedWeapons.has(id));
+
+            // Update equipped weapon
+            if (vars['Equipped_Weapon'] !== undefined) {
+                state.equippedWeapon = EQUIPPED_WEAPON_MAP[vars['Equipped_Weapon']] || null;
+            }
+
+            // Update health and armor
+            if (vars['health'] !== undefined) state.health = vars['health'];
+            if (vars['Gear_Armor'] !== undefined) state.armorLevel = Math.floor(vars['Gear_Armor']);
+
+            // Update item counts
+            for (const [varName, itemId] of Object.entries(VAR_TO_ITEM)) {
+                if (vars[varName] !== undefined) {
+                    state.itemCounts[itemId] = Math.floor(vars[varName]);
+                }
+            }
+
+            // Update buffs
+            if (vars['Speed_Potion_Active'] !== undefined) {
+                var spActive = vars['Speed_Potion_Active'] > 0;
+                if (spActive && !state.buffs.speed.active) {
+                    state.buffs.speed.endTime = Date.now() + (state.buffs.speed.duration * 1000);
+                }
+                state.buffs.speed.active = spActive;
+                if (!spActive) state.buffs.speed.endTime = 0;
+            }
+            if (vars['Shield_Active'] !== undefined) {
+                var shActive = vars['Shield_Active'] > 0;
+                if (shActive && !state.buffs.shield.active) {
+                    state.buffs.shield.endTime = Date.now() + (state.buffs.shield.duration * 1000);
+                }
+                state.buffs.shield.active = shActive;
+                if (!shActive) state.buffs.shield.endTime = 0;
+            }
+
+            render();
+            console.log('[ActionBar] Updated: gold=' + state.gold + ' weapons=' + state.ownedWeapons + ' items=' + JSON.stringify(state.itemCounts));
+        }
+
+        // ---- SDK MESSAGE LISTENER ----
+        if (sdk) {
+            sdk.setMessageListener(function(message) {
+                console.log('[ActionBar] Received:', message);
+
+                // ---- INVENTORY VARIABLE UPDATE ----
+                // Format: "inv:Own_Pistol=1&Own_Rifle=0&Inv_HealthPotion=3&..."
+                if (message.startsWith('inv:')) {
+                    const vars = parseInventoryMessage(message);
+                    if (vars) applyInventoryUpdate(vars);
+                    return;
+                }
+
+                // ---- CARRY UPDATE ----
+                // Format: "carry:count,goldValue"
+                if (message.startsWith('carry:')) {
+                    const parts = message.substring(6).split(',');
+                    state.carrying = parseFloat(parts[0]) || 0;
+                    state.carryGold = parseFloat(parts[1]) || 0;
+                    render();
+                    return;
+                }
+
+                // ---- SINGLE VARIABLE UPDATE ----
+                // Format: "var:VarName=Value" (for incremental updates)
+                if (message.startsWith('var:')) {
+                    const eqIdx = message.indexOf('=', 4);
+                    if (eqIdx > 4) {
+                        const key = message.substring(4, eqIdx).trim();
+                        const val = parseVarValue(message.substring(eqIdx + 1));
+                        const singleVars = {};
+                        singleVars[key] = val;
+                        applyInventoryUpdate(singleVars);
+                    }
+                    return;
+                }
+
+                // ---- JSON FORMAT (fallback) ----
+                try {
+                    const d = JSON.parse(message);
+                    if (d.weapon) state.equippedWeapon = d.weapon;
+                    if (d.ownedWeapons) state.ownedWeapons = d.ownedWeapons;
+                    if (d.gold !== undefined) state.gold = parseFloat(d.gold) || 0;
+                    if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying) || 0;
+                    if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold) || 0;
+                    render();
+                } catch(e) {}
+            });
+        }
+
+        // ---- Keyboard refocus (so WASD movement keeps working while action bar is open) ----
+        function _doFocusGame() {
+            if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+        }
+        document.addEventListener('click', function(e) {
+            if (document.hidden) return;
+            if (e && e.target) {
+                var tag = e.target.tagName;
+                if (tag === 'BUTTON' || tag === 'SELECT' || tag === 'INPUT') return;
+                if (e.target.closest && e.target.closest('button, select, .slot, .dropup-item')) return;
+            }
+            _doFocusGame();
+        });
+        document.addEventListener('keydown', function() { if (!document.hidden) _doFocusGame(); });
+        document.addEventListener('mouseup', function(e) {
+            if (e && e.target) {
+                var tag = e.target.tagName;
+                if (tag === 'BUTTON' || tag === 'SELECT' || tag === 'INPUT') return;
+                if (e.target.closest && e.target.closest('button, select, .slot, .dropup-item')) return;
+            }
+            setTimeout(_doFocusGame, 50);
+        });
+        // Refocus on iframe open
+        _doFocusGame();
+        setTimeout(_doFocusGame, 100);
+        setTimeout(_doFocusGame, 300);
+        setTimeout(_doFocusGame, 600);
+
+        // ---- INIT ----
+        render();
+
+        // Cooldown + buff refresh timer
+        setInterval(function() {
+            var now = Date.now();
+            var hasActive = Object.values(state.cooldowns).some(function(v) { return v > now; });
+            var hasBuff = (state.buffs.speed.active && state.buffs.speed.endTime > now) ||
+                          (state.buffs.shield.active && state.buffs.shield.endTime > now);
+            // Auto-expire buffs client-side
+            if (state.buffs.speed.active && state.buffs.speed.endTime > 0 && state.buffs.speed.endTime <= now) {
+                state.buffs.speed.active = false;
+            }
+            if (state.buffs.shield.active && state.buffs.shield.endTime > 0 && state.buffs.shield.endTime <= now) {
+                state.buffs.shield.active = false;
+            }
+            if (hasActive || hasBuff) render();
+        }, 1000);
+
+        // Dev preview
+        if (!sdk) {
+            state.gold = 25000;
+            state.ownedWeapons = ['pistol', 'rifle'];
+            state.equippedWeapon = null;
+            state.equippedItems = ['health_pack', 'speed_potion', 'base_teleport', 'shield'];
+            state.carrying = 1;
+            state.carryGold = 14.6;
+            state.health = 87;
+            state.armorLevel = 2;
+            render();
+        }
+    </script>
+</body>
+</html>
