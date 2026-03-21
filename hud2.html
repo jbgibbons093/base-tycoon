@@ -6,6 +6,7 @@
     <title>Brainrot Tycoon HUD</title>
     <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="theme.css?v=1742508000" rel="stylesheet">
     <style>
         html, body {
             margin: 0; padding: 0;
@@ -35,9 +36,11 @@
             align-items: center;
             gap: 10px;
             padding: 8px 16px 8px 10px;
-            border-radius: 10px;
-            border: 3px solid rgba(0,0,0,0.25);
+            border-radius: 999px;
+            border: 2px solid rgba(0,0,0,0.2);
             box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 6px 12px rgba(0,0,0,0.15);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             position: relative;
             min-width: 200px;
         }
@@ -60,10 +63,10 @@
 
         /* Cash pill */
         .pill-gold {
-            background: linear-gradient(180deg, #5BDB5B 0%, #2EAA2E 100%);
-            border-color: #1E8A1E;
+            background: linear-gradient(180deg, rgba(91,219,91,0.88) 0%, rgba(46,170,46,0.88) 100%);
+            border-color: rgba(30,138,30,0.6);
         }
-        .pill-gold .icon-circle { background: #228B22; border-color: #1A6B1A; }
+        .pill-gold .icon-circle { background: rgba(34,139,34,0.9); border-color: rgba(26,107,26,0.7); }
         .pill-gold .val { color: #0A2A0A; }
 
         /* Cash stack icon (CSS-drawn) */
@@ -94,10 +97,12 @@
         /* ---- CARRY BANNER (below cash in stack) ---- */
         .carry-banner {
             padding: 4px 14px;
-            border-radius: 14px;
-            background: linear-gradient(180deg, #FFB347 0%, #FF8C00 100%);
-            border: 3px solid #CC6600;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255,179,71,0.9) 0%, rgba(255,140,0,0.9) 100%);
+            border: 2px solid rgba(204,102,0,0.6);
             box-shadow: 0 3px 0 rgba(0,0,0,0.2);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             font-family: 'Luckiest Guy', cursive;
             font-size: 14px;
             color: #3A1800;
@@ -110,10 +115,12 @@
         /* ---- CLAIM BASE BANNER ---- */
         .claim-banner {
             padding: 8px 20px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, #74B9FF 0%, #0984E3 100%);
-            border: 3px solid #0660A0;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(116,185,255,0.9) 0%, rgba(9,132,227,0.9) 100%);
+            border: 2px solid rgba(6,96,160,0.6);
             box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             font-family: 'Luckiest Guy', cursive;
             font-size: 15px;
             color: white;
@@ -130,10 +137,12 @@
         /* ---- SPECTATOR BANNER ---- */
         .spectator-banner {
             padding: 6px 18px;
-            border-radius: 14px;
-            background: linear-gradient(180deg, #636E72 0%, #2D3436 100%);
-            border: 3px solid #1A1A2E;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(99,110,114,0.85) 0%, rgba(45,52,54,0.85) 100%);
+            border: 2px solid rgba(26,26,46,0.5);
             box-shadow: 0 3px 0 rgba(0,0,0,0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             font-family: 'Luckiest Guy', cursive;
             font-size: 15px;
             color: #DFE6E9;
@@ -215,8 +224,8 @@
             pointer-events: none;
         }
         .notif {
-            padding: 5px 12px;
-            border-radius: 12px;
+            padding: 5px 14px;
+            border-radius: 999px;
             box-shadow: 0 2px 0 rgba(0,0,0,0.2);
             font-family: 'Luckiest Guy', cursive;
             font-size: 12px;
@@ -225,33 +234,33 @@
             animation: notifSlide 0.3s ease, notifOut 0.4s ease 3s forwards;
         }
         .notif-gold {
-            background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border: 3px solid #CC8800;
+            background: linear-gradient(180deg, rgba(255,228,77,0.92), rgba(255,184,0,0.92));
+            border: 2px solid rgba(204,136,0,0.6);
             color: #4A2800;
         }
         .notif-pickup {
-            background: linear-gradient(180deg, #FFB347, #FF8C00);
-            border: 3px solid #CC6600;
+            background: linear-gradient(180deg, rgba(255,179,71,0.92), rgba(255,140,0,0.92));
+            border: 2px solid rgba(204,102,0,0.6);
             color: #3A1800;
         }
         .notif-deposit {
-            background: linear-gradient(180deg, #6EF06E, #2ECC40);
-            border: 3px solid #1FA030;
+            background: linear-gradient(180deg, rgba(110,240,110,0.92), rgba(46,204,64,0.92));
+            border: 2px solid rgba(31,160,48,0.6);
             color: #0A3A0A;
         }
         .notif-spawn {
-            background: linear-gradient(180deg, #74B9FF, #3498DB);
-            border: 3px solid #2176AA;
+            background: linear-gradient(180deg, rgba(116,185,255,0.92), rgba(52,152,219,0.92));
+            border: 2px solid rgba(33,118,170,0.6);
             color: #0A1A3A;
         }
         .notif-info {
-            background: linear-gradient(180deg, #DFE6E9, #B2BEC3);
-            border: 3px solid #95A5A6;
+            background: linear-gradient(180deg, rgba(223,230,233,0.92), rgba(178,190,195,0.92));
+            border: 2px solid rgba(149,165,166,0.6);
             color: #2C3E50;
         }
         .notif-error {
-            background: linear-gradient(180deg, #FF6B6B, #E74C3C);
-            border: 3px solid #C0392B;
+            background: linear-gradient(180deg, rgba(255,107,107,0.92), rgba(231,76,60,0.92));
+            border: 2px solid rgba(192,57,43,0.6);
             color: #FFFFFF;
         }
         @keyframes notifSlide {
@@ -277,9 +286,9 @@
         }
         .toast {
             padding: 8px 20px;
-            border-radius: 14px;
-            background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border: 3px solid #CC8800;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255,228,77,0.92), rgba(255,184,0,0.92));
+            border: 2px solid rgba(204,136,0,0.6);
             box-shadow: 0 3px 0 rgba(0,0,0,0.2);
             font-family: 'Luckiest Guy', cursive;
             font-size: 16px;
@@ -344,8 +353,8 @@
 
         /* ---- KILL NOTIFICATION ---- */
         .notif-kill {
-            background: linear-gradient(180deg, #6EF06E, #2ECC40);
-            border: 3px solid #1FA030;
+            background: linear-gradient(180deg, rgba(110,240,110,0.92), rgba(46,204,64,0.92));
+            border: 2px solid rgba(31,160,48,0.6);
             color: #0A3A0A;
         }
 
@@ -367,10 +376,12 @@
         /* ---- TUTORIAL NOTIFICATION ---- */
         .tutorial-banner {
             padding: 8px 20px;
-            border-radius: 16px;
-            background: linear-gradient(180deg, #74B9FF 0%, #0984E3 100%);
-            border: 3px solid #0660A0;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(116,185,255,0.9) 0%, rgba(9,132,227,0.9) 100%);
+            border: 2px solid rgba(6,96,160,0.6);
             box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
             font-family: 'Luckiest Guy', cursive;
             font-size: 15px;
             color: white;
@@ -1249,6 +1260,18 @@
                 } else if (msg.startsWith('repopulate:')) {
                     var baseNum = parseInt(msg.substring(11)) || 0;
                     if (baseNum > 0) repopulateBase(baseNum);
+                } else if (msg === 'start_timers') {
+                    console.log('[HUD] start_timers received from room');
+                    if (!spawnTimersStarted) {
+                        spawnTimersStarted = true;
+                        startSpawnTimers();
+                    }
+                    // Activate carry system
+                    if (sdk) sdk.sendMessageToUnity(JSON.stringify({
+                        TaskName: 'carry_attach',
+                        TaskTargetState: 'SetNotActiveToActive'
+                    }));
+                }
             });
         }
 
@@ -1794,17 +1817,24 @@
 
         /* ---- INIT ---- */
         updateDisplay();
+        var spawnTimersStarted = false;
         if (sdk) {
-            dbg('SDK OK, resetting brainrots...');
-            resetAllBrainrots();
-            // Reset ZC_ variables server-side on login
-            sdk.sendMessageToUnity(JSON.stringify({
-                TaskName: 'reset_zc_login',
-                TaskTargetState: 'SetNotActiveToActive'
-            }));
-            dbg('Reset sent, timers in 7s...');
-            // Start spawn timers after reset completes (~6s for 99 brainrots at 60ms each)
-            setTimeout(function() { dbg('Starting spawn timers!'); startSpawnTimers(); dbg('Timers running'); }, 7000);
+            dbg('SDK OK, waiting for room signal...');
+            // Room-side 811_reset_bv_login handles resetting all bv_ quests to NotActive
+            // and sends 'start_timers' message when ready
+            // Fallback: also start on 7s timeout in case room signal doesn't arrive
+            setTimeout(function() {
+                if (!spawnTimersStarted) {
+                    dbg('Fallback: starting timers (no room signal)');
+                    spawnTimersStarted = true;
+                    startSpawnTimers();
+                }
+                // Activate carry system
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: 'carry_attach',
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+            }, 10000);
             startGoldAccumulator();
             // Load tutorial progress from storage
             loadTutorialStorage(function() {

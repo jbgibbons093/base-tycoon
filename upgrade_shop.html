@@ -6,117 +6,14 @@
     <title>Upgrades</title>
     <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="theme.css?v=1742508000" rel="stylesheet">
     <style>
-        html, body {
-            margin: 0; padding: 0;
-            background: transparent !important;
-            overflow: hidden;
-            font-family: 'Nunito', sans-serif;
-            user-select: none;
+        :root {
+            --accent: #FFD700;
+            --accent-rgb: 255, 215, 0;
         }
 
-        .shop-frame {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 540px;
-            max-height: 90vh;
-            background: #1E1E2E;
-            border: 5px solid #D68910;
-            border-radius: 24px;
-            box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        /* Header */
-        .shop-header {
-            background: linear-gradient(180deg, #FFD866 0%, #F39C12 100%);
-            padding: 14px 20px;
-            text-align: center;
-            position: relative;
-            flex-shrink: 0;
-        }
-        .shop-header h1 {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 30px;
-            color: white;
-            margin: 0;
-            text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
-        }
-        .gold-badge {
-            display: inline-block;
-            margin-top: 6px;
-            padding: 4px 16px;
-            border-radius: 20px;
-            background: linear-gradient(180deg, #5BDB5B, #2EAA2E);
-            border: 3px solid #1E8A1E;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 15px;
-            color: #0A2A0A;
-        }
-        .close-x {
-            position: absolute;
-            top: 8px; right: 12px;
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(180deg, #FF7675, #D63031);
-            border: 3px solid #A02020;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 18px;
-            color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-        }
-        .close-x { transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .close-x:hover { transform: scale(1.15); }
-        .close-x:active { transform: scale(0.85); transition-duration: 0.05s; }
-
-        /* Tabs */
-        .tabs {
-            display: flex;
-            gap: 0;
-            background: #252535;
-            flex-shrink: 0;
-        }
-        .tab {
-            flex: 1;
-            padding: 10px 6px;
-            text-align: center;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 13px;
-            cursor: pointer;
-            color: #707080;
-            border-bottom: 4px solid transparent;
-            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), color 0.15s, border-bottom-color 0.15s, background 0.15s;
-        }
-        .tab:hover { color: #A0A0B0; transform: scale(1.05); }
-        .tab:active { transform: scale(0.92); transition-duration: 0.05s; }
-        .tab.active {
-            color: #E0E0E0;
-            border-bottom-color: #3498DB;
-            background: #1E1E2E;
-        }
-        .tab .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
-
-        /* Body */
-        .shop-body {
-            flex: 1;
-            overflow-y: auto;
-            padding: 12px;
-            background: #2A2A3A;
-        }
-        .shop-body::-webkit-scrollbar { width: 6px; }
-        .shop-body::-webkit-scrollbar-thumb { background: #555; border-radius: 3px; }
-
-        .panel { display: none; }
-        .panel.active { display: block; }
+        .shop-frame { width: 540px; max-height: 90vh; }
 
         /* Upgrade cards */
         .upgrade-card {
@@ -125,17 +22,21 @@
             gap: 12px;
             padding: 12px;
             margin-bottom: 8px;
-            background: #2A2A3A;
-            border: 3px solid #3A3A4A;
-            border-radius: 16px;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.06);
-            transition: all 0.15s;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--card-radius);
+            transition: all 0.2s ease;
         }
-        .upgrade-card:hover { transform: translateY(-2px); border-color: #74B9FF; }
+        .upgrade-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(var(--accent-rgb), 0.3);
+            box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.1);
+        }
         .upgrade-card.owned {
-            border-color: #2ECC40;
-            background: linear-gradient(180deg, #1A2E1A 0%, #1A3A1A 100%);
+            border-color: rgba(0,255,136,0.2);
+            background: rgba(0,255,136,0.04);
         }
+
         .u-icon {
             width: 48px; height: 48px;
             border-radius: 14px;
@@ -144,14 +45,15 @@
             justify-content: center;
             font-size: 26px;
             flex-shrink: 0;
-            border: 3px solid;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+            border: 2px solid;
+            box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.08);
         }
         .u-info { flex: 1; min-width: 0; }
         .u-name {
-            font-family: 'Luckiest Guy', cursive;
+            font-family: var(--font-display);
             font-size: 15px;
             color: #E0E0E0;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
         }
         .u-tier {
             font-size: 10px;
@@ -159,7 +61,7 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             padding: 1px 8px;
-            border-radius: 6px;
+            border-radius: 999px;
             display: inline-block;
             margin-left: 6px;
             vertical-align: middle;
@@ -167,100 +69,52 @@
         .u-desc {
             font-size: 11px;
             font-weight: 700;
-            color: #A0A0B0;
+            color: rgba(255,255,255,0.4);
             margin-top: 2px;
         }
 
         /* Action buttons */
         .u-btn {
             padding: 8px 16px;
-            border: 3px solid;
+            border: 2px solid;
             border-radius: 12px;
-            font-family: 'Luckiest Guy', cursive;
+            font-family: var(--font-display);
             font-size: 13px;
             cursor: pointer;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.25);
             transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
             flex-shrink: 0;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.15);
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
         }
-        .u-btn:hover { transform: scale(1.05) translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.2); }
+        .u-btn:hover { transform: scale(1.05) translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.2), 0 0 12px rgba(var(--accent-rgb),0.12); }
         .u-btn:active { transform: scale(0.92) translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); transition-duration: 0.05s; }
-        .btn-buy {
-            background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border-color: #CC8800;
-            color: #4A2800;
-        }
-        .btn-done {
-            background: linear-gradient(180deg, #6EF06E, #2ECC40);
-            border-color: #1FA030;
-            color: #0A3A0A;
-            cursor: default;
-        }
-        .btn-locked {
-            background: linear-gradient(180deg, #3A3A4A, #2A2A3A);
-            border-color: #707080;
-            color: #707080;
-            cursor: not-allowed;
-            text-shadow: none;
-        }
 
-        /* Tier colors */
-        .tier-common { background: #DFE6E9; color: #A0A0B0; }
-        .tier-rare { background: #74B9FF; color: white; }
-        .tier-epic { background: linear-gradient(135deg, #A29BFE, #6C5CE7); color: white; }
-        .tier-legendary { background: linear-gradient(135deg, #FFD700, #FFA500); color: #4A2800; }
-        .tier-mythic { background: linear-gradient(135deg, #FF6B6B, #EE5A24); color: white; }
-        .tier-god { background: linear-gradient(135deg, #FF4757, #C44569); color: white; }
-        .tier-secret { background: linear-gradient(135deg, #A29BFE, #6C5CE7); color: white; }
-        .tier-og { background: linear-gradient(135deg, #2C003E, #6600CC); color: #DDA0DD; }
+        .panel { display: none; }
+        .panel.active { display: block; }
 
-        /* Icon background colors */
-        .icon-beach { background: linear-gradient(180deg, #FFEAA7, #F5DEB3); border-color: #D4A76A; }
-        .icon-meadow { background: linear-gradient(180deg, #B8F0B8, #98FB98); border-color: #60C060; }
-        .icon-forest { background: linear-gradient(180deg, #55C855, #228B22); border-color: #1A6B1A; }
-        .icon-jungle { background: linear-gradient(180deg, #70D08A, #2E8B57); border-color: #1E6B3A; }
-        .icon-cave { background: linear-gradient(180deg, #88B8E8, #4682B4); border-color: #306090; }
-        .icon-crystal { background: linear-gradient(180deg, #80F0FF, #00E5FF); border-color: #00A0B0; }
-        .icon-boss { background: linear-gradient(180deg, #FF8888, #FF4444); border-color: #CC2020; }
-        .icon-volcano { background: linear-gradient(180deg, #FF8844, #FF4500); border-color: #CC3000; }
-        .icon-ruins { background: linear-gradient(180deg, #FFD866, #CC8800); border-color: #996600; }
-        .icon-sky { background: linear-gradient(180deg, #C0A8FF, #9370DB); border-color: #6A40B0; }
-        .icon-void { background: linear-gradient(180deg, #9933FF, #6600CC); border-color: #4400AA; }
-        .icon-floor { background: linear-gradient(180deg, #A8D8EA, #74B9FF); border-color: #4A90C0; }
+        /* Tier colors — glass versions */
+        .tier-common { background: rgba(223,230,233,0.12); color: #A0A0B0; }
+        .tier-rare { background: rgba(0,229,255,0.15); color: var(--neon-cyan); }
+        .tier-epic { background: linear-gradient(135deg, rgba(180,77,255,0.2), rgba(108,92,231,0.2)); color: var(--neon-purple); }
+        .tier-legendary { background: linear-gradient(135deg, rgba(255,215,0,0.2), rgba(255,165,0,0.2)); color: var(--neon-gold); }
+        .tier-mythic { background: linear-gradient(135deg, rgba(255,45,120,0.2), rgba(238,90,36,0.2)); color: var(--neon-red); }
+        .tier-god { background: linear-gradient(135deg, rgba(255,71,87,0.2), rgba(196,69,105,0.2)); color: #FF4757; }
+        .tier-secret { background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(108,92,231,0.15)); color: var(--neon-cyan); }
+        .tier-og { background: linear-gradient(135deg, rgba(44,0,62,0.4), rgba(102,0,204,0.3)); color: #DDA0DD; }
 
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 24px;
-            border-radius: 14px;
-            background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border: 3px solid #CC8800;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 16px;
-            color: #4A2800;
-            animation: pop 0.3s ease, fadeOut 0.3s ease 2s forwards;
-            z-index: 30;
-        }
-        @keyframes pop { 0%{transform:translateX(-50%) scale(0.5);opacity:0} 70%{transform:translateX(-50%) scale(1.1)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
-        @keyframes fadeOut { to{opacity:0} }
-        .spend-particle {
-            position: absolute;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 14px; font-weight: 900; color: #E74C3C;
-            pointer-events: none; z-index: 100;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-            animation: spendFly 1s ease-out forwards;
-        }
-        @keyframes spendFly {
-            0% { opacity: 1; transform: translate(0,0) scale(1); }
-            100% { opacity: 0; transform: translate(var(--dx),var(--dy)) scale(0.5); }
-        }
+        /* Icon background colors — glass versions */
+        .icon-beach { background: rgba(255,234,167,0.15); border-color: rgba(212,167,106,0.4); }
+        .icon-meadow { background: rgba(152,251,152,0.12); border-color: rgba(96,192,96,0.4); }
+        .icon-forest { background: rgba(34,139,34,0.2); border-color: rgba(26,107,26,0.5); }
+        .icon-jungle { background: rgba(46,139,87,0.2); border-color: rgba(30,107,58,0.5); }
+        .icon-cave { background: rgba(70,130,180,0.2); border-color: rgba(48,96,144,0.5); }
+        .icon-crystal { background: rgba(0,229,255,0.15); border-color: rgba(0,160,176,0.4); }
+        .icon-boss { background: rgba(255,68,68,0.2); border-color: rgba(204,32,32,0.5); }
+        .icon-volcano { background: rgba(255,69,0,0.2); border-color: rgba(204,48,0,0.5); }
+        .icon-ruins { background: rgba(255,216,102,0.15); border-color: rgba(153,102,0,0.5); }
+        .icon-sky { background: rgba(147,112,219,0.2); border-color: rgba(106,64,176,0.5); }
+        .icon-void { background: rgba(102,0,204,0.25); border-color: rgba(68,0,170,0.5); }
+        .icon-floor { background: rgba(116,185,255,0.15); border-color: rgba(74,144,192,0.4); }
     </style>
 </head>
 <body>

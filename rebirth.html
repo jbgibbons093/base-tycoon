@@ -6,122 +6,67 @@
     <title>Rebirth</title>
     <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="theme.css?v=1742508000" rel="stylesheet">
     <style>
-        html, body {
-            margin: 0; padding: 0;
-            background: transparent !important;
-            overflow: hidden;
-            font-family: 'Nunito', sans-serif;
-            user-select: none;
+        :root {
+            --accent: #FF2D78;
+            --accent-rgb: 255, 45, 120;
         }
 
-        .shop-frame {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 460px;
-            background: #1E1E2E;
-            border: 5px solid #D63031;
-            border-radius: 24px;
-            box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
+        .shop-frame { width: 460px; }
 
-        .shop-header {
-            background: linear-gradient(180deg, #FF7675 0%, #D63031 100%);
-            padding: 14px 20px;
-            text-align: center;
-            position: relative;
-            flex-shrink: 0;
-        }
-        .shop-header h1 {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 32px;
-            color: white;
-            margin: 0;
-            text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
-        }
         .header-badges {
             display: flex;
             justify-content: center;
             gap: 10px;
             margin-top: 6px;
         }
-        .gold-badge {
-            display: inline-block;
-            padding: 4px 16px;
-            border-radius: 20px;
-            background: linear-gradient(180deg, #5BDB5B, #2EAA2E);
-            border: 3px solid #1E8A1E;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 15px;
-            color: #4A2800;
-        }
         .rebirth-badge {
             display: inline-block;
             padding: 4px 16px;
-            border-radius: 20px;
-            background: linear-gradient(180deg, #FF7B7B, #FF3B3B);
-            border: 3px solid #CC2222;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
-            font-family: 'Luckiest Guy', cursive;
+            border-radius: 999px;
+            background: linear-gradient(180deg, rgba(255,45,120,0.7), rgba(255,20,60,0.7));
+            border: 2px solid rgba(255,45,120,0.4);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 12px rgba(255,45,120,0.15);
+            font-family: var(--font-display);
             font-size: 15px;
             color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
-        }
-        .close-x {
-            position: absolute;
-            top: 8px; right: 12px;
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(180deg, #FF7675, #D63031);
-            border: 3px solid #A02020;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 18px; color: white;
             text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
         }
-        .close-x:active { transform: translateY(2px); box-shadow: none; }
 
         .shop-body {
             padding: 20px;
-            background: #2A2A3A;
             text-align: center;
         }
 
         /* Rebirth panel */
         .rebirth-panel {
-            background: #2A2A3A;
-            border: 4px solid #D63031;
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(var(--accent-rgb), 0.15);
             border-radius: 20px;
             padding: 20px;
             text-align: center;
-            box-shadow: 0 4px 0 rgba(214,48,49,0.2);
+            box-shadow: 0 0 30px rgba(var(--accent-rgb), 0.06);
         }
         .rebirth-panel h2 {
-            font-family: 'Luckiest Guy', cursive;
+            font-family: var(--font-display);
             font-size: 26px;
-            color: #D63031;
+            color: var(--accent);
             margin: 0 0 4px;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.1);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3), 0 0 15px rgba(var(--accent-rgb), 0.3);
         }
         .rebirth-panel .sub {
-            font-size: 12px; font-weight: 800; color: #A0A0B0;
+            font-size: 12px; font-weight: 800; color: rgba(255,255,255,0.4);
         }
         .rebirth-cost-badge {
             display: inline-block;
             margin: 14px 0;
             padding: 8px 24px;
-            border-radius: 20px;
+            border-radius: 999px;
             background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border: 3px solid #CC8800;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.15);
-            font-family: 'Luckiest Guy', cursive;
+            border: 2px solid rgba(204,136,0,0.6);
+            box-shadow: 0 3px 0 rgba(0,0,0,0.15), 0 0 14px rgba(255,184,0,0.15);
+            font-family: var(--font-display);
             font-size: 20px;
             color: #4A2800;
         }
@@ -129,87 +74,77 @@
             display: inline-block;
             padding: 6px 18px;
             border-radius: 14px;
-            background: linear-gradient(180deg, #1A2E1A, #1A3A1A);
-            border: 3px solid #2ECC40;
-            font-family: 'Luckiest Guy', cursive;
+            background: rgba(0,255,136,0.06);
+            border: 1px solid rgba(0,255,136,0.2);
+            font-family: var(--font-display);
             font-size: 13px;
-            color: #0A5A0A;
+            color: var(--neon-green);
             margin: 8px 0;
+            text-shadow: 0 0 8px rgba(0,255,136,0.25);
         }
         .rebirth-progress {
             margin: 12px 0;
-            font-size: 11px; font-weight: 800; color: #707080;
+            font-size: 11px; font-weight: 800; color: rgba(255,255,255,0.35);
         }
         .rebirth-bar-track {
             width: 80%;
             margin: 6px auto;
             height: 14px;
-            background: #3A3A4A;
+            background: rgba(255,255,255,0.06);
             border-radius: 7px;
-            border: 2px solid #555;
+            border: 1px solid rgba(255,255,255,0.06);
             overflow: hidden;
         }
         .rebirth-bar-fill {
             height: 100%;
             border-radius: 7px;
-            background: linear-gradient(90deg, #FF7675, #D63031);
+            background: linear-gradient(90deg, var(--accent), #FF6090);
+            box-shadow: 0 0 10px rgba(var(--accent-rgb), 0.3);
             transition: width 0.4s;
         }
         .rebirth-btn {
             display: inline-block;
             margin-top: 14px;
             padding: 12px 36px;
-            border: 3px solid;
+            border: 2px solid;
             border-radius: 16px;
-            font-family: 'Luckiest Guy', cursive;
+            font-family: var(--font-display);
             font-size: 18px;
             cursor: pointer;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-            transition: all 0.1s;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            transition: all 0.15s;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
         }
         .rebirth-btn:active { transform: translateY(3px); box-shadow: none; }
         .rebirth-btn.ready {
-            background: linear-gradient(180deg, #FF7675, #D63031);
-            border-color: #A02020;
+            background: linear-gradient(180deg, rgba(255,45,120,0.85), rgba(214,48,49,0.85));
+            border-color: rgba(255,45,120,0.5);
             color: white;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 20px rgba(var(--accent-rgb), 0.2);
+            animation: rebirthPulse 2s ease-in-out infinite;
         }
         .rebirth-btn.not-ready {
-            background: linear-gradient(180deg, #3A3A4A, #2A2A3A);
-            border-color: #707080;
-            color: #707080;
+            background: linear-gradient(180deg, rgba(60,60,80,0.8), rgba(40,40,55,0.8));
+            border-color: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.3);
             cursor: not-allowed;
             text-shadow: none;
+        }
+        @keyframes rebirthPulse {
+            0%, 100% { box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 20px rgba(var(--accent-rgb), 0.15); }
+            50% { box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 35px rgba(var(--accent-rgb), 0.3); }
         }
         .rebirth-stars {
             font-size: 28px;
             margin: 6px 0;
         }
         .rebirth-max {
-            font-family: 'Luckiest Guy', cursive;
+            font-family: var(--font-display);
             font-size: 14px;
-            color: #2ECC40;
+            color: var(--neon-green);
             margin-top: 12px;
+            text-shadow: 0 0 8px rgba(0,255,136,0.3);
         }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px; left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 24px;
-            border-radius: 14px;
-            background: linear-gradient(180deg, #FF7675, #D63031);
-            border: 3px solid #A02020;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 16px; color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
-            animation: pop 0.3s ease, fadeOut 0.3s ease 2s forwards;
-            z-index: 30;
-        }
-        @keyframes pop { 0%{transform:translateX(-50%) scale(0.5);opacity:0} 70%{transform:translateX(-50%) scale(1.1)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
-        @keyframes fadeOut { to{opacity:0} }
     </style>
 </head>
 <body>
@@ -289,8 +224,8 @@
                     <h2>REBIRTH ${nextRebirth}</h2>
                     <div class="rebirth-reward" style="margin-bottom:8px">${bonusLines}</div>
                     <div class="rebirth-cost-badge">$ ${fmt(cost)}</div>
-                    <div class="sub" style="margin-top:8px;color:#2ECC40;font-weight:900">${REBIRTH_KEEPS}</div>
-                    <div class="sub" style="margin-top:4px;color:#D63031;font-weight:900">${REBIRTH_RESETS}</div>
+                    <div class="sub" style="margin-top:8px;color:var(--neon-green);font-weight:900">${REBIRTH_KEEPS}</div>
+                    <div class="sub" style="margin-top:4px;color:var(--accent);font-weight:900">${REBIRTH_RESETS}</div>
                     <div class="rebirth-progress">
                         $${fmt(state.gold)} / $${fmt(cost)}
                     </div>
@@ -329,9 +264,7 @@
 
         function closeShop() { playSound('click'); if(sdk){sdk.focusGameKeyboard();sdk.closeIframe();} }
 
-        /** Parse a variable value from Portals |var| interpolation.
-         *  Multiplayer sends JSON objects like {"Player1":100,"Player2":87}.
-         *  We match by myUsername to get the local player's value. */
+        /** Parse a variable value from Portals |var| interpolation. */
         function parseVarValue(raw) {
             if (raw === undefined || raw === null || raw === '') return 0;
             raw = String(raw).trim();
@@ -341,19 +274,16 @@
                 var parsed = JSON.parse(raw);
                 if (typeof parsed === 'number') return parsed;
                 if (typeof parsed === 'object' && parsed !== null) {
-                    // Try username match first (case-insensitive)
                     if (myUsername) {
                         var uLower = myUsername.toLowerCase();
                         for (var k in parsed) {
                             if (k.toLowerCase() === uLower) return Number(parsed[k]) || 0;
                         }
                     }
-                    // Fallback: first value
                     var vals = Object.values(parsed);
                     return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
                 }
             } catch(e) {
-                // Portals = format: {"name"="val"&"name2"="val2"}
                 if (raw.indexOf('=') > -1) {
                     var eqParts = raw.replace(/[{}"]/g, '').split('&');
                     for (var i = 0; i < eqParts.length; i++) {
@@ -384,7 +314,6 @@
             if (msg.startsWith('inv:')) {
                 const payload = msg.substring(4);
                 const pairs = payload.split('&');
-                // First pass: extract username (raw string, not numeric)
                 for (const pair of pairs) {
                     const eq = pair.indexOf('=');
                     if (eq < 0) continue;
@@ -394,7 +323,6 @@
                         break;
                     }
                 }
-                // Second pass: parse numeric values
                 for (const pair of pairs) {
                     const eq = pair.indexOf('=');
                     if (eq < 0) continue;

@@ -6,105 +6,49 @@
     <title>Weapon Shop</title>
     <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="theme.css?v=1742508000" rel="stylesheet">
     <style>
-        html, body {
-            margin: 0; padding: 0;
-            background: transparent !important;
-            overflow: hidden;
-            font-family: 'Nunito', sans-serif;
-            user-select: none;
+        :root {
+            --accent: #FF2D78;
+            --accent-rgb: 255, 45, 120;
         }
 
-        .shop-frame {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 480px;
-            background: #1E1E2E;
-            border: 5px solid #C0392B;
-            border-radius: 24px;
-            box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
-
-        /* Header */
-        .shop-header {
-            background: linear-gradient(180deg, #FF6B6B 0%, #E74C3C 100%);
-            padding: 14px 20px;
-            text-align: center;
-            position: relative;
-        }
-        .shop-header h1 {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 32px;
-            color: white;
-            margin: 0;
-            text-shadow: 3px 3px 0 rgba(0,0,0,0.2);
-        }
-        .gold-badge {
-            display: inline-block;
-            margin-top: 6px;
-            padding: 4px 16px;
-            border-radius: 20px;
-            background: linear-gradient(180deg, #5BDB5B, #2EAA2E);
-            border: 3px solid #1E8A1E;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 16px;
-            color: #0A2A0A;
-        }
-        .close-x {
-            position: absolute;
-            top: 8px; right: 12px;
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(180deg, #FF7675, #D63031);
-            border: 3px solid #A02020;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 18px;
-            color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-        }
-        .close-x { transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1); }
-        .close-x:hover { transform: scale(1.15); }
-        .close-x:active { transform: scale(0.85); transition-duration: 0.05s; }
+        .shop-frame { width: 480px; }
 
         /* Body */
         .shop-body {
             padding: 16px;
             display: flex;
             gap: 12px;
-            background: #2A2A3A;
         }
 
         .weapon-card {
             flex: 1;
-            background: #2A2A3A;
-            border: 3px solid #3A3A4A;
-            border-radius: 18px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: var(--card-radius);
             padding: 14px 10px;
             text-align: center;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.08);
-            transition: all 0.15s;
+            transition: all 0.2s ease;
         }
-        .weapon-card:hover { transform: translateY(-3px); border-color: #3498DB; }
+        .weapon-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(var(--accent-rgb), 0.3);
+            box-shadow: 0 0 18px rgba(var(--accent-rgb), 0.12);
+        }
         .weapon-card.owned {
-            border-color: #2ECC40;
-            background: linear-gradient(180deg, #1A2E1A 0%, #1A3A1A 100%);
-            box-shadow: 0 4px 0 rgba(0,180,0,0.15);
+            border-color: rgba(0, 255, 136, 0.25);
+            background: rgba(0, 255, 136, 0.05);
+            box-shadow: 0 0 14px rgba(0, 255, 136, 0.08);
         }
 
         .w-icon { font-size: 44px; }
         .w-name {
-            font-family: 'Luckiest Guy', cursive;
+            font-family: var(--font-display);
             font-size: 18px;
             color: #E0E0E0;
             margin: 6px 0 4px;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
         }
         .w-tier {
             font-size: 11px;
@@ -112,13 +56,13 @@
             text-transform: uppercase;
             letter-spacing: 1px;
             padding: 2px 10px;
-            border-radius: 8px;
+            border-radius: 999px;
             display: inline-block;
             margin-bottom: 8px;
         }
-        .tier-standard { background: #DFE6E9; color: #A0A0B0; }
-        .tier-premium { background: #74B9FF; color: white; }
-        .tier-elite { background: linear-gradient(135deg, #FFD700, #FFA500); color: #4A2800; }
+        .tier-standard { background: rgba(223,230,233,0.15); color: #A0A0B0; }
+        .tier-premium { background: rgba(0,229,255,0.2); color: var(--neon-cyan); }
+        .tier-elite { background: linear-gradient(135deg, rgba(255,215,0,0.3), rgba(255,165,0,0.3)); color: #FFD700; }
 
         /* Stat bars */
         .stat-row {
@@ -130,26 +74,26 @@
         .stat-row .label {
             font-size: 11px;
             font-weight: 800;
-            color: #A0A0B0;
+            color: rgba(255,255,255,0.4);
             width: 40px;
             text-align: right;
         }
         .stat-track {
             flex: 1;
             height: 10px;
-            background: #3A3A4A;
+            background: rgba(255,255,255,0.06);
             border-radius: 5px;
             overflow: hidden;
-            border: 1px solid #555;
+            border: 1px solid rgba(255,255,255,0.06);
         }
         .stat-fill {
             height: 100%;
             border-radius: 5px;
             transition: width 0.3s;
         }
-        .fill-dmg { background: linear-gradient(90deg, #FF7675, #D63031); }
-        .fill-spd { background: linear-gradient(90deg, #74B9FF, #3498DB); }
-        .fill-rng { background: linear-gradient(90deg, #FFEAA7, #FDCB6E); }
+        .fill-dmg { background: linear-gradient(90deg, #FF4466, #FF2D78); box-shadow: 0 0 6px rgba(255,45,120,0.3); }
+        .fill-spd { background: linear-gradient(90deg, #00C8FF, #00E5FF); box-shadow: 0 0 6px rgba(0,229,255,0.3); }
+        .fill-rng { background: linear-gradient(90deg, #FFE066, #FFD700); box-shadow: 0 0 6px rgba(255,215,0,0.3); }
 
         /* Buttons */
         .action-btn {
@@ -157,78 +101,44 @@
             width: 100%;
             margin-top: 10px;
             padding: 10px;
-            border: 3px solid;
+            border: 2px solid;
             border-radius: 14px;
-            font-family: 'Luckiest Guy', cursive;
+            font-family: var(--font-display);
             font-size: 15px;
             cursor: pointer;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.25);
             transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.15s;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
         }
-        .action-btn:hover { transform: scale(1.05) translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.2); }
+        .action-btn:hover { transform: scale(1.05) translateY(-2px); box-shadow: 0 6px 0 rgba(0,0,0,0.2), 0 0 14px rgba(var(--accent-rgb), 0.15); }
         .action-btn:active { transform: scale(0.92) translateY(3px); box-shadow: 0 1px 0 rgba(0,0,0,0.2); transition-duration: 0.05s; }
 
-        .btn-buy {
+        .action-btn.btn-buy {
             background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border-color: #CC8800;
+            border-color: rgba(204,136,0,0.7);
             color: #4A2800;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.25), 0 0 14px rgba(255,184,0,0.15);
         }
-        .btn-done {
+        .action-btn.btn-done {
             background: linear-gradient(180deg, #6EF06E, #2ECC40);
-            border-color: #1FA030;
+            border-color: rgba(31,160,48,0.5);
             color: #0A3A0A;
             cursor: default;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 10px rgba(46,204,64,0.12);
         }
-        .btn-locked {
-            background: linear-gradient(180deg, #3A3A4A, #2A2A3A);
-            border-color: #707080;
-            color: #707080;
+        .action-btn.btn-locked {
+            background: linear-gradient(180deg, rgba(60,60,80,0.8), rgba(40,40,55,0.8));
+            border-color: rgba(255,255,255,0.08);
+            color: rgba(255,255,255,0.3);
             cursor: not-allowed;
         }
 
         .owned-tag {
-            font-family: 'Luckiest Guy', cursive;
+            font-family: var(--font-display);
             font-size: 11px;
-            color: #2ECC40;
+            color: var(--neon-green);
             text-transform: uppercase;
-        }
-
-        /* Toast */
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 24px;
-            border-radius: 14px;
-            background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border: 3px solid #CC8800;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 16px;
-            color: #4A2800;
-            animation: pop 0.3s ease, fadeOut 0.3s ease 2s forwards;
-            z-index: 30;
-        }
-        @keyframes pop { 0%{transform:translateX(-50%) scale(0.5);opacity:0} 70%{transform:translateX(-50%) scale(1.1)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
-        @keyframes fadeOut { to{opacity:0} }
-
-        /* Spend particle animation */
-        .spend-particle {
-            position: absolute;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 14px;
-            font-weight: 900;
-            color: #E74C3C;
-            pointer-events: none;
-            z-index: 100;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-            animation: spendFly 1s ease-out forwards;
-        }
-        @keyframes spendFly {
-            0% { opacity: 1; transform: translate(0, 0) scale(1); }
-            100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.5); }
+            text-shadow: 0 0 8px rgba(0,255,136,0.4);
         }
     </style>
 </head>

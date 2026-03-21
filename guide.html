@@ -6,24 +6,32 @@
   <title>Brainrot Island - Game Guide</title>
   <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
   <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="theme.css?v=1742508000" rel="stylesheet">
   <style>
+    :root {
+      --accent: #B44DFF;
+      --accent-rgb: 180, 77, 255;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
-      font-family: 'Nunito', sans-serif;
+      font-family: var(--font-body);
       background: transparent;
       overflow-x: hidden;
       display: flex;
       justify-content: center;
+      color: #ccc;
     }
 
     .guide-container {
-      background: #1a1028;
+      background: var(--panel-bg);
+      backdrop-filter: blur(var(--panel-blur));
+      -webkit-backdrop-filter: blur(var(--panel-blur));
       color: #ccc;
       width: 95vw;
       max-width: 1100px;
-      border-radius: 24px;
-      border: 5px solid #6C3483;
-      box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
+      border-radius: var(--panel-radius);
+      border: 2px solid var(--panel-border);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5), 0 0 60px rgba(var(--accent-rgb), 0.08);
       overflow: hidden;
       display: flex;
       flex-direction: column;
@@ -35,8 +43,9 @@
       align-items: center;
       justify-content: space-between;
       padding: 14px 20px;
-      background: linear-gradient(180deg, #9B59B6 0%, #6C3483 100%);
-      border-bottom: 4px solid #4A235A;
+      background: linear-gradient(180deg, rgba(var(--accent-rgb), 0.22) 0%, rgba(var(--accent-rgb), 0.06) 100%);
+      border-bottom: 1px solid rgba(var(--accent-rgb), 0.15);
+      box-shadow: 0 1px 20px rgba(var(--accent-rgb), 0.08);
     }
     .header-title {
       display: flex;
@@ -45,10 +54,10 @@
     }
     .header-icon { font-size: 30px; }
     .header-text {
-      font-family: 'Luckiest Guy', cursive;
-      font-size: 32px;
+      font-family: var(--font-display);
+      font-size: var(--heading-size);
       color: white;
-      text-shadow: 3px 3px 0 rgba(0,0,0,0.25);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.5), 0 0 20px rgba(var(--accent-rgb), 0.35);
       letter-spacing: 2px;
     }
     .close-hint {
@@ -57,7 +66,7 @@
       gap: 10px;
       font-size: 13px;
       font-weight: 900;
-      color: rgba(255,255,255,0.7);
+      color: rgba(255,255,255,0.5);
     }
     .key-hint {
       display: inline-flex;
@@ -66,25 +75,15 @@
       min-width: 28px;
       height: 28px;
       padding: 0 8px;
-      background: rgba(0,0,0,0.3);
-      border: 2px solid rgba(255,255,255,0.3);
+      background: rgba(var(--accent-rgb), 0.1);
+      border: 1px solid rgba(var(--accent-rgb), 0.3);
       border-radius: 6px;
       font-size: 13px;
       font-weight: 900;
       color: white;
     }
-    .close-x {
-      width: 36px; height: 36px; border-radius: 50%;
-      background: linear-gradient(180deg, #C39BD3, #7D3C98);
-      border: 3px solid #5B2C6F;
-      box-shadow: 0 2px 0 rgba(0,0,0,0.2);
-      display: flex; align-items: center; justify-content: center;
-      cursor: pointer;
-      font-family: 'Luckiest Guy', cursive;
-      font-size: 18px; color: white;
-      text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-    }
-    .close-x:active { transform: translateY(2px); box-shadow: none; }
+    /* Override theme.css close-x absolute positioning — guide uses flex layout */
+    .close-x { position: static; }
 
     /* Body layout */
     .guide-body {
@@ -98,22 +97,22 @@
     .guide-sidebar {
       width: 180px;
       min-width: 180px;
-      background: #140e20;
-      border-right: 4px solid #4A235A;
+      background: rgba(10, 8, 18, 0.6);
+      border-right: 1px solid rgba(var(--accent-rgb), 0.1);
       overflow-y: auto;
       padding: 10px 0;
       flex-shrink: 0;
     }
-    .guide-sidebar::-webkit-scrollbar { width: 10px; }
-    .guide-sidebar::-webkit-scrollbar-track { background: #140e20; }
-    .guide-sidebar::-webkit-scrollbar-thumb { background: #6C3483; border: 2px solid #140e20; border-radius: 6px; }
+    .guide-sidebar::-webkit-scrollbar { width: var(--scrollbar-size); }
+    .guide-sidebar::-webkit-scrollbar-track { background: transparent; }
+    .guide-sidebar::-webkit-scrollbar-thumb { background: rgba(var(--accent-rgb), 0.4); border-radius: 10px; }
 
     .sidebar-link {
       display: flex;
       align-items: center;
       gap: 8px;
       padding: 10px 12px;
-      color: #a089b0;
+      color: rgba(255,255,255,0.35);
       font-size: 13px;
       font-weight: 800;
       cursor: pointer;
@@ -122,22 +121,31 @@
       letter-spacing: 0.5px;
       transition: all 0.15s;
     }
-    .sidebar-link:hover { background: rgba(155,89,182,0.1); color: #D2B4DE; }
-    .sidebar-link.active { background: rgba(155,89,182,0.15); color: #D2B4DE; border-left-color: #9B59B6; }
+    .sidebar-link:hover {
+      background: rgba(var(--accent-rgb), 0.06);
+      color: rgba(255,255,255,0.7);
+      box-shadow: inset 0 0 20px rgba(var(--accent-rgb), 0.04);
+    }
+    .sidebar-link.active {
+      background: rgba(var(--accent-rgb), 0.1);
+      color: white;
+      border-left-color: var(--accent);
+      box-shadow: inset 0 0 20px rgba(var(--accent-rgb), 0.06);
+    }
     .sidebar-icon { font-size: 18px; width: 22px; text-align: center; }
 
     /* Breadcrumb */
     .breadcrumb {
       padding: 10px 18px;
       font-size: 13px;
-      color: #a089b0;
-      border-bottom: 2px solid #2D1845;
-      background: #140e20;
+      color: rgba(255,255,255,0.35);
+      border-bottom: 1px solid rgba(var(--accent-rgb), 0.08);
+      background: rgba(10, 8, 18, 0.4);
       font-weight: 700;
     }
-    .breadcrumb a { color: #9B59B6; cursor: pointer; font-weight: 800; text-decoration: none; }
+    .breadcrumb a { color: var(--accent); cursor: pointer; font-weight: 800; text-decoration: none; }
     .breadcrumb a:hover { text-decoration: underline; }
-    .breadcrumb .sep { margin: 0 6px; color: #555; }
+    .breadcrumb .sep { margin: 0 6px; color: rgba(255,255,255,0.15); }
 
     /* Content area */
     .guide-wrapper {
@@ -145,56 +153,56 @@
       padding: 18px;
       overflow-y: auto;
       scroll-behavior: smooth;
-      background: #1a1028;
+      background: var(--body-bg);
       display: flex;
       flex-direction: column;
     }
-    .guide-wrapper::-webkit-scrollbar { width: 10px; }
-    .guide-wrapper::-webkit-scrollbar-track { background: #1a1028; }
-    .guide-wrapper::-webkit-scrollbar-thumb { background: #6C3483; border: 2px solid #1a1028; border-radius: 6px; }
+    .guide-wrapper::-webkit-scrollbar { width: var(--scrollbar-size); }
+    .guide-wrapper::-webkit-scrollbar-track { background: transparent; }
+    .guide-wrapper::-webkit-scrollbar-thumb { background: rgba(var(--accent-rgb), 0.5); border-radius: 10px; }
 
     .page-content { flex: 1; }
 
     /* Sections */
     .guide-section {
-      background: #201538;
-      border: 3px solid #2D1845;
-      border-radius: 16px;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--card-radius);
       padding: 22px;
       margin-bottom: 16px;
       display: none;
-      box-shadow: 0 4px 0 rgba(0,0,0,0.1);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.15);
     }
     .guide-section.active-page { display: block; }
 
     .section-title {
-      font-family: 'Luckiest Guy', cursive;
+      font-family: var(--font-display);
       font-size: 24px;
-      color: #D2B4DE;
+      color: white;
       margin-bottom: 16px;
       display: flex;
       align-items: center;
       gap: 10px;
-      text-shadow: 2px 2px 0 rgba(0,0,0,0.2);
+      text-shadow: 2px 2px 0 rgba(0,0,0,0.5), 0 0 12px rgba(var(--accent-rgb), 0.25);
       letter-spacing: 1px;
     }
     .section-title::after {
       content: '';
       flex: 1;
-      height: 3px;
-      background: #6C3483;
+      height: 2px;
+      background: linear-gradient(90deg, rgba(var(--accent-rgb), 0.4), transparent);
       border-radius: 2px;
     }
 
     .guide-text {
       font-size: 14px;
       line-height: 1.7;
-      color: #ccc;
+      color: rgba(255,255,255,0.7);
       margin-bottom: 12px;
       font-weight: 600;
     }
-    .guide-text strong { color: #D2B4DE; }
-    .guide-text em { color: #F39C12; font-style: normal; }
+    .guide-text strong { color: white; }
+    .guide-text em { color: var(--neon-gold); font-style: normal; }
 
     .guide-list {
       list-style: none;
@@ -204,8 +212,8 @@
     .guide-list li {
       padding: 8px 0 8px 28px;
       position: relative;
-      border-bottom: 2px solid #2D1845;
-      color: #ccc;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.7);
       font-size: 14px;
       font-weight: 600;
     }
@@ -215,16 +223,16 @@
       position: absolute;
       left: 0; top: 12px;
       width: 16px; height: 16px;
-      background: #6C3483;
-      border: 2px solid #4A235A;
+      background: rgba(var(--accent-rgb), 0.3);
+      border: 1px solid rgba(var(--accent-rgb), 0.4);
       border-radius: 4px;
     }
     .guide-list.numbered { counter-reset: guide-counter; }
     .guide-list.numbered li::before {
       content: counter(guide-counter);
       counter-increment: guide-counter;
-      background: #27AE60;
-      border: 2px solid #1E8449;
+      background: rgba(0, 255, 136, 0.3);
+      border: 1px solid rgba(0, 255, 136, 0.4);
       color: #fff;
       font-size: 10px;
       font-weight: 900;
@@ -234,30 +242,32 @@
     }
 
     .guide-tip {
-      background: #0D1117;
-      border: 3px solid #27AE60;
+      background: rgba(0, 255, 136, 0.04);
+      border: 1px solid rgba(0, 255, 136, 0.2);
       border-radius: 12px;
       padding: 12px 16px;
       margin: 14px 0;
       display: flex;
       align-items: flex-start;
       gap: 10px;
+      box-shadow: 0 0 16px rgba(0, 255, 136, 0.05);
     }
     .guide-tip-icon { font-size: 22px; flex-shrink: 0; }
-    .guide-tip-text { font-size: 14px; color: #27AE60; font-weight: 700; }
+    .guide-tip-text { font-size: 14px; color: var(--neon-green); font-weight: 700; }
 
     .guide-warning {
-      background: #0D1117;
-      border: 3px solid #E74C3C;
+      background: rgba(255, 45, 120, 0.04);
+      border: 1px solid rgba(255, 45, 120, 0.2);
       border-radius: 12px;
       padding: 12px 16px;
       margin: 14px 0;
       display: flex;
       align-items: flex-start;
       gap: 10px;
+      box-shadow: 0 0 16px rgba(255, 45, 120, 0.05);
     }
     .guide-warning-icon { font-size: 22px; flex-shrink: 0; }
-    .guide-warning-text { font-size: 14px; color: #E74C3C; font-weight: 700; }
+    .guide-warning-text { font-size: 14px; color: var(--neon-red); font-weight: 700; }
 
     .guide-table {
       width: 100%;
@@ -266,39 +276,39 @@
       font-size: 14px;
       border-radius: 10px;
       overflow: hidden;
-      border: 2px solid #2D1845;
+      border: 1px solid rgba(var(--accent-rgb), 0.15);
     }
     .guide-table th {
-      background: #6C3483;
+      background: rgba(var(--accent-rgb), 0.15);
       color: white;
       padding: 10px;
       text-align: left;
       font-weight: 900;
       font-size: 13px;
-      border: 2px solid #4A235A;
+      border: 1px solid rgba(var(--accent-rgb), 0.1);
       text-transform: uppercase;
       letter-spacing: 0.5px;
     }
     .guide-table td {
       padding: 8px 10px;
-      border: 2px solid #2D1845;
-      color: #ccc;
+      border: 1px solid rgba(255,255,255,0.04);
+      color: rgba(255,255,255,0.7);
       font-weight: 600;
     }
-    .guide-table tr:nth-child(even) { background: rgba(0,0,0,0.2); }
+    .guide-table tr:nth-child(even) { background: rgba(255,255,255,0.02); }
 
     .subsection {
       margin: 14px 0;
       padding: 16px;
-      background: #0D1117;
+      background: rgba(255,255,255,0.02);
       border-radius: 12px;
-      border: 2px solid #2D1845;
-      border-left: 4px solid #6C3483;
+      border: 1px solid rgba(255,255,255,0.04);
+      border-left: 3px solid rgba(var(--accent-rgb), 0.4);
     }
     .subsection-title {
       font-size: 16px;
       font-weight: 900;
-      color: #D2B4DE;
+      color: white;
       margin-bottom: 8px;
       text-transform: uppercase;
       letter-spacing: 0.5px;
@@ -306,25 +316,25 @@
 
     .guide-key {
       display: inline-block;
-      background: #2D1845;
-      color: #D2B4DE;
+      background: rgba(var(--accent-rgb), 0.1);
+      color: white;
       padding: 2px 8px;
       border-radius: 5px;
       font-family: monospace;
       font-size: 13px;
       margin: 0 2px;
-      border: 2px solid #4A235A;
+      border: 1px solid rgba(var(--accent-rgb), 0.25);
       font-weight: 900;
     }
 
     .xref {
-      color: #BB8FCE;
+      color: var(--accent);
       text-decoration: none;
       cursor: pointer;
       font-weight: 800;
-      border-bottom: 1px dashed #BB8FCE;
+      border-bottom: 1px dashed rgba(var(--accent-rgb), 0.5);
     }
-    .xref:hover { color: #D7BDE2; border-bottom-style: solid; }
+    .xref:hover { color: white; border-bottom-style: solid; }
 
     /* Rarity colors */
     .rarity-common { color: #AAAAAA; }
@@ -348,20 +358,20 @@
       display: flex;
       flex-direction: column;
       padding: 12px 16px;
-      background: #201538;
-      border: 3px solid #2D1845;
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
       border-radius: 12px;
       cursor: pointer;
       transition: all 0.15s;
       min-width: 130px;
       flex: 0 1 45%;
     }
-    .page-nav-btn:hover { border-color: #6C3483; background: #2D1845; transform: translateY(-2px); }
+    .page-nav-btn:hover { border-color: rgba(var(--accent-rgb), 0.3); box-shadow: 0 0 16px rgba(var(--accent-rgb), 0.08); transform: translateY(-2px); }
     .page-nav-btn:active { transform: translateY(1px); }
     .page-nav-btn.prev { align-items: flex-start; }
     .page-nav-btn.next { align-items: flex-end; margin-left: auto; }
-    .page-nav-dir { font-size: 12px; font-weight: 900; color: #9B59B6; text-transform: uppercase; letter-spacing: 1px; }
-    .page-nav-label { font-size: 15px; font-weight: 800; color: #D2B4DE; margin-top: 2px; }
+    .page-nav-dir { font-size: 12px; font-weight: 900; color: var(--accent); text-transform: uppercase; letter-spacing: 1px; }
+    .page-nav-label { font-size: 15px; font-weight: 800; color: white; margin-top: 2px; }
     .page-nav-spacer { flex: 0 1 45%; }
   </style>
 </head>

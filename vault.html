@@ -6,40 +6,15 @@
     <title>Vault</title>
     <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
     <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <link href="theme.css?v=1742508000" rel="stylesheet">
     <style>
-        html, body {
-            margin: 0; padding: 0;
-            background: transparent !important;
-            overflow: hidden;
-            font-family: 'Nunito', sans-serif;
-            user-select: none;
+        :root {
+            --accent: #FFD700;
+            --accent-rgb: 255, 215, 0;
         }
 
-        .shop-frame {
-            position: fixed;
-            top: 50%; left: 50%;
-            transform: translate(-50%, -50%);
-            width: 420px;
-            background: #1E1E2E;
-            border: 5px solid #B8860B;
-            border-radius: 24px;
-            box-shadow: 0 10px 0 rgba(0,0,0,0.15), 0 15px 40px rgba(0,0,0,0.3);
-            overflow: hidden;
-        }
+        .shop-frame { width: 420px; }
 
-        .shop-header {
-            background: linear-gradient(180deg, #5BDB5B 0%, #2EAA2E 100%);
-            padding: 14px 20px;
-            text-align: center;
-            position: relative;
-        }
-        .shop-header h1 {
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 36px;
-            color: white;
-            margin: 0;
-            text-shadow: 3px 3px 0 rgba(0,0,0,0.25);
-        }
         .balances {
             display: flex;
             justify-content: center;
@@ -49,63 +24,45 @@
         .balance-badge {
             display: inline-block;
             padding: 4px 14px;
-            border-radius: 20px;
-            border: 3px solid;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.15);
-            font-family: 'Luckiest Guy', cursive;
+            border-radius: 999px;
+            border: 2px solid;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+            font-family: var(--font-display);
             font-size: 14px;
         }
         .badge-wallet {
-            background: linear-gradient(180deg, #5BDB5B, #2EAA2E);
-            border-color: #1E8A1E;
+            background: linear-gradient(180deg, rgba(91,219,91,0.85), rgba(46,170,46,0.85));
+            border-color: rgba(30,138,30,0.5);
             color: #0A2A0A;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 10px rgba(46,170,46,0.15);
         }
         .badge-vault {
-            background: linear-gradient(180deg, #7DD3FC, #38BDF8);
-            border-color: #0284C7;
+            background: linear-gradient(180deg, rgba(125,211,252,0.85), rgba(56,189,248,0.85));
+            border-color: rgba(2,132,199,0.5);
             color: #0C4A6E;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.2), 0 0 10px rgba(56,189,248,0.15);
         }
-        .close-x {
-            position: absolute;
-            top: 8px; right: 12px;
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            background: linear-gradient(180deg, #FBBF24, #B45309);
-            border: 3px solid #78350F;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 18px;
-            color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
-        }
-        .close-x:active { transform: translateY(2px); box-shadow: none; }
 
-        .shop-body {
-            padding: 16px;
-            background: #2A2A3A;
-        }
+        .shop-body { padding: 16px; }
 
         .info-text {
             text-align: center;
             font-size: 13px;
             font-weight: 800;
             color: #FCD34D;
-            background: linear-gradient(180deg, #3A3020, #2E2A1A);
-            border: 2px solid #F59E0B;
+            background: rgba(255,215,0,0.06);
+            border: 1px solid rgba(255,215,0,0.15);
             border-radius: 12px;
             padding: 8px 12px;
             margin-bottom: 14px;
+            text-shadow: 0 0 8px rgba(255,215,0,0.2);
         }
 
         .section-label {
-            font-family: 'Luckiest Guy', cursive;
+            font-family: var(--font-display);
             font-size: 18px;
-            color: #FCD34D;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.08);
+            color: var(--neon-gold);
+            text-shadow: 0 0 10px rgba(var(--neon-gold-rgb), 0.25);
             margin-bottom: 8px;
         }
 
@@ -119,12 +76,12 @@
             flex: 1;
             padding: 12px 8px;
             border-radius: 14px;
-            border: 3px solid;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.15);
-            font-family: 'Luckiest Guy', cursive;
+            border: 2px solid;
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2);
+            font-family: var(--font-display);
             font-size: 16px;
             color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
             cursor: pointer;
             transition: transform 0.1s;
             text-align: center;
@@ -134,7 +91,7 @@
             box-shadow: 0 1px 0 rgba(0,0,0,0.15);
         }
         .vault-btn.disabled {
-            opacity: 0.45;
+            opacity: 0.4;
             cursor: default;
             filter: grayscale(0.4);
         }
@@ -145,40 +102,23 @@
 
         .btn-deposit {
             background: linear-gradient(180deg, #34D399, #059669);
-            border-color: #047857;
+            border-color: rgba(4,120,87,0.6);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 14px rgba(52,211,153,0.12);
         }
         .btn-withdraw {
             background: linear-gradient(180deg, #F97316, #EA580C);
-            border-color: #C2410C;
+            border-color: rgba(194,65,12,0.6);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 14px rgba(249,115,22,0.12);
         }
 
         .btn-sub {
             display: block;
-            font-family: 'Nunito', sans-serif;
+            font-family: var(--font-body);
             font-size: 11px;
             font-weight: 800;
             opacity: 0.85;
             margin-top: 2px;
         }
-
-        .toast {
-            position: fixed;
-            bottom: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            padding: 10px 24px;
-            border-radius: 14px;
-            background: linear-gradient(180deg, #FFE44D, #FFB800);
-            border: 3px solid #CC8800;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 16px;
-            color: #4A2800;
-            animation: pop 0.3s ease, fadeOut 0.3s ease 2s forwards;
-            z-index: 30;
-        }
-        @keyframes pop { 0%{transform:translateX(-50%) scale(0.5);opacity:0} 70%{transform:translateX(-50%) scale(1.1)} 100%{transform:translateX(-50%) scale(1);opacity:1} }
-        @keyframes fadeOut { to{opacity:0} }
     </style>
 </head>
 <body>

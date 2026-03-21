@@ -1,0 +1,309 @@
+/* ================================================================
+   BRAINROT TYCOON — SHARED DESIGN SYSTEM (theme.css)
+   Glass-morphism + neon glow — LanderUEFN / Fortnite style
+   ================================================================ */
+
+/* ---- Design Tokens ---- */
+:root {
+    /* Neon palette */
+    --neon-green: #00FF88;
+    --neon-red: #FF2D78;
+    --neon-cyan: #00E5FF;
+    --neon-gold: #FFD700;
+    --neon-purple: #B44DFF;
+
+    --neon-green-rgb: 0, 255, 136;
+    --neon-red-rgb: 255, 45, 120;
+    --neon-cyan-rgb: 0, 229, 255;
+    --neon-gold-rgb: 255, 215, 0;
+    --neon-purple-rgb: 180, 77, 255;
+
+    /* Per-file accent — override in each file's <style> */
+    --accent: #00FF88;
+    --accent-rgb: 0, 255, 136;
+
+    /* Glass panel */
+    --panel-bg: rgba(15, 12, 25, 0.75);
+    --panel-blur: 16px;
+    --panel-border: rgba(255, 255, 255, 0.08);
+    --panel-radius: 24px;
+
+    /* Cards */
+    --card-bg: rgba(255, 255, 255, 0.03);
+    --card-border: rgba(255, 255, 255, 0.06);
+    --card-radius: 16px;
+
+    /* Body area */
+    --body-bg: rgba(20, 16, 32, 0.6);
+
+    /* Typography */
+    --font-display: 'Luckiest Guy', cursive;
+    --font-body: 'Nunito', sans-serif;
+    --heading-size: 38px;
+
+    /* Scrollbar */
+    --scrollbar-size: 5px;
+}
+
+/* ---- Base Reset ---- */
+html, body {
+    margin: 0; padding: 0;
+    background: transparent !important;
+    overflow: hidden;
+    font-family: var(--font-body);
+    user-select: none;
+}
+
+/* ================================================================
+   SHOP FRAME (glass panel)
+   ================================================================ */
+.shop-frame {
+    position: fixed;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--panel-bg);
+    backdrop-filter: blur(var(--panel-blur));
+    -webkit-backdrop-filter: blur(var(--panel-blur));
+    border: 2px solid var(--panel-border);
+    border-radius: var(--panel-radius);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.5),
+        0 0 60px rgba(var(--accent-rgb), 0.08);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+/* ================================================================
+   SHOP HEADER (semi-transparent gradient + glow line)
+   ================================================================ */
+.shop-header {
+    padding: 16px 20px;
+    text-align: center;
+    position: relative;
+    flex-shrink: 0;
+    background: linear-gradient(
+        180deg,
+        rgba(var(--accent-rgb), 0.22) 0%,
+        rgba(var(--accent-rgb), 0.06) 100%
+    );
+    border-bottom: 1px solid rgba(var(--accent-rgb), 0.15);
+    box-shadow: 0 1px 20px rgba(var(--accent-rgb), 0.08);
+}
+.shop-header h1 {
+    font-family: var(--font-display);
+    font-size: var(--heading-size);
+    color: white;
+    margin: 0;
+    text-shadow:
+        2px 2px 0 rgba(0, 0, 0, 0.5),
+        0 0 20px rgba(var(--accent-rgb), 0.35);
+}
+
+/* ================================================================
+   GOLD BADGE (pill shape, subtle glow)
+   ================================================================ */
+.gold-badge {
+    display: inline-block;
+    margin-top: 6px;
+    padding: 4px 16px;
+    border-radius: 999px;
+    background: linear-gradient(180deg, #5BDB5B, #2EAA2E);
+    border: 2px solid rgba(30, 138, 30, 0.5);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25), 0 0 10px rgba(46, 204, 46, 0.15);
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: #0A2A0A;
+}
+
+/* ================================================================
+   CLOSE X (glass circle, red glow)
+   ================================================================ */
+.close-x {
+    position: absolute;
+    top: 10px; right: 14px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: linear-gradient(180deg, rgba(255, 100, 100, 0.85), rgba(200, 40, 40, 0.85));
+    border: 2px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 0 12px rgba(255, 50, 50, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-family: var(--font-display);
+    font-size: 18px;
+    color: white;
+    text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4);
+    transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.close-x:hover { transform: scale(1.15); }
+.close-x:active { transform: scale(0.85); transition-duration: 0.05s; }
+
+/* ================================================================
+   SHOP BODY (scrollable area)
+   ================================================================ */
+.shop-body {
+    flex: 1;
+    overflow-y: auto;
+    padding: 14px;
+    background: var(--body-bg);
+}
+.shop-body::-webkit-scrollbar { width: var(--scrollbar-size); }
+.shop-body::-webkit-scrollbar-track { background: transparent; }
+.shop-body::-webkit-scrollbar-thumb {
+    background: rgba(var(--accent-rgb), 0.5);
+    border-radius: 10px;
+}
+.shop-body::-webkit-scrollbar-thumb:hover {
+    background: rgba(var(--accent-rgb), 0.7);
+}
+
+/* ================================================================
+   BUTTONS (neon glow variants)
+   ================================================================ */
+.btn-buy {
+    background: linear-gradient(180deg, #FFE44D, #FFB800);
+    border-color: rgba(204, 136, 0, 0.7);
+    color: #4A2800;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.25), 0 0 16px rgba(255, 184, 0, 0.15);
+}
+.btn-locked {
+    background: linear-gradient(180deg, rgba(60, 60, 80, 0.8), rgba(40, 40, 55, 0.8));
+    border-color: rgba(255, 255, 255, 0.08);
+    color: rgba(255, 255, 255, 0.3);
+    cursor: not-allowed;
+    text-shadow: none;
+}
+.btn-done {
+    background: linear-gradient(180deg, #6EF06E, #2ECC40);
+    border-color: rgba(31, 160, 48, 0.5);
+    color: #0A3A0A;
+    cursor: default;
+    box-shadow: 0 4px 0 rgba(0, 0, 0, 0.2), 0 0 12px rgba(46, 204, 64, 0.15);
+}
+
+/* ================================================================
+   TABS (glass + accent underline glow)
+   ================================================================ */
+.tabs {
+    display: flex;
+    gap: 0;
+    background: rgba(20, 16, 32, 0.5);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    flex-shrink: 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+.tab {
+    flex: 1;
+    padding: 10px 6px;
+    text-align: center;
+    font-family: var(--font-display);
+    font-size: 13px;
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.35);
+    border-bottom: 3px solid transparent;
+    transition: color 0.15s, border-bottom-color 0.2s, background 0.15s;
+}
+.tab:hover {
+    color: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.03);
+}
+.tab.active {
+    color: white;
+    border-bottom-color: var(--accent);
+    background: rgba(var(--accent-rgb), 0.06);
+    box-shadow: 0 2px 12px rgba(var(--accent-rgb), 0.1);
+}
+.tab .tab-icon { font-size: 18px; display: block; margin-bottom: 2px; }
+
+/* ================================================================
+   TOAST (glass pill)
+   ================================================================ */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 24px;
+    border-radius: 999px;
+    background: rgba(15, 12, 25, 0.88);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(var(--accent-rgb), 0.25);
+    box-shadow:
+        0 4px 20px rgba(0, 0, 0, 0.35),
+        0 0 20px rgba(var(--accent-rgb), 0.12);
+    font-family: var(--font-display);
+    font-size: 16px;
+    color: white;
+    text-shadow: 0 0 10px rgba(var(--accent-rgb), 0.4);
+    animation: toastPop 0.3s ease, fadeOut 0.3s ease 2s forwards;
+    z-index: 30;
+    white-space: nowrap;
+}
+
+/* ================================================================
+   SPEND PARTICLE
+   ================================================================ */
+.spend-particle {
+    position: absolute;
+    font-family: var(--font-display);
+    font-size: 14px;
+    font-weight: 900;
+    color: #FF4466;
+    pointer-events: none;
+    z-index: 100;
+    text-shadow: 0 0 8px rgba(255, 45, 120, 0.5);
+    animation: spendFly 1s ease-out forwards;
+}
+
+/* ================================================================
+   SHARED KEYFRAMES
+   ================================================================ */
+@keyframes pop {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    70% { transform: translateX(-50%) scale(1.1); }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+@keyframes fadeOut {
+    to { opacity: 0; }
+}
+@keyframes toastPop {
+    0% { transform: translateX(-50%) scale(0.5); opacity: 0; }
+    70% { transform: translateX(-50%) scale(1.1); }
+    100% { transform: translateX(-50%) scale(1); opacity: 1; }
+}
+@keyframes popBounce {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.15); }
+    100% { transform: scale(1); }
+}
+@keyframes alertPop {
+    0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
+    60% { transform: translate(-50%, -50%) scale(1.15); }
+    100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+}
+@keyframes alertOut {
+    to { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
+}
+@keyframes spendFly {
+    0% { opacity: 1; transform: translate(0, 0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.5); }
+}
+
+/* ================================================================
+   RARITY COLOR UTILITIES
+   ================================================================ */
+.rarity-normal  { color: #AAAAAA; }
+.rarity-common  { color: #AAAAAA; }
+.rarity-rare    { color: #55FF55; }
+.rarity-epic    { color: #AA55FF; }
+.rarity-legendary { color: #FFD700; }
+.rarity-mythic  { color: #FF4500; }
+.rarity-god     { color: #FF0000; }
+.rarity-secret  { color: #00FFFF; }
+.rarity-og      { color: #FF00FF; }
+.rarity-diamond { color: #00E5FF; }
+.rarity-gold    { color: #FFD700; }
