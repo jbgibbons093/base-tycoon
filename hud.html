@@ -1254,7 +1254,11 @@
                     }
                 } else if (msg === 'autodeposit:go') {
                     // Iframe-centric auto-deposit: find first empty pedestal slot and fire quest
-                    if (state.carrying <= 0 || state.baseId <= 0) return;
+                    console.log('[HUD] autodeposit:go — carrying=' + state.carrying + ' baseId=' + state.baseId + ' pedestals=' + JSON.stringify(pedestals));
+                    if (state.carrying <= 0 || state.baseId <= 0) {
+                        console.log('[HUD] autodeposit BLOCKED: carrying=' + state.carrying + ' baseId=' + state.baseId);
+                        return;
+                    }
                     var now = Date.now();
                     if (now - lastAutoDepositTime < 2000) return;
                     lastAutoDepositTime = now;
@@ -1270,6 +1274,7 @@
                     }
                     // Fire the specific pedestal quest
                     var questName = 'p_auto_b' + state.baseId + '_f1_s' + emptySlot;
+                    console.log('[HUD] autodeposit FIRING quest: ' + questName + ' slot=' + emptySlot);
                     sdk.sendMessageToUnity(JSON.stringify({
                         TaskName: questName,
                         TaskTargetState: 'SetNotActiveToActive'
