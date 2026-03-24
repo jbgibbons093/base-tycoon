@@ -1051,6 +1051,7 @@
             sdk.setMessageListener(function(msg) {
                 console.log('[HUD] MSG received: ' + (msg.length > 120 ? msg.substring(0, 120) + '...' : msg));
                 if (isDupe(msg)) return;
+                if (msg.indexOf('autodeposit') >= 0) console.log('[HUD] AUTODEPOSIT RAW msg=' + JSON.stringify(msg) + ' len=' + msg.length + ' exact=' + (msg === 'autodeposit:go'));
                 try {
                     var d = JSON.parse(msg);
                     if (d.gold !== undefined) { state.gold = parseFloat(d.gold)||0; pop(document.getElementById('pill-gold')); }
@@ -1252,7 +1253,7 @@
                         updateDisplay();
                         checkTutorial();
                     }
-                } else if (msg === 'autodeposit:go') {
+                } else if (msg.indexOf('autodeposit:go') >= 0) {
                     // Iframe-centric auto-deposit: find first empty pedestal slot and fire quest
                     console.log('[HUD] autodeposit:go — carrying=' + state.carrying + ' baseId=' + state.baseId + ' pedestals=' + JSON.stringify(pedestals));
                     if (state.carrying <= 0 || state.baseId <= 0) {
