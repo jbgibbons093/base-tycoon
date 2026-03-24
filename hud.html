@@ -517,6 +517,9 @@
         }
 
         let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false };
+        var pedestals = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0};
+        var lastAutoDepositTime = 0;
+        var autoDepositInFlight = false;
         var myUsername = '';
 
         /* ---- MULTIPLAYER VALUE PARSER ---- */
@@ -1139,16 +1142,28 @@
                             state.carryName = bvKey.substring(3).replace(/_/g, ' ');
                             state.carryGold = GOLD_PER_SECOND[bvKey] || 0;
                         } else if (carryNum === 0) {
-                            // Save last name for deposit notification (sync may arrive before deposit: msg)
-                            state.lastCarryName = state.carryName || state.lastCarryName || '';
-                            state.carrying = 0;
-                            state.carryBvKey = '';
-                            state.carryName = '';
-                            state.carryGold = 0;
+                            if (autoDepositInFlight) {
+                                // Autodeposit already handled carry-clear optimistically — just reset flag
+                                autoDepositInFlight = false;
+                            } else {
+                                // Save last name for deposit notification (sync may arrive before deposit: msg)
+                                state.lastCarryName = state.carryName || state.lastCarryName || '';
+                                state.carrying = 0;
+                                state.carryBvKey = '';
+                                state.carryName = '';
+                                state.carryGold = 0;
+                            }
                         }
                     }
                     // Parse owned brainrot counts
                     parseOwnedBrainrots(params);
+                    // Parse pedestal occupancy from Ped_F1_* vars
+                    for (var pedIdx = 1; pedIdx <= 10; pedIdx++) {
+                        var pedKey = 'Ped_F1_' + pedIdx;
+                        if (params[pedKey] !== undefined) {
+                            pedestals[pedIdx] = Math.round(parseVarValue(params[pedKey]));
+                        }
+                    }
                     // Sync zone counts from server ZC_ variables
                     var zoneNames = Object.keys(ZONES);
                     for (var zi = 0; zi < zoneNames.length; zi++) {
@@ -1237,6 +1252,47 @@
                         updateDisplay();
                         checkTutorial();
                     }
+                } else if (msg === 'autodeposit:go') {
+                    // Iframe-centric auto-deposit: find first empty pedestal slot and fire quest
+                    if (state.carrying <= 0 || state.baseId <= 0) return;
+                    var now = Date.now();
+                    if (now - lastAutoDepositTime < 2000) return;
+                    lastAutoDepositTime = now;
+                    // Find first empty slot
+                    var emptySlot = 0;
+                    for (var si = 1; si <= 10; si++) {
+                        if (pedestals[si] === 0) { emptySlot = si; break; }
+                    }
+                    if (emptySlot === 0) {
+                        playSound('uipop');
+                        notify('Base is full!', 'error');
+                        return;
+                    }
+                    // Fire the specific pedestal quest
+                    var questName = 'p_auto_b' + state.baseId + '_f1_s' + emptySlot;
+                    sdk.sendMessageToUnity(JSON.stringify({
+                        TaskName: questName,
+                        TaskTargetState: 'SetNotActiveToActive'
+                    }));
+                    // Optimistic UI update
+                    autoDepositInFlight = true;
+                    setTimeout(function() { autoDepositInFlight = false; }, 2000);
+                    pedestals[emptySlot] = 1;
+                    playSound('deposit');
+                    var depositName = state.carryName || state.lastCarryName || 'brainrot';
+                    notify('Deposited ' + depositName + '!', 'deposit');
+                    if (state.carryBvKey) {
+                        ownedBrainrots[state.carryBvKey] = (ownedBrainrots[state.carryBvKey] || 0) + 1;
+                        calcEarningRate();
+                        updateGoldDisplay();
+                    }
+                    state.lastCarryName = state.carryName;
+                    state.carrying = 0;
+                    state.carryName = '';
+                    state.carryBvKey = '';
+                    state.carryGold = 0;
+                    updateDisplay();
+                    checkTutorial();
                 } else if (msg.startsWith('carry:')) {
                     var p = msg.substring(6).split(',');
                     state.carrying = parseFloat(p[0])||0;
