@@ -522,6 +522,57 @@
         var autoDepositInFlight = false;
         var myUsername = '';
 
+        function handleAutoDeposit() {
+            console.log('[HUD] autodeposit:go — carrying=' + state.carrying + ' baseId=' + state.baseId + ' pedestals=' + JSON.stringify(pedestals));
+            if (state.carrying <= 0 || state.baseId <= 0) {
+                console.log('[HUD] autodeposit BLOCKED: carrying=' + state.carrying + ' baseId=' + state.baseId);
+                return;
+            }
+            var now = Date.now();
+            if (now - lastAutoDepositTime < 2000) {
+                console.log('[HUD] autodeposit THROTTLED');
+                return;
+            }
+            lastAutoDepositTime = now;
+            // Find first empty slot
+            var emptySlot = 0;
+            for (var si = 1; si <= 10; si++) {
+                if (pedestals[si] === 0) { emptySlot = si; break; }
+            }
+            if (emptySlot === 0) {
+                console.log('[HUD] autodeposit ALL FULL');
+                playSound('uipop');
+                notify('Base is full!', 'error');
+                return;
+            }
+            // Fire the specific pedestal quest
+            var questName = 'p_auto_b' + state.baseId + '_f1_s' + emptySlot;
+            console.log('[HUD] autodeposit FIRING quest: ' + questName);
+            sdk.sendMessageToUnity(JSON.stringify({
+                TaskName: questName,
+                TaskTargetState: 'SetNotActiveToActive'
+            }));
+            // Optimistic UI update
+            autoDepositInFlight = true;
+            setTimeout(function() { autoDepositInFlight = false; }, 2000);
+            pedestals[emptySlot] = 1;
+            playSound('deposit');
+            var depositName = state.carryName || state.lastCarryName || 'brainrot';
+            notify('Deposited ' + depositName + '!', 'deposit');
+            if (state.carryBvKey) {
+                ownedBrainrots[state.carryBvKey] = (ownedBrainrots[state.carryBvKey] || 0) + 1;
+                calcEarningRate();
+                updateGoldDisplay();
+            }
+            state.lastCarryName = state.carryName;
+            state.carrying = 0;
+            state.carryName = '';
+            state.carryBvKey = '';
+            state.carryGold = 0;
+            updateDisplay();
+            checkTutorial();
+        }
+
         /* ---- MULTIPLAYER VALUE PARSER ---- */
         // Portals sends multiplayer vars as objects like {"player1":val1,"player2":val2}
         // or with = signs like {"player1"="val1","player2"="val2"}
@@ -1050,8 +1101,12 @@
         if (sdk) {
             sdk.setMessageListener(function(msg) {
                 console.log('[HUD] MSG received: ' + (msg.length > 120 ? msg.substring(0, 120) + '...' : msg));
+                // Handle autodeposit BEFORE isDupe — action triggers must not be deduped
+                if (msg === 'autodeposit:go') {
+                    handleAutoDeposit();
+                    return;
+                }
                 if (isDupe(msg)) return;
-                if (msg.indexOf('autodeposit') >= 0) console.log('[HUD] AUTODEPOSIT RAW msg=' + JSON.stringify(msg) + ' len=' + msg.length + ' exact=' + (msg === 'autodeposit:go'));
                 try {
                     var d = JSON.parse(msg);
                     if (d.gold !== undefined) { state.gold = parseFloat(d.gold)||0; pop(document.getElementById('pill-gold')); }
@@ -1253,52 +1308,6 @@
                         updateDisplay();
                         checkTutorial();
                     }
-                } else if (msg.indexOf('autodeposit:go') >= 0) {
-                    // Iframe-centric auto-deposit: find first empty pedestal slot and fire quest
-                    console.log('[HUD] autodeposit:go — carrying=' + state.carrying + ' baseId=' + state.baseId + ' pedestals=' + JSON.stringify(pedestals));
-                    if (state.carrying <= 0 || state.baseId <= 0) {
-                        console.log('[HUD] autodeposit BLOCKED: carrying=' + state.carrying + ' baseId=' + state.baseId);
-                        return;
-                    }
-                    var now = Date.now();
-                    if (now - lastAutoDepositTime < 2000) return;
-                    lastAutoDepositTime = now;
-                    // Find first empty slot
-                    var emptySlot = 0;
-                    for (var si = 1; si <= 10; si++) {
-                        if (pedestals[si] === 0) { emptySlot = si; break; }
-                    }
-                    if (emptySlot === 0) {
-                        playSound('uipop');
-                        notify('Base is full!', 'error');
-                        return;
-                    }
-                    // Fire the specific pedestal quest
-                    var questName = 'p_auto_b' + state.baseId + '_f1_s' + emptySlot;
-                    console.log('[HUD] autodeposit FIRING quest: ' + questName + ' slot=' + emptySlot);
-                    sdk.sendMessageToUnity(JSON.stringify({
-                        TaskName: questName,
-                        TaskTargetState: 'SetNotActiveToActive'
-                    }));
-                    // Optimistic UI update
-                    autoDepositInFlight = true;
-                    setTimeout(function() { autoDepositInFlight = false; }, 2000);
-                    pedestals[emptySlot] = 1;
-                    playSound('deposit');
-                    var depositName = state.carryName || state.lastCarryName || 'brainrot';
-                    notify('Deposited ' + depositName + '!', 'deposit');
-                    if (state.carryBvKey) {
-                        ownedBrainrots[state.carryBvKey] = (ownedBrainrots[state.carryBvKey] || 0) + 1;
-                        calcEarningRate();
-                        updateGoldDisplay();
-                    }
-                    state.lastCarryName = state.carryName;
-                    state.carrying = 0;
-                    state.carryName = '';
-                    state.carryBvKey = '';
-                    state.carryGold = 0;
-                    updateDisplay();
-                    checkTutorial();
                 } else if (msg.startsWith('carry:')) {
                     var p = msg.substring(6).split(',');
                     state.carrying = parseFloat(p[0])||0;
