@@ -93,7 +93,7 @@
     }
 
     function fireQuest(name) {
-        if (!sdk) { alert('No SDK — open this panel from inside the game'); return; }
+        if (!sdk) { localLog('No SDK — open this panel from inside the game'); return; }
         var msg = JSON.stringify({ TaskName: name, TaskTargetState: 'SetNotActiveToActive' });
         sdk.sendMessageToUnity(msg);
         localLog('SENT: ' + msg);
@@ -102,8 +102,8 @@
     function fireCustom() {
         var name = document.getElementById('custom-quest').value.trim();
         var tgtState = document.getElementById('custom-state').value;
-        if (!name) { alert('Enter a quest name'); return; }
-        if (!sdk) { alert('No SDK'); return; }
+        if (!name) { localLog('Enter a quest name'); return; }
+        if (!sdk) { localLog('No SDK'); return; }
         var msg = JSON.stringify({ TaskName: name, TaskTargetState: tgtState });
         sdk.sendMessageToUnity(msg);
         localLog('SENT: ' + msg);
@@ -150,7 +150,7 @@
 
     function downloadLog() {
         var logText = document.getElementById('log').textContent || '';
-        if (!logText || logText === 'Waiting for log data...') { alert('No log data yet'); return; }
+        if (!logText || logText === 'Waiting for log data...') { localLog('No log data yet'); return; }
         var blob = new Blob([logText], { type: 'text/plain' });
         var a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
