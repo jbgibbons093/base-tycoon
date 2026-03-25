@@ -471,7 +471,7 @@
         var _dbg = document.createElement('div');
         _dbg.id = 'dbg';
         _dbg.style.cssText = 'position:fixed;top:4px;left:4px;background:rgba(0,0,0,0.8);color:lime;font:11px monospace;padding:4px 8px;z-index:99999;border-radius:4px;';
-        _dbg.textContent = 'SDK: ' + (sdk ? 'OK' : 'NULL');
+        _dbg.textContent = 'v30 ' + (sdk ? 'OK' : 'NO SDK');
         document.body.appendChild(_dbg);
         function dbg(msg) { _dbg.textContent = msg; }
 
@@ -1100,13 +1100,18 @@
         }
 
         /* ---- MESSAGE LISTENER ---- */
+        var _msgCount = 0;
         if (sdk) {
             sdk.setMessageListener(function(msg) {
-                console.log('[HUD] MSG received: ' + (msg.length > 120 ? msg.substring(0, 120) + '...' : msg));
-                // Handle autodeposit BEFORE isDupe — action triggers must not be deduped
+                _msgCount++;
+                // Visual debug on overlay
                 if (msg === 'autodeposit:go') {
+                    dbg('AUTODEP! carry=' + state.carrying + ' base=' + state.baseId);
                     handleAutoDeposit();
                     return;
+                }
+                if (msg.indexOf('Auto_Dep_Go=1') !== -1) {
+                    dbg('INV+AUTODEP carry=' + state.carrying + ' base=' + state.baseId);
                 }
                 if (isDupe(msg)) return;
                 try {
