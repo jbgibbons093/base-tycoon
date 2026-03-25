@@ -471,34 +471,31 @@
         var _dbg = document.createElement('div');
         _dbg.id = 'dbg';
         _dbg.style.cssText = 'position:fixed;top:4px;right:4px;width:340px;max-height:200px;overflow-y:auto;background:rgba(0,0,0,0.85);color:lime;font:10px monospace;padding:6px;z-index:99999;border-radius:4px;pointer-events:auto;';
-        _dbg.innerHTML = '<b>HUD v30f</b> sdk=' + (sdk ? 'OK' : 'NULL') + '<br>';
+        _dbg.innerHTML = '<b>HUD v31</b> sdk=' + (sdk ? 'OK' : 'NULL') + '<br>';
         document.body.appendChild(_dbg);
         var _dbgLines = 0;
         var _dbgLog = [];
+        var _dbgWriteTimer = null;
         function dbg(msg) {
             _dbgLines++;
             _dbgLog.push(new Date().toISOString().substr(11,12) + ' ' + msg);
-            if (_dbgLines > 80) { _dbg.innerHTML = '<b>HUD v30f</b> (cleared)<br>'; _dbgLines = 1; }
+            if (_dbgLines > 80) { _dbg.innerHTML = '<b>HUD v31</b> (cleared)<br>'; _dbgLines = 1; }
             _dbg.innerHTML += msg + '<br>';
             _dbg.scrollTop = _dbg.scrollHeight;
+            if (!_dbgWriteTimer) { _dbgWriteTimer = setTimeout(function() { _dbgWriteTimer = null; try { localStorage.setItem('hud_dbg', _dbgLog.join('\n')); } catch(e) {} }, 500); }
         }
-        function saveDbgLog() {
+        function _writeState() {
             try {
-                var logText = _dbgLog.join('\n');
-                var w = window.open('', '_blank');
-                if (w) {
-                    w.document.write('<pre style="font:12px monospace;white-space:pre-wrap;">' + logText.replace(/</g,'&lt;') + '</pre>');
-                    w.document.title = 'HUD Debug Log';
-                    w.document.close();
-                    dbg('LOG OPENED in new tab (' + _dbgLog.length + ' lines)');
-                } else {
-                    dbg('POPUP BLOCKED — log stored in localStorage');
-                    try { localStorage.setItem('hud_dbg', logText); } catch(e2) {}
-                }
-            } catch(e) {
-                dbg('SAVE ERR: ' + e.message);
-            }
+                localStorage.setItem('hud_state', JSON.stringify({
+                    gold: state.gold, baseId: state.baseId, carrying: state.carrying,
+                    carryName: state.carryName, carryBvKey: state.carryBvKey, carryGold: state.carryGold,
+                    rebirth: state.rebirth, earningRate: state.earningRate,
+                    pedestals: pedestals, lastAutoDepGoValue: lastAutoDepGoValue,
+                    ts: Date.now()
+                }));
+            } catch(e) {}
         }
+        setInterval(_writeState, 1000);
 
         // ---- SOUND SYSTEM (Web Audio API — HUD has noPointerEvents so no user gestures) ----
         // Match farming sim HUD pattern: create AudioContext eagerly, resume before each play
@@ -1141,7 +1138,6 @@
                 if (msg === 'autodeposit:go') {
                     dbg('>>> DIRECT autodeposit:go signal');
                     handleAutoDeposit();
-                    setTimeout(saveDbgLog, 3000);
                     return;
                 }
                 if (msg.indexOf('Auto_Dep_Go=1') !== -1) {

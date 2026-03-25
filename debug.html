@@ -2,221 +2,182 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Debug Panel</title>
     <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
     <style>
-        html, body {
-            margin: 0; padding: 0;
-            background: transparent !important;
-            overflow: hidden;
-            font-family: 'Courier New', monospace;
-            color: #0f0;
-            pointer-events: none;
-        }
-        .debug-panel {
-            position: fixed;
-            bottom: 70px;
-            right: 10px;
-            background: rgba(0,0,0,0.8);
-            border: 1px solid #0f04;
-            border-radius: 6px;
-            padding: 6px 8px;
-            font-size: 11px;
-            line-height: 1.4;
-            width: 220px;
-            max-height: 50vh;
-            overflow-y: auto;
-            pointer-events: auto;
-            cursor: default;
-        }
-        .debug-panel::-webkit-scrollbar { width: 4px; }
-        .debug-panel::-webkit-scrollbar-thumb { background: #0f04; border-radius: 2px; }
-        .hdr {
-            color: #0ff;
-            font-size: 10px;
-            font-weight: bold;
-            margin: 0 0 3px 0;
-            padding-bottom: 2px;
-            border-bottom: 1px solid #0ff3;
-        }
-        .section { margin-bottom: 4px; }
-        .section-title {
-            color: #ff0;
-            font-weight: bold;
-            font-size: 9px;
-            margin-top: 4px;
-            letter-spacing: 1px;
-        }
-        .var-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0 2px;
-        }
-        .var-name { color: #999; font-size: 10px; }
-        .var-val { color: #0f0; font-weight: bold; font-size: 10px; }
-        .var-val.zero { color: #555; }
-        .var-val.highlight { color: #ff0; }
-        .msg-log {
-            margin-top: 4px;
-            border-top: 1px solid #333;
-            padding-top: 3px;
-            max-height: 80px;
-            overflow-y: auto;
-            font-size: 9px;
-            color: #777;
-        }
-        .msg-log div { word-break: break-all; margin-bottom: 1px; }
-        .msg-log .ts { color: #444; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: #111; color: #eee; font: 13px 'Consolas', 'Monaco', monospace; padding: 10px; overflow-y: auto; }
+        h2 { color: #0ff; font-size: 16px; margin-bottom: 8px; }
+        .section { background: #1a1a1a; border: 1px solid #333; border-radius: 6px; padding: 10px; margin-bottom: 10px; }
+        .section h3 { color: #ff0; font-size: 13px; margin-bottom: 6px; }
+        button { background: #333; color: #0ff; border: 1px solid #0ff; border-radius: 4px; padding: 6px 14px; margin: 3px; cursor: pointer; font: 12px monospace; }
+        button:hover { background: #0ff; color: #000; }
+        button.danger { border-color: #f44; color: #f44; }
+        button.danger:hover { background: #f44; color: #000; }
+        button.go { border-color: #4f4; color: #4f4; }
+        button.go:hover { background: #4f4; color: #000; }
+        #log { background: #000; color: lime; font: 11px monospace; padding: 8px; border-radius: 4px; height: 300px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; border: 1px solid #333; }
+        #state-display { background: #000; color: #ff0; font: 11px monospace; padding: 8px; border-radius: 4px; white-space: pre-wrap; border: 1px solid #333; min-height: 60px; }
+        .row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; align-items: center; }
+        .instructions { color: #888; font-size: 11px; margin-top: 6px; line-height: 1.5; }
+        .status { color: #0f0; font-size: 11px; margin-left: 10px; }
+        input, select { background: #222; color: #fff; border: 1px solid #555; padding: 5px 8px; border-radius: 4px; font: 12px monospace; }
     </style>
 </head>
 <body>
-    <div class="debug-panel" id="panel">
-        <div class="hdr">DBG</div>
-        <div class="section">
-            <div class="section-title">ECONOMY</div>
-            <div class="var-row"><span class="var-name">Gold</span><span class="var-val" id="v-Gold">0</span></div>
-            <div class="var-row"><span class="var-name">Base</span><span class="var-val" id="v-player_Base_num">0</span></div>
-            <div class="var-row"><span class="var-name">Timer</span><span class="var-val" id="v-CollectTimer">0</span></div>
+    <h2>Debug Panel <span class="status" id="sdk-status">connecting...</span></h2>
+
+    <div class="section">
+        <h3>HUD State (live from localStorage)</h3>
+        <div id="state-display">Loading...</div>
+    </div>
+
+    <div class="section">
+        <h3>Test Actions</h3>
+        <div class="row">
+            <button class="go" onclick="fireQuest('auto_deposit')">Trigger Autodeposit</button>
+            <button onclick="fireQuest('hud_sync')">Trigger hud_sync</button>
         </div>
-        <div class="section">
-            <div class="section-title">CARRY</div>
-            <div class="var-row"><span class="var-name">Has</span><span class="var-val" id="v-Carrying">0</span></div>
-            <div class="var-row"><span class="var-name">Which</span><span class="var-val" id="v-Carrying_Which">0</span></div>
-            <div class="var-row"><span class="var-name">Gold</span><span class="var-val" id="v-Carrying_Gold">0</span></div>
-        </div>
-        <div class="section">
-            <div class="section-title">OWNED</div>
-            <div id="own-vars"></div>
-        </div>
-        <div class="section">
-            <div class="section-title">INCOME</div>
-            <div id="income-vars"></div>
-        </div>
-        <div class="section">
-            <div class="section-title">LOG</div>
-            <div class="msg-log" id="msg-log"></div>
+        <div class="instructions">
+            <b>Test steps:</b><br>
+            1. Pick up a brainrot (walk to spawn zone, press F)<br>
+            2. Check state above — carrying should be &gt; 0<br>
+            3. Click "Trigger Autodeposit" OR walk across the red line<br>
+            4. Check log below for "FIRING: p_auto_b..." message<br>
+            5. Click "Download Log" and share with Claude
         </div>
     </div>
 
-    <script>
-        const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+    <div class="section">
+        <h3>Custom Quest</h3>
+        <div class="row">
+            <input id="custom-quest" type="text" placeholder="quest_name (no number prefix)" style="width:220px;">
+            <select id="custom-state">
+                <option value="SetNotActiveToActive">NotActive &rarr; Active</option>
+                <option value="SetActiveToCompleted">Active &rarr; Completed</option>
+                <option value="SetActiveToNotActive">Active &rarr; NotActive</option>
+                <option value="SetCompletedToActive">Completed &rarr; Active</option>
+                <option value="SetAnyToActive">Any &rarr; Active</option>
+                <option value="SetAnyToCompleted">Any &rarr; Completed</option>
+            </select>
+            <button onclick="fireCustom()">Fire</button>
+        </div>
+    </div>
 
-        const trackedVars = {};
-        const ownVarsEl = document.getElementById('own-vars');
-        const incomeVarsEl = document.getElementById('income-vars');
-        const msgLog = document.getElementById('msg-log');
+    <div class="section">
+        <h3>HUD Debug Log</h3>
+        <div class="row">
+            <button class="go" onclick="downloadLog()">Download Log</button>
+            <button onclick="refreshLog()">Refresh Now</button>
+            <button class="danger" onclick="clearLog()">Clear Log</button>
+        </div>
+        <div id="log">Waiting for log data...</div>
+    </div>
 
-        function parseVarValue(raw) {
-            if (raw === undefined || raw === null || raw === '') return 0;
-            raw = String(raw).trim();
-            const num = Number(raw);
-            if (!isNaN(num)) return num;
-            try {
-                const parsed = JSON.parse(raw);
-                if (typeof parsed === 'number') return parsed;
-                if (typeof parsed === 'object' && parsed !== null) {
-                    const vals = Object.values(parsed);
-                    return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
-                }
-            } catch(e) {}
-            return 0;
-        }
+    <div id="local-log" style="color:#666;font-size:10px;margin-top:6px;"></div>
 
-        function updateVar(key, val) {
-            trackedVars[key] = val;
-            const el = document.getElementById('v-' + key);
-            if (el) {
-                el.textContent = val;
-                el.className = 'var-val ' + (val > 0 ? 'active' : 'zero');
-            } else if (key.startsWith('Own_bv_')) {
-                renderOwnVars();
-            } else if (key.match(/^Base_\d+_Income_/)) {
-                renderIncomeVars();
-            }
-        }
+<script>
+    var sdk = null;
+    try { sdk = new PortalsSDK(); } catch(e) {}
 
-        function renderOwnVars() {
-            const keys = Object.keys(trackedVars).filter(k => k.startsWith('Own_bv_')).sort();
-            if (keys.length === 0) { ownVarsEl.innerHTML = '<span class="var-name">-</span>'; return; }
-            const nonZero = keys.filter(k => trackedVars[k] > 0);
-            let html = `<div class="var-row"><span class="var-name">Total</span><span class="var-val highlight">${nonZero.length}/${keys.length}</span></div>`;
-            for (const k of nonZero) {
-                const short = k.replace('Own_bv_', '');
-                html += `<div class="var-row"><span class="var-name">${short}</span><span class="var-val">1</span></div>`;
-            }
-            ownVarsEl.innerHTML = html;
-        }
-
-        function renderIncomeVars() {
-            const keys = Object.keys(trackedVars).filter(k => k.match(/^Base_\d+_Income_/)).sort();
-            if (keys.length === 0) { incomeVarsEl.innerHTML = '<span class="var-name">-</span>'; return; }
-            const nonZero = keys.filter(k => trackedVars[k] > 0);
-            let html = '';
-            for (const k of nonZero) {
-                html += `<div class="var-row"><span class="var-name">${k}</span><span class="var-val">${trackedVars[k]}</span></div>`;
-            }
-            if (!html) html = '<span class="var-name">all 0</span>';
-            incomeVarsEl.innerHTML = html;
-        }
-
-        function logMsg(msg) {
-            const time = new Date().toLocaleTimeString('en-US', {hour12:false});
-            const div = document.createElement('div');
-            const short = msg.length > 80 ? msg.substring(0, 80) + '...' : msg;
-            div.innerHTML = `<span class="ts">${time}</span> ${short}`;
-            msgLog.insertBefore(div, msgLog.firstChild);
-            while (msgLog.children.length > 20) msgLog.removeChild(msgLog.lastChild);
-        }
-
-        let _lastMsgId = '', _lastMsgTime = 0;
-        function processMessage(msg) {
-            const now = Date.now();
-            const msgId = msg + '_' + Math.floor(now / 100);
-            if (msgId === _lastMsgId && now - _lastMsgTime < 200) return;
-            _lastMsgId = msgId; _lastMsgTime = now;
-            logMsg(msg);
-            handleMessage(msg);
-        }
-
-        function handleMessage(msg) {
-            if (msg.startsWith('inv:') || msg.startsWith('dbg:')) {
-                const payload = msg.substring(4);
-                const pairs = payload.split('&');
-                for (const pair of pairs) {
-                    const eq = pair.indexOf('=');
-                    if (eq < 0) continue;
-                    const key = pair.substring(0, eq).trim();
-                    const val = parseVarValue(pair.substring(eq + 1));
-                    updateVar(key, val);
-                }
-                return;
-            }
-            if (msg.startsWith('gold:')) updateVar('Gold', parseFloat(msg.substring(5))||0);
-            else if (msg.startsWith('base:')) updateVar('player_Base_num', parseInt(msg.substring(5))||0);
-        }
-
-        if (sdk) {
-            sdk.setMessageListener(function(msg) { processMessage(msg); });
-        }
-        window.addEventListener('message', function(event) {
-            if (event.data && typeof event.data === 'string') processMessage(event.data);
-            else if (event.data && event.data.portalsMessage) processMessage(event.data.portalsMessage);
+    if (sdk) {
+        sdk.onReady(function() {
+            document.getElementById('sdk-status').textContent = 'SDK ready';
+            document.getElementById('sdk-status').style.color = '#0f0';
         });
+    } else {
+        document.getElementById('sdk-status').textContent = 'No SDK (outside Portals?)';
+        document.getElementById('sdk-status').style.color = '#f44';
+    }
 
-        function _doFocusGame() {
-            if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+    function localLog(msg) {
+        var el = document.getElementById('local-log');
+        el.textContent += new Date().toISOString().substr(11,12) + ' ' + msg + '\n';
+    }
+
+    function fireQuest(name) {
+        if (!sdk) { alert('No SDK — open this panel from inside the game'); return; }
+        var msg = JSON.stringify({ TaskName: name, TaskTargetState: 'SetNotActiveToActive' });
+        sdk.sendMessageToUnity(msg);
+        localLog('SENT: ' + msg);
+    }
+
+    function fireCustom() {
+        var name = document.getElementById('custom-quest').value.trim();
+        var tgtState = document.getElementById('custom-state').value;
+        if (!name) { alert('Enter a quest name'); return; }
+        if (!sdk) { alert('No SDK'); return; }
+        var msg = JSON.stringify({ TaskName: name, TaskTargetState: tgtState });
+        sdk.sendMessageToUnity(msg);
+        localLog('SENT: ' + msg);
+    }
+
+    function refreshState() {
+        try {
+            var raw = localStorage.getItem('hud_state');
+            if (raw) {
+                var s = JSON.parse(raw);
+                var age = Math.round((Date.now() - s.ts) / 1000);
+                var lines = [];
+                lines.push('gold=' + s.gold + '  baseId=' + s.baseId + '  carrying=' + s.carrying + '  carryName=' + (s.carryName || '-'));
+                lines.push('carryBvKey=' + (s.carryBvKey || '-') + '  carryGold=' + s.carryGold + '  rebirth=' + s.rebirth);
+                lines.push('earningRate=' + s.earningRate + '  lastAutoDepGo=' + s.lastAutoDepGoValue + '  age=' + age + 's');
+                if (s.pedestals) {
+                    for (var f = 1; f <= 4; f++) {
+                        var slots = [];
+                        for (var si = 1; si <= 10; si++) {
+                            slots.push(s.pedestals[f] && s.pedestals[f][si] ? s.pedestals[f][si] : 0);
+                        }
+                        lines.push('F' + f + ': [' + slots.join(',') + ']');
+                    }
+                }
+                document.getElementById('state-display').textContent = lines.join('\n');
+            } else {
+                document.getElementById('state-display').textContent = 'No state yet — HUD hasn\'t written to localStorage.\nLoad the room first, then open this panel.';
+            }
+        } catch(e) {
+            document.getElementById('state-display').textContent = 'Error: ' + e.message;
         }
-        document.addEventListener('mouseup', function(e) {
-            setTimeout(_doFocusGame, 50);
-        });
-        document.addEventListener('keydown', function() { if (!document.hidden) _doFocusGame(); });
-        _doFocusGame();
-        setTimeout(_doFocusGame, 100);
-        setTimeout(_doFocusGame, 300);
+    }
 
-        renderOwnVars();
-        renderIncomeVars();
-    </script>
+    function refreshLog() {
+        try {
+            var raw = localStorage.getItem('hud_dbg');
+            if (raw) {
+                document.getElementById('log').textContent = raw;
+                var logEl = document.getElementById('log');
+                logEl.scrollTop = logEl.scrollHeight;
+            }
+        } catch(e) {}
+    }
+
+    function downloadLog() {
+        var logText = document.getElementById('log').textContent || '';
+        if (!logText || logText === 'Waiting for log data...') { alert('No log data yet'); return; }
+        var blob = new Blob([logText], { type: 'text/plain' });
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'hud_debug_log.txt';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        localLog('Downloaded (' + logText.length + ' chars)');
+    }
+
+    function clearLog() {
+        try { localStorage.removeItem('hud_dbg'); } catch(e) {}
+        document.getElementById('log').textContent = '(cleared)';
+    }
+
+    // Auto-refresh every second
+    setInterval(function() { refreshState(); refreshLog(); }, 1000);
+    refreshState();
+    refreshLog();
+
+    // Keyboard refocus for Portals
+    function _doFocusGame() {
+        if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+    }
+</script>
 </body>
 </html>
