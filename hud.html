@@ -467,13 +467,19 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
         console.log('[HUD] v30 loaded, sdk=' + (sdk ? 'OK' : 'NULL'));
-        // DEBUG: visible status indicator
+        // DEBUG: visible log panel
         var _dbg = document.createElement('div');
         _dbg.id = 'dbg';
-        _dbg.style.cssText = 'position:fixed;top:4px;left:4px;background:rgba(0,0,0,0.8);color:lime;font:11px monospace;padding:4px 8px;z-index:99999;border-radius:4px;';
-        _dbg.textContent = 'v30 ' + (sdk ? 'OK' : 'NO SDK');
+        _dbg.style.cssText = 'position:fixed;top:4px;right:4px;width:340px;max-height:200px;overflow-y:auto;background:rgba(0,0,0,0.85);color:lime;font:10px monospace;padding:6px;z-index:99999;border-radius:4px;pointer-events:auto;';
+        _dbg.innerHTML = '<b>HUD v30c</b> sdk=' + (sdk ? 'OK' : 'NULL') + '<br>';
         document.body.appendChild(_dbg);
-        function dbg(msg) { _dbg.textContent = msg; }
+        var _dbgLines = 0;
+        function dbg(msg) {
+            _dbgLines++;
+            if (_dbgLines > 40) { _dbg.innerHTML = '<b>HUD v30c</b> (cleared)<br>'; _dbgLines = 1; }
+            _dbg.innerHTML += msg + '<br>';
+            _dbg.scrollTop = _dbg.scrollHeight;
+        }
 
         // ---- SOUND SYSTEM (Web Audio API — HUD has noPointerEvents so no user gestures) ----
         // Match farming sim HUD pattern: create AudioContext eagerly, resume before each play
@@ -526,8 +532,11 @@
         var myUsername = '';
 
         function handleAutoDeposit() {
-            console.log('[HUD] autodeposit — carrying=' + state.carrying + ' baseId=' + state.baseId);
-            if (state.carrying <= 0 || state.baseId <= 0) return;
+            dbg('handleAutoDeposit() carry=' + state.carrying + ' base=' + state.baseId);
+            if (state.carrying <= 0 || state.baseId <= 0) {
+                dbg('BLOCKED: carry=' + state.carrying + ' base=' + state.baseId);
+                return;
+            }
             var now = Date.now();
             if (now - lastAutoDepositTime < 2000) return;
             lastAutoDepositTime = now;
@@ -544,13 +553,15 @@
                 }
                 if (emptySlot > 0) break;
             }
+            dbg('floors=' + JSON.stringify(floors) + ' scanning...');
             if (emptySlot === 0) {
+                dbg('ALL FULL — no empty slot');
                 playSound('uipop');
                 notify('Base is full!', 'error');
                 return;
             }
             var questName = 'p_auto_b' + state.baseId + '_f' + emptyFloor + '_s' + emptySlot;
-            console.log('[HUD] autodeposit FIRING: ' + questName);
+            dbg('FIRING: ' + questName);
             sdk.sendMessageToUnity(JSON.stringify({
                 TaskName: questName,
                 TaskTargetState: 'SetNotActiveToActive'
@@ -1102,18 +1113,21 @@
         /* ---- MESSAGE LISTENER ---- */
         var _msgCount = 0;
         if (sdk) {
+            dbg('setMessageListener registered');
             sdk.setMessageListener(function(msg) {
                 _msgCount++;
-                // Visual debug on overlay
+                var msgShort = msg.length > 60 ? msg.substring(0, 60) + '...' : msg;
+                dbg('#' + _msgCount + ' ' + msgShort);
+                // Handle autodeposit BEFORE isDupe
                 if (msg === 'autodeposit:go') {
-                    dbg('AUTODEP! carry=' + state.carrying + ' base=' + state.baseId);
+                    dbg('>>> DIRECT autodeposit:go signal');
                     handleAutoDeposit();
                     return;
                 }
                 if (msg.indexOf('Auto_Dep_Go=1') !== -1) {
-                    dbg('INV+AUTODEP carry=' + state.carrying + ' base=' + state.baseId);
+                    dbg('>>> INV has Auto_Dep_Go=1');
                 }
-                if (isDupe(msg)) return;
+                if (isDupe(msg)) { dbg('(isDupe, skipped)'); return; }
                 try {
                     var d = JSON.parse(msg);
                     if (d.gold !== undefined) { state.gold = parseFloat(d.gold)||0; pop(document.getElementById('pill-gold')); }
