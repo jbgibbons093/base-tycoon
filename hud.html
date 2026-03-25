@@ -520,6 +520,7 @@
         var pedestals = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0};
         var lastAutoDepositTime = 0;
         var autoDepositInFlight = false;
+        var lastAutoDepGoValue = 0;
         var myUsername = '';
 
         function handleAutoDeposit() {
@@ -1218,6 +1219,17 @@
                         var pedKey = 'Ped_F1_' + pedIdx;
                         if (params[pedKey] !== undefined) {
                             pedestals[pedIdx] = Math.round(parseVarValue(params[pedKey]));
+                        }
+                    }
+                    // Backup auto-deposit signal via inv: pipeline
+                    if (params.Auto_Dep_Go !== undefined) {
+                        var adg = Math.round(parseVarValue(params.Auto_Dep_Go));
+                        if (adg === 1 && lastAutoDepGoValue !== 1) {
+                            lastAutoDepGoValue = 1;
+                            console.log('[HUD] Auto_Dep_Go 0→1 detected in inv: — triggering deposit');
+                            handleAutoDeposit();
+                        } else {
+                            lastAutoDepGoValue = adg;
                         }
                     }
                     // Sync zone counts from server ZC_ variables
