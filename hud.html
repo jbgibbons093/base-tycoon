@@ -1222,6 +1222,11 @@
                         // Base just claimed - show banner and repopulate
                         state.claimedBase = newBaseId;
                         setTimeout(function() { repopulateBase(newBaseId); }, 800);
+                        // Reset stale ZC_ zone counts on server
+                        if (sdk) {
+                            dbg('Base claimed — firing ZC reset');
+                            sdk.sendMessageToUnity(JSON.stringify({ TaskName: 'reset_zc', TaskTargetState: 'SetNotActiveToActive' }));
+                        }
                     }
                     state.baseId = newBaseId;
                     // Parse carrying brainrot from server variable
@@ -1271,7 +1276,24 @@
                         }
                     }
                     // Sync zone counts from server ZC_ variables
-                    // ZC_ sync removed — spawn counts tracked locally per session
+                    // Sync zone counts from server ZC_ variables
+                    var zoneNames = Object.keys(ZONES);
+                    for (var zi = 0; zi < zoneNames.length; zi++) {
+                        var z = zoneNames[zi];
+                        var zk = 'ZC_' + z;
+                        if (params[zk] !== undefined) {
+                            var oldCount = spawnCounts[z] || 0;
+                            var newCount = Math.round(parseVarValue(params[zk]));
+                            spawnCounts[z] = newCount;
+                            var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
+                            if (oldCount >= MAX_PER_ZONE && newCount < MAX_PER_ZONE) {
+                                spawnTimers[z] = interval;
+                            }
+                            if (newCount < oldCount && newCount < MAX_PER_ZONE) {
+                                spawnTimers[z] = interval;
+                            }
+                        }
+                    }
                     updateTimerUI();
                     parseTutorialVars(params);
                     updateDisplay();
