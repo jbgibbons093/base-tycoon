@@ -1012,7 +1012,7 @@
         function spawnRandom(zone) {
             var pool = ZONES[zone];
             if (!pool || pool.length === 0) return;
-            // Check spawn cap — spawnCounts is synced from server ZC_ variables
+            // Check spawn cap — tracked locally per session
             if ((spawnCounts[zone] || 0) >= MAX_PER_ZONE) return;
             var pick = pool[Math.floor(Math.random() * pool.length)];
             if (sdk) {
@@ -1020,8 +1020,7 @@
                     TaskName: pick,
                     TaskTargetState: 'SetNotActiveToActive'
                 }));
-                // Don't optimistically increment — let server ZC_ sync be source of truth
-                // The timer will pause on next ZC sync if zone reaches MAX
+                spawnCounts[zone] = (spawnCounts[zone] || 0) + 1;
             }
         }
 
@@ -1272,25 +1271,7 @@
                         }
                     }
                     // Sync zone counts from server ZC_ variables
-                    var zoneNames = Object.keys(ZONES);
-                    for (var zi = 0; zi < zoneNames.length; zi++) {
-                        var z = zoneNames[zi];
-                        var zk = 'ZC_' + z;
-                        if (params[zk] !== undefined) {
-                            var oldCount = spawnCounts[z] || 0;
-                            var newCount = Math.round(parseVarValue(params[zk]));
-                            spawnCounts[z] = newCount;
-                            var interval = ZONE_SPAWN_INTERVALS[z] || SPAWN_INTERVAL;
-                            // Zone went from full to not full — restart timer
-                            if (oldCount >= MAX_PER_ZONE && newCount < MAX_PER_ZONE) {
-                                spawnTimers[z] = interval;
-                            }
-                            // Zone dropped count — reset timer to full interval
-                            if (newCount < oldCount && newCount < MAX_PER_ZONE) {
-                                spawnTimers[z] = interval;
-                            }
-                        }
-                    }
+                    // ZC_ sync removed — spawn counts tracked locally per session
                     updateTimerUI();
                     parseTutorialVars(params);
                     updateDisplay();
