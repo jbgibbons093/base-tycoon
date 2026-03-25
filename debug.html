@@ -12,24 +12,25 @@
         .section h3 { color: #ff0; font-size: 13px; margin-bottom: 6px; }
         button { background: #333; color: #0ff; border: 1px solid #0ff; border-radius: 4px; padding: 6px 14px; margin: 3px; cursor: pointer; font: 12px monospace; }
         button:hover { background: #0ff; color: #000; }
-        button.danger { border-color: #f44; color: #f44; }
-        button.danger:hover { background: #f44; color: #000; }
         button.go { border-color: #4f4; color: #4f4; }
         button.go:hover { background: #4f4; color: #000; }
-        #log { background: #000; color: lime; font: 11px monospace; padding: 8px; border-radius: 4px; height: 300px; overflow-y: auto; white-space: pre-wrap; word-break: break-all; border: 1px solid #333; }
-        #state-display { background: #000; color: #ff0; font: 11px monospace; padding: 8px; border-radius: 4px; white-space: pre-wrap; border: 1px solid #333; min-height: 60px; }
+        button.danger { border-color: #f44; color: #f44; }
+        button.danger:hover { background: #f44; color: #000; }
+        #state { background: #000; color: #ff0; font: 11px monospace; padding: 8px; border-radius: 4px; white-space: pre-wrap; border: 1px solid #333; min-height: 40px; }
+        #log { background: #000; color: lime; font: 11px monospace; width: 100%; height: 350px; border: 1px solid #333; border-radius: 4px; padding: 6px; resize: vertical; }
         .row { display: flex; flex-wrap: wrap; gap: 4px; margin: 4px 0; align-items: center; }
-        .instructions { color: #888; font-size: 11px; margin-top: 6px; line-height: 1.5; }
-        .status { color: #0f0; font-size: 11px; margin-left: 10px; }
+        .info { color: #888; font-size: 11px; margin-top: 4px; }
+        .status { font-size: 11px; margin-left: 10px; }
         input, select { background: #222; color: #fff; border: 1px solid #555; padding: 5px 8px; border-radius: 4px; font: 12px monospace; }
+        .msg-count { color: #0ff; font-size: 11px; margin-left: 8px; }
     </style>
 </head>
 <body>
-    <h2>Debug Panel <span class="status" id="sdk-status">connecting...</span></h2>
+    <h2>Debug Panel <span class="status" id="sdk-status" style="color:#f44;">...</span> <span class="msg-count" id="msg-count">0 msgs</span></h2>
 
     <div class="section">
-        <h3>HUD State (live from localStorage)</h3>
-        <div id="state-display">Loading...</div>
+        <h3>Live State (from inv: messages)</h3>
+        <div id="state">Waiting for hud_sync message...</div>
     </div>
 
     <div class="section">
@@ -38,142 +39,150 @@
             <button class="go" onclick="fireQuest('auto_deposit')">Trigger Autodeposit</button>
             <button onclick="fireQuest('hud_sync')">Trigger hud_sync</button>
         </div>
-        <div class="instructions">
-            <b>Test steps:</b><br>
-            1. Pick up a brainrot (walk to spawn zone, press F)<br>
-            2. Check state above — carrying should be &gt; 0<br>
-            3. Click "Trigger Autodeposit" OR walk across the red line<br>
-            4. Check log below for "FIRING: p_auto_b..." message<br>
-            5. Click "Download Log" and share with Claude
+        <div class="info">
+            1. Pick up brainrot (F key near spawn) &mdash; check carrying &gt; 0 above<br>
+            2. Click Trigger Autodeposit or walk across red line<br>
+            3. Select all log text below (Ctrl+A in box), copy (Ctrl+C), paste to Claude
         </div>
     </div>
 
     <div class="section">
         <h3>Custom Quest</h3>
         <div class="row">
-            <input id="custom-quest" type="text" placeholder="quest_name (no number prefix)" style="width:220px;">
-            <select id="custom-state">
+            <input id="cq-name" type="text" placeholder="quest_name (no prefix)" style="width:200px;">
+            <select id="cq-state">
                 <option value="SetNotActiveToActive">NotActive &rarr; Active</option>
-                <option value="SetActiveToCompleted">Active &rarr; Completed</option>
                 <option value="SetActiveToNotActive">Active &rarr; NotActive</option>
-                <option value="SetCompletedToActive">Completed &rarr; Active</option>
                 <option value="SetAnyToActive">Any &rarr; Active</option>
-                <option value="SetAnyToCompleted">Any &rarr; Completed</option>
             </select>
             <button onclick="fireCustom()">Fire</button>
         </div>
     </div>
 
     <div class="section">
-        <h3>HUD Debug Log</h3>
-        <div class="row">
-            <button class="go" onclick="downloadLog()">Download Log</button>
-            <button onclick="refreshLog()">Refresh Now</button>
-            <button class="danger" onclick="clearLog()">Clear Log</button>
-        </div>
-        <div id="log">Waiting for log data...</div>
+        <h3>Message Log <button class="danger" onclick="clearLog()" style="font-size:10px;padding:2px 8px;">Clear</button></h3>
+        <textarea id="log" readonly>Debug panel ready. Waiting for messages...</textarea>
     </div>
-
-    <div id="local-log" style="color:#666;font-size:10px;margin-top:6px;"></div>
 
 <script>
     var sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+    var logLines = [];
+    var msgCount = 0;
+    var stateVars = {};
 
-    if (sdk) {
-        document.getElementById('sdk-status').textContent = 'SDK ready';
-        document.getElementById('sdk-status').style.color = '#0f0';
-    } else {
-        document.getElementById('sdk-status').textContent = 'No SDK (outside Portals?)';
-        document.getElementById('sdk-status').style.color = '#f44';
+    function ts() { return new Date().toISOString().substr(11, 12); }
+
+    function log(msg) {
+        logLines.push(ts() + ' ' + msg);
+        if (logLines.length > 500) logLines = logLines.slice(-400);
+        var el = document.getElementById('log');
+        el.value = logLines.join('\n');
+        el.scrollTop = el.scrollHeight;
     }
 
-    function localLog(msg) {
-        var el = document.getElementById('local-log');
-        el.textContent += new Date().toISOString().substr(11,12) + ' ' + msg + '\n';
+    function parseVal(raw) {
+        if (raw === undefined || raw === null || raw === '' || raw === '{}') return 0;
+        var s = String(raw).trim();
+        var n = Number(s);
+        if (!isNaN(n)) return n;
+        try {
+            var p = JSON.parse(s);
+            if (typeof p === 'number') return p;
+            if (typeof p === 'object' && p !== null) {
+                var v = Object.values(p);
+                return v.length > 0 ? (Number(v[0]) || 0) : 0;
+            }
+        } catch(e) {}
+        return 0;
+    }
+
+    function updateState() {
+        var lines = [];
+        var base = stateVars['player_Base_num'] || 0;
+        var carry = stateVars['My_Carrying_Brainrot'] || 0;
+        var carryW = stateVars['Carrying_Which'] || 0;
+        var gold = stateVars['Gold'] || 0;
+        var adg = stateVars['Auto_Dep_Go'] || 0;
+        lines.push('base=' + base + '  carrying=' + carry + '  which=' + carryW + '  gold=' + gold + '  Auto_Dep_Go=' + adg);
+        for (var f = 1; f <= 4; f++) {
+            var slots = [];
+            for (var s = 1; s <= 10; s++) {
+                slots.push(stateVars['Ped_F' + f + '_' + s] || 0);
+            }
+            lines.push('F' + f + ': [' + slots.join(',') + ']');
+        }
+        document.getElementById('state').textContent = lines.join('\n');
+    }
+
+    function processMessage(msg) {
+        msgCount++;
+        document.getElementById('msg-count').textContent = msgCount + ' msgs';
+
+        // Log short version
+        var short = msg.length > 120 ? msg.substring(0, 120) + '...' : msg;
+        log('MSG: ' + short);
+
+        // Parse inv: messages for state
+        if (msg.indexOf('inv:') === 0 || msg.indexOf('dbg:') === 0) {
+            var payload = msg.substring(4);
+            var pairs = payload.split('&');
+            for (var i = 0; i < pairs.length; i++) {
+                var eq = pairs[i].indexOf('=');
+                if (eq < 0) continue;
+                var key = pairs[i].substring(0, eq).trim();
+                var val = parseVal(pairs[i].substring(eq + 1));
+                stateVars[key] = val;
+            }
+            updateState();
+            return;
+        }
+
+        // Detect autodeposit signal
+        if (msg === 'autodeposit:go') {
+            log('>>> AUTODEPOSIT SIGNAL RECEIVED');
+        }
+
+        // Detect other known prefixes
+        if (msg.indexOf('pickup:') === 0) log('>>> PICKUP: ' + msg.substring(7));
+        if (msg.indexOf('death:') === 0) log('>>> DEATH');
+        if (msg.indexOf('gold:') === 0) { stateVars['Gold'] = parseVal(msg.substring(5)); updateState(); }
+        if (msg.indexOf('base:') === 0) { stateVars['player_Base_num'] = parseVal(msg.substring(5)); updateState(); }
+    }
+
+    // SDK message listener
+    if (sdk) {
+        document.getElementById('sdk-status').textContent = 'SDK OK';
+        document.getElementById('sdk-status').style.color = '#0f0';
+        sdk.setMessageListener(function(msg) {
+            processMessage(msg);
+        });
+        log('SDK connected, listening for messages');
+    } else {
+        document.getElementById('sdk-status').textContent = 'NO SDK';
+        document.getElementById('sdk-status').style.color = '#f44';
+        log('ERROR: No SDK — must be opened inside Portals');
     }
 
     function fireQuest(name) {
-        if (!sdk) { localLog('No SDK — open this panel from inside the game'); return; }
+        if (!sdk) { log('ERROR: No SDK'); return; }
         var msg = JSON.stringify({ TaskName: name, TaskTargetState: 'SetNotActiveToActive' });
         sdk.sendMessageToUnity(msg);
-        localLog('SENT: ' + msg);
+        log('SENT: ' + name + ' -> SetNotActiveToActive');
     }
 
     function fireCustom() {
-        var name = document.getElementById('custom-quest').value.trim();
-        var tgtState = document.getElementById('custom-state').value;
-        if (!name) { localLog('Enter a quest name'); return; }
-        if (!sdk) { localLog('No SDK'); return; }
+        var name = document.getElementById('cq-name').value.trim();
+        var tgtState = document.getElementById('cq-state').value;
+        if (!name) { log('Enter a quest name first'); return; }
+        if (!sdk) { log('ERROR: No SDK'); return; }
         var msg = JSON.stringify({ TaskName: name, TaskTargetState: tgtState });
         sdk.sendMessageToUnity(msg);
-        localLog('SENT: ' + msg);
-    }
-
-    function refreshState() {
-        try {
-            var raw = localStorage.getItem('hud_state');
-            if (raw) {
-                var s = JSON.parse(raw);
-                var age = Math.round((Date.now() - s.ts) / 1000);
-                var lines = [];
-                lines.push('gold=' + s.gold + '  baseId=' + s.baseId + '  carrying=' + s.carrying + '  carryName=' + (s.carryName || '-'));
-                lines.push('carryBvKey=' + (s.carryBvKey || '-') + '  carryGold=' + s.carryGold + '  rebirth=' + s.rebirth);
-                lines.push('earningRate=' + s.earningRate + '  lastAutoDepGo=' + s.lastAutoDepGoValue + '  age=' + age + 's');
-                if (s.pedestals) {
-                    for (var f = 1; f <= 4; f++) {
-                        var slots = [];
-                        for (var si = 1; si <= 10; si++) {
-                            slots.push(s.pedestals[f] && s.pedestals[f][si] ? s.pedestals[f][si] : 0);
-                        }
-                        lines.push('F' + f + ': [' + slots.join(',') + ']');
-                    }
-                }
-                document.getElementById('state-display').textContent = lines.join('\n');
-            } else {
-                document.getElementById('state-display').textContent = 'No state yet — HUD hasn\'t written to localStorage.\nLoad the room first, then open this panel.';
-            }
-        } catch(e) {
-            document.getElementById('state-display').textContent = 'Error: ' + e.message;
-        }
-    }
-
-    function refreshLog() {
-        try {
-            var raw = localStorage.getItem('hud_dbg');
-            if (raw) {
-                document.getElementById('log').textContent = raw;
-                var logEl = document.getElementById('log');
-                logEl.scrollTop = logEl.scrollHeight;
-            }
-        } catch(e) {}
-    }
-
-    function downloadLog() {
-        var logText = document.getElementById('log').textContent || '';
-        if (!logText || logText === 'Waiting for log data...') { localLog('No log data yet'); return; }
-        var blob = new Blob([logText], { type: 'text/plain' });
-        var a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = 'hud_debug_log.txt';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        localLog('Downloaded (' + logText.length + ' chars)');
+        log('SENT: ' + name + ' -> ' + tgtState);
     }
 
     function clearLog() {
-        try { localStorage.removeItem('hud_dbg'); } catch(e) {}
-        document.getElementById('log').textContent = '(cleared)';
-    }
-
-    // Auto-refresh every second
-    setInterval(function() { refreshState(); refreshLog(); }, 1000);
-    refreshState();
-    refreshLog();
-
-    // Keyboard refocus for Portals
-    function _doFocusGame() {
-        if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+        logLines = [];
+        document.getElementById('log').value = '(cleared)';
     }
 </script>
 </body>
