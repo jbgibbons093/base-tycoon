@@ -466,6 +466,7 @@
 
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+        console.log('[HUD] v30 loaded, sdk=' + (sdk ? 'OK' : 'NULL'));
         // DEBUG: visible status indicator
         var _dbg = document.createElement('div');
         _dbg.id = 'dbg';
@@ -517,46 +518,46 @@
         }
 
         let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false };
-        var pedestals = {1:0, 2:0, 3:0, 4:0, 5:0, 6:0, 7:0, 8:0, 9:0, 10:0};
+        var pedestals = {};
+        for (var _fi = 1; _fi <= 4; _fi++) { pedestals[_fi] = {}; for (var _si = 1; _si <= 10; _si++) pedestals[_fi][_si] = 0; }
         var lastAutoDepositTime = 0;
         var autoDepositInFlight = false;
         var lastAutoDepGoValue = 0;
         var myUsername = '';
 
         function handleAutoDeposit() {
-            console.log('[HUD] autodeposit:go — carrying=' + state.carrying + ' baseId=' + state.baseId + ' pedestals=' + JSON.stringify(pedestals));
-            if (state.carrying <= 0 || state.baseId <= 0) {
-                console.log('[HUD] autodeposit BLOCKED: carrying=' + state.carrying + ' baseId=' + state.baseId);
-                return;
-            }
+            console.log('[HUD] autodeposit — carrying=' + state.carrying + ' baseId=' + state.baseId);
+            if (state.carrying <= 0 || state.baseId <= 0) return;
             var now = Date.now();
-            if (now - lastAutoDepositTime < 2000) {
-                console.log('[HUD] autodeposit THROTTLED');
-                return;
-            }
+            if (now - lastAutoDepositTime < 2000) return;
             lastAutoDepositTime = now;
-            // Find first empty slot
-            var emptySlot = 0;
-            for (var si = 1; si <= 10; si++) {
-                if (pedestals[si] === 0) { emptySlot = si; break; }
+            // Scan all unlocked floors for first empty slot
+            var floors = [1];
+            if (purchaseVars.Floor_2_Unlocked > 0) floors.push(2);
+            if (purchaseVars.Floor_3_Unlocked > 0) floors.push(3);
+            if (purchaseVars.Floor_4_Unlocked > 0) floors.push(4);
+            var emptyFloor = 0, emptySlot = 0;
+            for (var fi = 0; fi < floors.length; fi++) {
+                var f = floors[fi];
+                for (var si = 1; si <= 10; si++) {
+                    if (pedestals[f][si] === 0) { emptyFloor = f; emptySlot = si; break; }
+                }
+                if (emptySlot > 0) break;
             }
             if (emptySlot === 0) {
-                console.log('[HUD] autodeposit ALL FULL');
                 playSound('uipop');
                 notify('Base is full!', 'error');
                 return;
             }
-            // Fire the specific pedestal quest
-            var questName = 'p_auto_b' + state.baseId + '_f1_s' + emptySlot;
-            console.log('[HUD] autodeposit FIRING quest: ' + questName);
+            var questName = 'p_auto_b' + state.baseId + '_f' + emptyFloor + '_s' + emptySlot;
+            console.log('[HUD] autodeposit FIRING: ' + questName);
             sdk.sendMessageToUnity(JSON.stringify({
                 TaskName: questName,
                 TaskTargetState: 'SetNotActiveToActive'
             }));
-            // Optimistic UI update
             autoDepositInFlight = true;
             setTimeout(function() { autoDepositInFlight = false; }, 2000);
-            pedestals[emptySlot] = 1;
+            pedestals[emptyFloor][emptySlot] = 1;
             playSound('deposit');
             var depositName = state.carryName || state.lastCarryName || 'brainrot';
             notify('Deposited ' + depositName + '!', 'deposit');
@@ -1214,11 +1215,13 @@
                     }
                     // Parse owned brainrot counts
                     parseOwnedBrainrots(params);
-                    // Parse pedestal occupancy from Ped_F1_* vars
-                    for (var pedIdx = 1; pedIdx <= 10; pedIdx++) {
-                        var pedKey = 'Ped_F1_' + pedIdx;
-                        if (params[pedKey] !== undefined) {
-                            pedestals[pedIdx] = Math.round(parseVarValue(params[pedKey]));
+                    // Parse pedestal occupancy from Ped_F1-F4 vars
+                    for (var pf = 1; pf <= 4; pf++) {
+                        for (var ps = 1; ps <= 10; ps++) {
+                            var pedKey = 'Ped_F' + pf + '_' + ps;
+                            if (params[pedKey] !== undefined) {
+                                pedestals[pf][ps] = Math.round(parseVarValue(params[pedKey]));
+                            }
                         }
                     }
                     // Backup auto-deposit signal via inv: pipeline
