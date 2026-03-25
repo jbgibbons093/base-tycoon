@@ -1210,7 +1210,8 @@
                     }
                     state.baseId = newBaseId;
                     // Parse carrying brainrot from server variable
-                    if (params.My_Carrying_Brainrot !== undefined) {
+                    // Skip if value is '{}' (pipe interpolation failed — don't clear carry state)
+                    if (params.My_Carrying_Brainrot !== undefined && params.My_Carrying_Brainrot !== '{}') {
                         var carryNum = Math.round(parseVarValue(params.My_Carrying_Brainrot));
                         if (carryNum > 0 && QUEST_NUM_TO_BV[carryNum]) {
                             var bvKey = QUEST_NUM_TO_BV[carryNum];
