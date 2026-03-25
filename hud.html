@@ -483,12 +483,21 @@
             _dbg.scrollTop = _dbg.scrollHeight;
         }
         function saveDbgLog() {
-            var blob = new Blob([_dbgLog.join('\n')], {type:'text/plain'});
-            var a = document.createElement('a');
-            a.href = URL.createObjectURL(blob);
-            a.download = 'hud_debug_log.txt';
-            a.click();
-            dbg('LOG SAVED (' + _dbgLog.length + ' lines)');
+            try {
+                var logText = _dbgLog.join('\n');
+                var w = window.open('', '_blank');
+                if (w) {
+                    w.document.write('<pre style="font:12px monospace;white-space:pre-wrap;">' + logText.replace(/</g,'&lt;') + '</pre>');
+                    w.document.title = 'HUD Debug Log';
+                    w.document.close();
+                    dbg('LOG OPENED in new tab (' + _dbgLog.length + ' lines)');
+                } else {
+                    dbg('POPUP BLOCKED — log stored in localStorage');
+                    try { localStorage.setItem('hud_dbg', logText); } catch(e2) {}
+                }
+            } catch(e) {
+                dbg('SAVE ERR: ' + e.message);
+            }
         }
 
         // ---- SOUND SYSTEM (Web Audio API — HUD has noPointerEvents so no user gestures) ----
