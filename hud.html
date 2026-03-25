@@ -475,14 +475,14 @@
         document.body.appendChild(_dbg);
         var _dbgLines = 0;
         var _dbgLog = [];
-        var _dbgWriteTimer = null;
         function dbg(msg) {
             _dbgLines++;
-            _dbgLog.push(new Date().toISOString().substr(11,12) + ' ' + msg);
-            if (_dbgLines > 80) { _dbg.innerHTML = '<b>HUD v31</b> (cleared)<br>'; _dbgLines = 1; }
+            var line = new Date().toISOString().substr(11,12) + ' ' + msg;
+            _dbgLog.push(line);
+            if (_dbgLines > 80) { _dbg.innerHTML = '<b>HUD v31b</b> (cleared)<br>'; _dbgLines = 1; }
             _dbg.innerHTML += msg + '<br>';
             _dbg.scrollTop = _dbg.scrollHeight;
-            if (!_dbgWriteTimer) { _dbgWriteTimer = setTimeout(function() { _dbgWriteTimer = null; try { localStorage.setItem('hud_dbg', _dbgLog.join('\n')); } catch(e) {} }, 500); }
+            try { localStorage.setItem('hud_dbg', _dbgLog.join('\n')); } catch(e) {}
         }
         function _writeState() {
             try {
