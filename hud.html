@@ -471,26 +471,25 @@
         var _dbg = document.createElement('div');
         _dbg.id = 'dbg';
         _dbg.style.cssText = 'position:fixed;top:4px;right:4px;width:340px;max-height:200px;overflow-y:auto;background:rgba(0,0,0,0.85);color:lime;font:10px monospace;padding:6px;z-index:99999;border-radius:4px;pointer-events:auto;';
-        _dbg.innerHTML = '<b>HUD v30e</b> sdk=' + (sdk ? 'OK' : 'NULL') + ' <span id="dbg-save" style="cursor:pointer;background:#333;padding:1px 5px;border-radius:3px;color:#0ff;">SAVE</span><br>';
+        _dbg.innerHTML = '<b>HUD v30f</b> sdk=' + (sdk ? 'OK' : 'NULL') + '<br>';
         document.body.appendChild(_dbg);
         var _dbgLines = 0;
         var _dbgLog = [];
         function dbg(msg) {
             _dbgLines++;
-            _dbgLog.push(msg);
-            if (_dbgLines > 80) { _dbg.innerHTML = '<b>HUD v30e</b> (cleared) <span id="dbg-save" style="cursor:pointer;background:#333;padding:1px 5px;border-radius:3px;color:#0ff;">SAVE</span><br>'; _dbgLines = 1; }
+            _dbgLog.push(new Date().toISOString().substr(11,12) + ' ' + msg);
+            if (_dbgLines > 80) { _dbg.innerHTML = '<b>HUD v30f</b> (cleared)<br>'; _dbgLines = 1; }
             _dbg.innerHTML += msg + '<br>';
             _dbg.scrollTop = _dbg.scrollHeight;
         }
-        document.addEventListener('click', function(e) {
-            if (e.target && e.target.id === 'dbg-save') {
-                var blob = new Blob([_dbgLog.join('\n')], {type:'text/plain'});
-                var a = document.createElement('a');
-                a.href = URL.createObjectURL(blob);
-                a.download = 'hud_debug_log.txt';
-                a.click();
-            }
-        });
+        function saveDbgLog() {
+            var blob = new Blob([_dbgLog.join('\n')], {type:'text/plain'});
+            var a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'hud_debug_log.txt';
+            a.click();
+            dbg('LOG SAVED (' + _dbgLog.length + ' lines)');
+        }
 
         // ---- SOUND SYSTEM (Web Audio API — HUD has noPointerEvents so no user gestures) ----
         // Match farming sim HUD pattern: create AudioContext eagerly, resume before each play
@@ -1133,6 +1132,7 @@
                 if (msg === 'autodeposit:go') {
                     dbg('>>> DIRECT autodeposit:go signal');
                     handleAutoDeposit();
+                    setTimeout(saveDbgLog, 3000);
                     return;
                 }
                 if (msg.indexOf('Auto_Dep_Go=1') !== -1) {
