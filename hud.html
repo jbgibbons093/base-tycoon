@@ -944,18 +944,19 @@
             updateGoldDisplay();
         }
 
-        // Parse owned brainrot counts from inv: messages
+        // Derive owned brainrot counts from Ped_F* pedestal variables
+        // (replaces old Own_bv_* approach which was never updated during deposit)
         function parseOwnedBrainrots(params) {
-            var keys = Object.keys(params);
-            for (var i = 0; i < keys.length; i++) {
-                var k = keys[i];
-                if (k.startsWith('Own_bv_')) {
-                    var bvKey = k.substring(4); // "bv_Banana"
-                    var val = parseVarValue(params[k]);
-                    if (val > 0) {
-                        ownedBrainrots[bvKey] = val;
-                    } else {
-                        delete ownedBrainrots[bvKey];
+            ownedBrainrots = {};
+            for (var floor = 1; floor <= 4; floor++) {
+                for (var slot = 1; slot <= 10; slot++) {
+                    var key = 'Ped_F' + floor + '_' + slot;
+                    if (params[key] !== undefined) {
+                        var idx = Math.round(parseVarValue(params[key]));
+                        if (idx > 0 && QUEST_NUM_TO_BV[idx]) {
+                            var bvKey = QUEST_NUM_TO_BV[idx];
+                            ownedBrainrots[bvKey] = (ownedBrainrots[bvKey] || 0) + 1;
+                        }
                     }
                 }
             }
