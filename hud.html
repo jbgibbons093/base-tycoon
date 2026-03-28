@@ -540,6 +540,7 @@
         }
 
         let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false };
+        var baseDisplayFired = false;
         var pedestals = {};
         for (var _fi = 1; _fi <= 4; _fi++) { pedestals[_fi] = {}; for (var _si = 1; _si <= 10; _si++) pedestals[_fi][_si] = 0; }
         var lastAutoDepositTime = 0;
@@ -1299,6 +1300,16 @@
                     parseTutorialVars(params);
                     updateDisplay();
                     checkTutorial();
+                    // Fire base display update after first inv: with base data
+                    if (!baseDisplayFired && state.baseId > 0 && sdk) {
+                        baseDisplayFired = true;
+                        setTimeout(function() {
+                            sdk.sendMessageToUnity(JSON.stringify({
+                                TaskName: 'show_base_display',
+                                TaskTargetState: 'SetNotActiveToActive'
+                            }));
+                        }, 500);
+                    }
                 } else if (msg === 'collect:go') {
                     // Room-side logic already gates on player_Base_num — just collect
                     if (state.pendingGold < 1) {
