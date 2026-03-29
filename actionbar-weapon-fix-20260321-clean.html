@@ -465,10 +465,10 @@
         ];
 
         const CONSUMABLES = [
-            { id: 'health_pack', name: 'Health\nPack', icon: '\u{1FA79}', stat: 'Heal to full HP', task: 'act_health_pack', varName: 'Inv_Health_Pack' },
-            { id: 'speed_potion', name: 'Speed\nPotion', icon: '\u{26A1}', stat: '2x speed 2min', task: 'act_speed_potion', cooldown: 120, varName: 'Inv_Speed_Potion' },
-            { id: 'base_teleport', name: 'Base TP', icon: '\u{1F300}', stat: 'Teleport to base', task: 'act_base_teleport', varName: 'Inv_Base_Teleport' },
-            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Immune 30s', task: 'act_shield', cooldown: 60, varName: 'Inv_Shield' }
+            { id: 'health_pack', name: 'Health\nPack', icon: '\u{1FA79}', stat: 'Heal to full HP', task: '650_act_health_pack', varName: 'Inv_Health_Pack' },
+            { id: 'speed_potion', name: 'Speed\nPotion', icon: '\u{26A1}', stat: '2x speed 2min', task: '651_act_speed_potion', cooldown: 120, varName: 'Inv_Speed_Potion' },
+            { id: 'base_teleport', name: 'Base TP', icon: '\u{1F300}', stat: 'Teleport to base', task: '652_act_base_teleport', varName: 'Inv_Base_Teleport' },
+            { id: 'shield', name: 'Shield', icon: '\u{1F6E1}\u{FE0F}', stat: 'Immune 30s', task: '653_act_shield', cooldown: 60, varName: 'Inv_Shield' }
         ];
 
         // ---- STATE ----
@@ -682,11 +682,11 @@
         // Quest names for iframe → Portals communication
         // These must exactly match quest Names in the room
         const EQUIP_TASKS = {
-            pistol: ['equip_pistol'],
-            rifle: ['equip_rifle'],
-            shotgun: ['equip_shotgun']
+            pistol: ['603_equip_pistol'],
+            rifle: ['604_equip_rifle'],
+            shotgun: ['605_equip_shotgun']
         };
-        const UNEQUIP_TASKS = ['unequip_weapon'];
+        const UNEQUIP_TASKS = ['606_unequip_weapon'];
 
         function sendTaskToUnity(taskName, delayMs) {
             if (!sdk || !taskName) return;
