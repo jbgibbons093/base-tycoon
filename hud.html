@@ -1409,6 +1409,24 @@
                 } else if (msg.startsWith('toast:')) {
                     playSound('notification');
                     showToast(msg.substring(6));
+                } else if (msg === 'drop:1') {
+                    // Player dropped brainrot with F — clear carry state, ensure spawn timer runs
+                    if (state.carryBvKey) {
+                        var dropZone = BV_TO_ZONE[state.carryBvKey];
+                        if (dropZone && spawnCounts[dropZone] !== undefined) {
+                            // Zone count was already decremented on pickup — spawn timer should replace it
+                            var interval = ZONE_SPAWN_INTERVALS[dropZone] || SPAWN_INTERVAL;
+                            if (spawnCounts[dropZone] < MAX_PER_ZONE && (!spawnTimers[dropZone] || spawnTimers[dropZone] <= 0)) {
+                                spawnTimers[dropZone] = interval;
+                            }
+                        }
+                    }
+                    state.carrying = 0;
+                    state.carryName = '';
+                    state.carryBvKey = '';
+                    state.carryGold = 0;
+                    updateDisplay();
+                    notify('Dropped brainrot!', 'info');
                 } else if (msg.startsWith('death:')) {
                     var deathGold = msg.substring(6);
                     showDeathAlert(deathGold);
