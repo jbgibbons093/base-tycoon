@@ -541,6 +541,7 @@
 
         let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false };
         var baseDisplayFired = false;
+        var prevBaseOwners = {};
         var pedestals = {};
         for (var _fi = 1; _fi <= 4; _fi++) { pedestals[_fi] = {}; for (var _si = 1; _si <= 10; _si++) pedestals[_fi][_si] = 0; }
         var lastAutoDepositTime = 0;
@@ -1309,6 +1310,26 @@
                                 TaskTargetState: 'SetNotActiveToActive'
                             }));
                         }, 500);
+                    }
+                    // Re-trigger base display when any Base_X_Owner changes
+                    if (baseDisplayFired && sdk) {
+                        var ownerChanged = false;
+                        for (var oi = 1; oi <= 10; oi++) {
+                            var ok = 'Base_' + oi + '_Owner';
+                            if (params[ok] !== undefined) {
+                                var ov = Math.round(parseVarValue(params[ok]));
+                                if (prevBaseOwners[oi] !== undefined && prevBaseOwners[oi] !== ov) {
+                                    ownerChanged = true;
+                                }
+                                prevBaseOwners[oi] = ov;
+                            }
+                        }
+                        if (ownerChanged) {
+                            sdk.sendMessageToUnity(JSON.stringify({
+                                TaskName: 'show_base_display',
+                                TaskTargetState: 'SetNotActiveToActive'
+                            }));
+                        }
                     }
                 } else if (msg === 'collect:go') {
                     // Room-side logic already gates on player_Base_num — just collect
