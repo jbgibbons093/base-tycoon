@@ -544,6 +544,8 @@
         var prevBaseOwners = {};
         var pedestals = {};
         for (var _fi = 1; _fi <= 4; _fi++) { pedestals[_fi] = {}; for (var _si = 1; _si <= 10; _si++) pedestals[_fi][_si] = 0; }
+        var prevPedestals = {};
+        for (var _fi2 = 1; _fi2 <= 4; _fi2++) { prevPedestals[_fi2] = {}; for (var _si2 = 1; _si2 <= 10; _si2++) prevPedestals[_fi2][_si2] = 0; }
         var lastAutoDepositTime = 0;
         var autoDepositInFlight = false;
         var lastAutoDepGoValue = 0;
@@ -1297,25 +1299,24 @@
                             }
                         }
                     }
-                    // Sync carrying state from My_Carrying_Brainrot (works for base pickups too)
-                    if (params.My_Carrying_Brainrot !== undefined) {
-                        var bvIdx = Math.round(parseVarValue(params.My_Carrying_Brainrot));
-                        if (bvIdx > 0 && QUEST_NUM_TO_BV[bvIdx]) {
-                            var bvKey = QUEST_NUM_TO_BV[bvIdx];
-                            if (!state.carryBvKey || state.carryBvKey !== bvKey) {
-                                state.carrying = 1;
-                                state.carryBvKey = bvKey;
-                                state.carryName = bvKey.replace('bv_', '').replace(/_/g, ' ');
-                                state.carryGold = GOLD_PER_SECOND[bvKey] || 0;
-                                updateDisplay();
+                    // Sync carrying state by detecting pedestal deltas (base pickups)
+                    // When a Ped_F*_** goes from non-zero to zero, a brainrot was picked up
+                    for (var pdF = 1; pdF <= 4; pdF++) {
+                        for (var pdS = 1; pdS <= 10; pdS++) {
+                            var pdKey = 'Ped_F' + pdF + '_' + pdS;
+                            if (params[pdKey] !== undefined) {
+                                var newPedVal = Math.round(parseVarValue(params[pdKey]));
+                                var oldPedVal = prevPedestals[pdF][pdS];
+                                if (oldPedVal > 0 && newPedVal === 0 && state.carrying === 0) {
+                                    // Brainrot was picked up from this pedestal
+                                    state.carrying = 1;
+                                    state.carryBvKey = QUEST_NUM_TO_BV[oldPedVal] || '';
+                                    state.carryName = state.carryBvKey.replace('bv_', '').replace(/_/g, ' ');
+                                    state.carryGold = GOLD_PER_SECOND[state.carryBvKey] || 0;
+                                    updateDisplay();
+                                }
+                                prevPedestals[pdF][pdS] = newPedVal;
                             }
-                        } else if (bvIdx === 0 && state.carrying > 0) {
-                            // Not carrying anymore (wasn't a drop:1 message though)
-                            state.carrying = 0;
-                            state.carryBvKey = '';
-                            state.carryName = '';
-                            state.carryGold = 0;
-                            updateDisplay();
                         }
                     }
                     updateTimerUI();
