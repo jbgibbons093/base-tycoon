@@ -1299,25 +1299,18 @@
                             }
                         }
                     }
-                    // Sync carrying state by detecting pedestal deltas (base pickups)
-                    // When a Ped_F*_** goes from non-zero to zero, a brainrot was picked up
-                    for (var pdF = 1; pdF <= 4; pdF++) {
-                        for (var pdS = 1; pdS <= 10; pdS++) {
-                            var pdKey = 'Ped_F' + pdF + '_' + pdS;
-                            if (params[pdKey] !== undefined) {
-                                var newPedVal = Math.round(parseVarValue(params[pdKey]));
-                                var oldPedVal = prevPedestals[pdF][pdS];
-                                if (oldPedVal > 0 && newPedVal === 0 && state.carrying === 0) {
-                                    // Brainrot was picked up from this pedestal
-                                    state.carrying = 1;
-                                    state.carryBvKey = QUEST_NUM_TO_BV[oldPedVal] || '';
-                                    state.carryName = state.carryBvKey.replace('bv_', '').replace(/_/g, ' ');
-                                    state.carryGold = GOLD_PER_SECOND[state.carryBvKey] || 0;
-                                    updateDisplay();
-                                }
-                                prevPedestals[pdF][pdS] = newPedVal;
-                            }
+                    // Sync carrying state from Last_Picked_Brainrot (set by room on pedestal pickup)
+                    if (params.Last_Picked_Brainrot !== undefined) {
+                        var bvIdx = Math.round(parseVarValue(params.Last_Picked_Brainrot));
+                        if (bvIdx > 0 && QUEST_NUM_TO_BV[bvIdx] && state.carrying === 0) {
+                            state.carrying = 1;
+                            state.carryBvKey = QUEST_NUM_TO_BV[bvIdx];
+                            state.carryName = state.carryBvKey.replace('bv_', '').replace(/_/g, ' ');
+                            state.carryGold = GOLD_PER_SECOND[state.carryBvKey] || 0;
+                            updateDisplay();
                         }
+                        // Clear it so we don't re-detect
+                        params.Last_Picked_Brainrot = '0';
                     }
                     updateTimerUI();
                     parseTutorialVars(params);
