@@ -1297,6 +1297,27 @@
                             }
                         }
                     }
+                    // Sync carrying state from My_Carrying_Brainrot (works for base pickups too)
+                    if (params.My_Carrying_Brainrot !== undefined) {
+                        var bvIdx = Math.round(parseVarValue(params.My_Carrying_Brainrot));
+                        if (bvIdx > 0 && QUEST_NUM_TO_BV[bvIdx]) {
+                            var bvKey = QUEST_NUM_TO_BV[bvIdx];
+                            if (!state.carryBvKey || state.carryBvKey !== bvKey) {
+                                state.carrying = 1;
+                                state.carryBvKey = bvKey;
+                                state.carryName = bvKey.replace('bv_', '').replace(/_/g, ' ');
+                                state.carryGold = GOLD_PER_SECOND[bvKey] || 0;
+                                updateDisplay();
+                            }
+                        } else if (bvIdx === 0 && state.carrying > 0) {
+                            // Not carrying anymore (wasn't a drop:1 message though)
+                            state.carrying = 0;
+                            state.carryBvKey = '';
+                            state.carryName = '';
+                            state.carryGold = 0;
+                            updateDisplay();
+                        }
+                    }
                     updateTimerUI();
                     parseTutorialVars(params);
                     updateDisplay();
