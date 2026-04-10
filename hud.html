@@ -1152,7 +1152,15 @@
                 _msgCount++;
                 var msgShort = msg.length > 60 ? msg.substring(0, 60) + '...' : msg;
                 dbg('#' + _msgCount + ' ' + msgShort);
-                // Handle autodeposit BEFORE isDupe
+                // Handle deposit/autodeposit BEFORE isDupe
+                if (msg === 'pdeposit:1') {
+                    state.carrying = 0;
+                    state.carryName = '';
+                    state.carryBvKey = '';
+                    state.carryGold = 0;
+                    updateDisplay();
+                    return;
+                }
                 if (msg === 'autodeposit:go') {
                     dbg('>>> DIRECT autodeposit:go signal');
                     handleAutoDeposit();
@@ -1187,22 +1195,6 @@
                 // R key pickup from pedestal — show deposit tip
                 if (msg.startsWith('rpickup:')) {
                     notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
-                    return;
-                }
-                // Pedestal deposit — clear carry state
-                if (msg === 'pdeposit:1') {
-                    if (state.carrying > 0) {
-                        if (state.carryBvKey) {
-                            ownedBrainrots[state.carryBvKey] = (ownedBrainrots[state.carryBvKey] || 0) + 1;
-                            calcEarningRate();
-                            updateGoldDisplay();
-                        }
-                        state.carrying = 0;
-                        state.carryName = '';
-                        state.carryBvKey = '';
-                        state.carryGold = 0;
-                        updateDisplay();
-                    }
                     return;
                 }
                 // String-based messages
@@ -1405,30 +1397,22 @@
                     state.gold = v; updateDisplay(); pop(document.getElementById('pill-gold'));
                     if (diff > 0) notify('+$' + fmt(diff) + ' Cash', 'gold');
                 } else if (msg.startsWith('pickup:')) {
-                    if (state.carrying > 0) {
-                        // Already carrying — show warning instead of fake pickup
-                        playSound('uipop');
-                        notify('Already carrying a brainrot!', 'info');
+                    playSound('pickup');
+                    if (!state.claimDismissed) { state.claimDismissed = true; }
+                    var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
+                    if (pMatch) {
+                        state.carrying = 1;
+                        state.carryName = pMatch[1].replace(/_/g, ' ');
+                        state.carryBvKey = 'bv_' + pMatch[1];
+                        state.carryGold = parseFloat(pMatch[2]) || 0;
+                        notify('Picked up ' + state.carryName + '! (' + state.carryGold + ' cash/s)', 'pickup');
+                        if (state.baseId > 0) notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
+                        var pickupZone = BV_TO_ZONE[state.carryBvKey];
+                        if (pickupZone && spawnCounts[pickupZone] > 0) spawnCounts[pickupZone]--;
+                        updateDisplay();
+                        checkTutorial();
                     } else {
-                        playSound('pickup');
-                        // Dismiss claimed-base banner on first pickup
-                        if (!state.claimDismissed) { state.claimDismissed = true; }
-                        var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
-                        if (pMatch) {
-                            state.carrying = 1;
-                            state.carryName = pMatch[1].replace(/_/g, ' ');
-                            state.carryBvKey = 'bv_' + pMatch[1];
-                            state.carryGold = parseFloat(pMatch[2]) || 0;
-                            notify('Picked up ' + state.carryName + '! (' + state.carryGold + ' cash/s)', 'pickup');
-                            if (state.baseId > 0) notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
-                            // Decrement zone spawn count
-                            var pickupZone = BV_TO_ZONE[state.carryBvKey];
-                            if (pickupZone && spawnCounts[pickupZone] > 0) spawnCounts[pickupZone]--;
-                            updateDisplay();
-                            checkTutorial();
-                        } else {
-                            notify(msg.substring(7), 'pickup');
-                        }
+                        notify(msg.substring(7), 'pickup');
                     }
                 } else if (msg.startsWith('deposit:')) {
                     // Parse base number from message: "Deposited brainrot at Base N!"
