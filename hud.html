@@ -685,12 +685,8 @@
                 carryBanner.classList.add('show');
                 carryNameEl.textContent = state.carryName || '???';
                 carryGoldEl.textContent = state.carryGold;
-                if (!state._carryTimer) {
-                    state._carryTimer = setTimeout(function() { carryBanner.classList.remove('show'); }, 5000);
-                }
             } else {
                 carryBanner.classList.remove('show');
-                if (state._carryTimer) { clearTimeout(state._carryTimer); state._carryTimer = null; }
             }
             // Claimed base banner — shown after auto-claim, auto-dismiss after 5s
             var claimBanner = document.getElementById('claim-banner');
@@ -1188,11 +1184,9 @@
                     notify('\u{1F449} Press R on a pad to pick up a brainrot', 'info');
                     return;
                 }
-                // R key pickup from pedestal — show deposit tip
+                // R key pickup from pedestal — show deposit tip (don't set state.carrying, inv: handles it)
                 if (msg.startsWith('rpickup:')) {
-                    state.carrying = 1;
                     notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
-                    updateDisplay();
                     return;
                 }
                 // String-based messages
