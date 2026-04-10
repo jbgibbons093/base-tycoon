@@ -677,12 +677,15 @@
             } else {
                 carryBanner.classList.remove('show');
             }
-            // Claimed base banner — shown after auto-claim, hidden on first pickup
+            // Claimed base banner — shown after auto-claim, auto-dismiss after 5s
             var claimBanner = document.getElementById('claim-banner');
             if (claimBanner) {
                 if (state.claimedBase > 0 && !state.claimDismissed) {
                     claimBanner.innerHTML = '&#x1F3E0; You claimed Base ' + state.claimedBase + '!';
                     claimBanner.classList.add('show');
+                    if (!state._claimTimer) {
+                        state._claimTimer = setTimeout(function() { state.claimDismissed = true; claimBanner.classList.remove('show'); }, 5000);
+                    }
                 } else {
                     claimBanner.classList.remove('show');
                 }
@@ -739,7 +742,7 @@
             while (notifContainer.children.length > 5) {
                 notifContainer.removeChild(notifContainer.firstChild);
             }
-            setTimeout(function() { if (el.parentNode) el.remove(); }, 3500);
+            setTimeout(function() { if (el.parentNode) el.remove(); }, 5000);
         }
 
         /* ---- DEATH/KILL ALERTS ---- */
@@ -1999,6 +2002,8 @@
                     }
                 }
                 tutorialBanner.classList.add('show');
+                if (window._tutTimer) clearTimeout(window._tutTimer);
+                window._tutTimer = setTimeout(function() { tutorialBanner.classList.remove('show'); }, 5000);
             } else if (activeSteps.length === 0) {
                 currentTutorialSteps = [];
                 tutorialBanner.classList.remove('show');
