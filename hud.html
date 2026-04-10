@@ -1186,9 +1186,13 @@
                     updateDisplay();
                     return;
                 } catch(e) {}
-                // Base tip messages from room triggers
+                // Base tip messages from room triggers (cooldown to prevent dupes from shared quest)
                 if (msg.startsWith('basetip:')) {
-                    notify('\u{1F449} Press R on a pad to pick up a brainrot', 'info');
+                    var now = Date.now();
+                    if (!window._lastBaseTip || now - window._lastBaseTip > 3000) {
+                        window._lastBaseTip = now;
+                        notify('\u{1F449} Press R on a pad to pick up a brainrot', 'info');
+                    }
                     return;
                 }
                 // R key pickup from pedestal — show deposit tip
