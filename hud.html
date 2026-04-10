@@ -1174,8 +1174,7 @@
                     var d = JSON.parse(msg);
                     if (d.gold !== undefined) { state.gold = parseFloat(d.gold)||0; pop(document.getElementById('pill-gold')); }
                     if (d.baseId !== undefined) state.baseId = parseInt(d.baseId)||0;
-                    if (d.carrying !== undefined) state.carrying = parseFloat(d.carrying)||0;
-                    if (d.carryGold !== undefined) state.carryGold = parseFloat(d.carryGold)||0;
+                    // d.carrying/d.carryGold — ignored, carry tracked via explicit messages
                     if (d.rebirth !== undefined) {
                         state.rebirth = parseInt(d.rebirth)||0;
                         state.pendingGold = 0;
@@ -1268,32 +1267,8 @@
                     state.baseId = newBaseId;
                     // Parse carrying brainrot from server variable
                     // Skip if value is '{}' (pipe interpolation failed — don't clear carry state)
-                    if (params.My_Carrying_Brainrot !== undefined && params.My_Carrying_Brainrot !== '{}') {
-                        var carryNum = Math.round(parseVarValue(params.My_Carrying_Brainrot));
-                        var wasCarrying = state.carrying;
-                        if (carryNum > 0 && QUEST_NUM_TO_BV[carryNum]) {
-                            var bvKey = QUEST_NUM_TO_BV[carryNum];
-                            state.carrying = 1;
-                            state.carryBvKey = bvKey;
-                            state.carryName = bvKey.substring(3).replace(/_/g, ' ');
-                            state.carryGold = GOLD_PER_SECOND[bvKey] || 0;
-                            if (wasCarrying <= 0 && state.baseId > 0) {
-                                notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
-                            }
-                        } else if (carryNum === 0) {
-                            if (autoDepositInFlight) {
-                                // Autodeposit already handled carry-clear optimistically — just reset flag
-                                autoDepositInFlight = false;
-                            } else {
-                                // Save last name for deposit notification (sync may arrive before deposit: msg)
-                                state.lastCarryName = state.carryName || state.lastCarryName || '';
-                                state.carrying = 0;
-                                state.carryBvKey = '';
-                                state.carryName = '';
-                                state.carryGold = 0;
-                            }
-                        }
-                    }
+                    // Carry state is tracked via explicit messages (pickup:, rpickup:, drop:1, pdeposit:1)
+                    // Do NOT set carry state from inv: pipe variables — they can be stale/persistent
                     // Parse owned brainrot counts
                     parseOwnedBrainrots(params);
                     // Parse pedestal occupancy from Ped_F1-F4 vars
@@ -1335,20 +1310,7 @@
                             }
                         }
                     }
-                    // Sync carrying state from Last_Picked_Brainrot (set by room on pedestal pickup)
-                    if (params.Last_Picked_Brainrot !== undefined) {
-                        var bvIdx = Math.round(parseVarValue(params.Last_Picked_Brainrot));
-                        if (bvIdx > 0 && QUEST_NUM_TO_BV[bvIdx] && state.carrying === 0) {
-                            state.carrying = 1;
-                            state.carryBvKey = QUEST_NUM_TO_BV[bvIdx];
-                            state.carryName = state.carryBvKey.replace('bv_', '').replace(/_/g, ' ');
-                            state.carryGold = GOLD_PER_SECOND[state.carryBvKey] || 0;
-                            if (state.baseId > 0) notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
-                            updateDisplay();
-                        }
-                        // Clear it so we don't re-detect
-                        params.Last_Picked_Brainrot = '0';
-                    }
+                    // Last_Picked_Brainrot — carry state tracked via explicit messages, not inv: pipe
                     updateTimerUI();
                     parseTutorialVars(params);
                     updateDisplay();
