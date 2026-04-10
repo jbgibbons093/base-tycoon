@@ -1681,14 +1681,14 @@
             },
             {
                 id: 'tut_collect_brainrot',
-                msg: '\u{1F99C} Hunt brainrots across the Meadow and Beach \u2014 rarer ones are worth more gold! Bring them back to your base to start earning.',
+                msg: '\u{1F99C} Stand on a green pad and press R to pick up a brainrot! Run it back to your base to start earning.',
                 showIf: function() { return state.baseId > 0 && state.carrying <= 0 && countOwnedBrainrots() === 0; },
                 doneIf: function() { return state.carrying > 0 || countOwnedBrainrots() > 0; },
                 stackable: false
             },
             {
                 id: 'tut_deposit',
-                msg: '\u{1F4E6} Bring it back to your base! Walk into the deposit zone.',
+                msg: '\u{1F4E6} Run over the green pads at your base to deposit! Press F to drop it instead.',
                 showIf: function() { return state.carrying > 0; },
                 doneIf: function() { return countOwnedBrainrots() > 0; },
                 stackable: false
@@ -1702,7 +1702,7 @@
             },
             {
                 id: 'tut_collect_gold',
-                msg: '\u{1F4B0} Your brainrots generate cash! Walk into the collect zone at your base.',
+                msg: '\u{1F4B0} Your brainrots earn cash over time! Run over the green pads at your base to collect it.',
                 showIf: function() { return countOwnedBrainrots() > 0 && state.gold <= 0; },
                 doneIf: function() { return state.gold > 0; },
                 stackable: false
