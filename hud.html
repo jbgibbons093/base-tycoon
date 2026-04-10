@@ -1316,6 +1316,7 @@
                             state.carryBvKey = QUEST_NUM_TO_BV[bvIdx];
                             state.carryName = state.carryBvKey.replace('bv_', '').replace(/_/g, ' ');
                             state.carryGold = GOLD_PER_SECOND[state.carryBvKey] || 0;
+                            if (state.baseId > 0) notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
                             updateDisplay();
                         }
                         // Clear it so we don't re-detect
@@ -1384,6 +1385,7 @@
                             state.carryBvKey = 'bv_' + pMatch[1];
                             state.carryGold = parseFloat(pMatch[2]) || 0;
                             notify('Picked up ' + state.carryName + '! (' + state.carryGold + ' cash/s)', 'pickup');
+                            if (state.baseId > 0) notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
                             // Decrement zone spawn count
                             var pickupZone = BV_TO_ZONE[state.carryBvKey];
                             if (pickupZone && spawnCounts[pickupZone] > 0) spawnCounts[pickupZone]--;
