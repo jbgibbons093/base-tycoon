@@ -1170,6 +1170,13 @@
                     notify('\u{1F449} Press R on a pad to pick up a brainrot', 'info');
                     return;
                 }
+                // R key pickup from pedestal — show deposit tip
+                if (msg.startsWith('rpickup:')) {
+                    state.carrying = 1;
+                    notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
+                    updateDisplay();
+                    return;
+                }
                 // String-based messages
                 if (msg.startsWith('inv:')) {
                     // Parse key=value pairs: inv:username=bob&Gold=123&health={"bob"=100&"Hugh"=175}
