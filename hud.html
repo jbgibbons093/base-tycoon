@@ -114,25 +114,30 @@
 
         /* ---- CLAIM BASE BANNER ---- */
         .claim-banner {
-            padding: 8px 20px;
+            padding: 12px 28px;
             border-radius: 999px;
-            background: linear-gradient(180deg, rgba(116,185,255,0.9) 0%, rgba(9,132,227,0.9) 100%);
+            background: linear-gradient(180deg, rgba(116,185,255,0.95) 0%, rgba(9,132,227,0.95) 100%);
             border: 2px solid rgba(6,96,160,0.6);
-            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 0 24px rgba(9,132,227,0.4);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             font-family: 'Luckiest Guy', cursive;
-            font-size: 15px;
+            font-size: 22px;
             color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.3);
             display: none;
             white-space: nowrap;
-            animation: claimPulse 2.5s ease-in-out infinite;
+            animation: bannerPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275), bannerGlow 2s ease-in-out 0.5s infinite;
         }
         .claim-banner.show { display: block; }
-        @keyframes claimPulse {
-            0%, 100% { box-shadow: 0 3px 0 rgba(0,0,0,0.2); }
-            50% { box-shadow: 0 3px 0 rgba(0,0,0,0.2), 0 0 12px rgba(9,132,227,0.4); }
+        @keyframes bannerPop {
+            0% { transform: scale(0.3); opacity: 0; }
+            60% { transform: scale(1.1); }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        @keyframes bannerGlow {
+            0%, 100% { box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 0 24px rgba(9,132,227,0.4); }
+            50% { box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 0 40px rgba(9,132,227,0.7), 0 0 60px rgba(9,132,227,0.3); }
         }
         /* ---- SPECTATOR BANNER ---- */
         .spectator-banner {
@@ -217,21 +222,26 @@
 
         /* ---- NOTIFICATION FEED (above cash in stack) ---- */
         .notif-container {
+            position: fixed;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             display: flex;
             flex-direction: column;
-            gap: 4px;
-            align-items: flex-start;
+            gap: 8px;
+            align-items: center;
             pointer-events: none;
+            z-index: 50;
         }
         .notif {
-            padding: 5px 14px;
+            padding: 10px 24px;
             border-radius: 999px;
-            box-shadow: 0 2px 0 rgba(0,0,0,0.2);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 0 20px rgba(0,0,0,0.15);
             font-family: 'Luckiest Guy', cursive;
-            font-size: 12px;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.2);
+            font-size: 18px;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.25);
             white-space: nowrap;
-            animation: notifSlide 0.3s ease, notifOut 0.4s ease 3s forwards;
+            animation: notifPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275), notifOut 0.5s ease 4.5s forwards;
         }
         .notif-gold {
             background: linear-gradient(180deg, rgba(255,228,77,0.92), rgba(255,184,0,0.92));
@@ -263,13 +273,14 @@
             border: 2px solid rgba(192,57,43,0.6);
             color: #FFFFFF;
         }
-        @keyframes notifSlide {
-            0% { transform: translateX(-80px); opacity: 0; }
-            70% { transform: translateX(3px); }
-            100% { transform: translateX(0); opacity: 1; }
+        @keyframes notifPop {
+            0% { transform: scale(0.3); opacity: 0; }
+            50% { transform: scale(1.12); }
+            70% { transform: scale(0.95); }
+            100% { transform: scale(1); opacity: 1; }
         }
         @keyframes notifOut {
-            to { opacity: 0; transform: translateX(-40px); }
+            to { opacity: 0; transform: scale(0.8) translateY(-10px); }
         }
 
         /* ---- LEGACY TOAST (keep for compat) ---- */
@@ -375,25 +386,25 @@
 
         /* ---- TUTORIAL NOTIFICATION ---- */
         .tutorial-banner {
-            padding: 8px 20px;
+            padding: 12px 28px;
             border-radius: 999px;
-            background: linear-gradient(180deg, rgba(116,185,255,0.9) 0%, rgba(9,132,227,0.9) 100%);
-            border: 2px solid rgba(6,96,160,0.6);
-            box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3);
+            background: linear-gradient(180deg, rgba(255,234,100,0.95) 0%, rgba(255,184,0,0.95) 100%);
+            border: 2px solid rgba(204,136,0,0.6);
+            box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 0 24px rgba(255,184,0,0.4);
             backdrop-filter: blur(8px);
             -webkit-backdrop-filter: blur(8px);
             font-family: 'Luckiest Guy', cursive;
-            font-size: 15px;
-            color: white;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.3);
+            font-size: 20px;
+            color: #3A1800;
+            text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
             white-space: nowrap;
             display: none;
-            animation: tutorialPulse 2.5s ease-in-out infinite;
+            animation: bannerPop 0.5s cubic-bezier(0.175,0.885,0.32,1.275), tutorialGlow 2s ease-in-out 0.5s infinite;
         }
         .tutorial-banner.show { display: block; }
-        @keyframes tutorialPulse {
-            0%, 100% { box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 16px rgba(9,132,227,0.3); }
-            50% { box-shadow: 0 4px 0 rgba(0,0,0,0.2), 0 0 24px rgba(9,132,227,0.5); }
+        @keyframes tutorialGlow {
+            0%, 100% { box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 0 24px rgba(255,184,0,0.4); }
+            50% { box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 0 40px rgba(255,184,0,0.7), 0 0 60px rgba(255,184,0,0.3); }
         }
 
         /* ---- CENTER KILL/DEATH TEXT ---- */
@@ -674,8 +685,12 @@
                 carryBanner.classList.add('show');
                 carryNameEl.textContent = state.carryName || '???';
                 carryGoldEl.textContent = state.carryGold;
+                if (!state._carryTimer) {
+                    state._carryTimer = setTimeout(function() { carryBanner.classList.remove('show'); }, 5000);
+                }
             } else {
                 carryBanner.classList.remove('show');
+                if (state._carryTimer) { clearTimeout(state._carryTimer); state._carryTimer = null; }
             }
             // Claimed base banner — shown after auto-claim, auto-dismiss after 5s
             var claimBanner = document.getElementById('claim-banner');
