@@ -1184,9 +1184,25 @@
                     notify('\u{1F449} Press R on a pad to pick up a brainrot', 'info');
                     return;
                 }
-                // R key pickup from pedestal — show deposit tip (don't set state.carrying, inv: handles it)
+                // R key pickup from pedestal — show deposit tip
                 if (msg.startsWith('rpickup:')) {
                     notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
+                    return;
+                }
+                // Pedestal deposit — clear carry state
+                if (msg === 'pdeposit:1') {
+                    if (state.carrying > 0) {
+                        if (state.carryBvKey) {
+                            ownedBrainrots[state.carryBvKey] = (ownedBrainrots[state.carryBvKey] || 0) + 1;
+                            calcEarningRate();
+                            updateGoldDisplay();
+                        }
+                        state.carrying = 0;
+                        state.carryName = '';
+                        state.carryBvKey = '';
+                        state.carryGold = 0;
+                        updateDisplay();
+                    }
                     return;
                 }
                 // String-based messages
