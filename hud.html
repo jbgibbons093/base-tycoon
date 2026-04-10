@@ -1165,6 +1165,11 @@
                     updateDisplay();
                     return;
                 } catch(e) {}
+                // Base tip messages from room triggers
+                if (msg.startsWith('basetip:')) {
+                    notify('\u{1F449} Press R on a pad to pick up a brainrot', 'info');
+                    return;
+                }
                 // String-based messages
                 if (msg.startsWith('inv:')) {
                     // Parse key=value pairs: inv:username=bob&Gold=123&health={"bob"=100&"Hugh"=175}
@@ -1238,12 +1243,16 @@
                     // Skip if value is '{}' (pipe interpolation failed — don't clear carry state)
                     if (params.My_Carrying_Brainrot !== undefined && params.My_Carrying_Brainrot !== '{}') {
                         var carryNum = Math.round(parseVarValue(params.My_Carrying_Brainrot));
+                        var wasCarrying = state.carrying;
                         if (carryNum > 0 && QUEST_NUM_TO_BV[carryNum]) {
                             var bvKey = QUEST_NUM_TO_BV[carryNum];
                             state.carrying = 1;
                             state.carryBvKey = bvKey;
                             state.carryName = bvKey.substring(3).replace(/_/g, ' ');
                             state.carryGold = GOLD_PER_SECOND[bvKey] || 0;
+                            if (wasCarrying <= 0 && state.baseId > 0) {
+                                notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
+                            }
                         } else if (carryNum === 0) {
                             if (autoDepositInFlight) {
                                 // Autodeposit already handled carry-clear optimistically — just reset flag
