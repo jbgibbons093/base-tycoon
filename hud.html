@@ -1152,6 +1152,19 @@
                 _msgCount++;
                 var msgShort = msg.length > 60 ? msg.substring(0, 60) + '...' : msg;
                 dbg('#' + _msgCount + ' ' + msgShort);
+                // Pedestal gold collection — subtract from pending, add to gold
+                if (msg.startsWith('pedgold:')) {
+                    var pgAmt = parseFloat(msg.substring(8)) || 0;
+                    if (pgAmt > 0) {
+                        state.pendingGold = Math.max(0, state.pendingGold - pgAmt);
+                        state.gold += pgAmt;
+                        updateGoldDisplay();
+                        updateDisplay();
+                        pop(document.getElementById('pill-gold'));
+                        notify('+$' + fmt(pgAmt) + ' Cash', 'gold');
+                    }
+                    return;
+                }
                 // Handle deposit/autodeposit BEFORE isDupe
                 if (msg === 'pdeposit:1') {
                     state.carrying = 0;
