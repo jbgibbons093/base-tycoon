@@ -1241,6 +1241,11 @@
                     if (params.Gold !== undefined) {
                         var gv = parseVarValue(params.Gold);
                         if (gv !== state.gold) {
+                            // Gold increase = collection happened; reset local pending
+                            if (gv > state.gold + 0.5) {
+                                state.pendingGold = 0;
+                                updateGoldDisplay();
+                            }
                             state.gold = gv;
                             pop(document.getElementById('pill-gold'));
                         }
