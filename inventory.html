@@ -258,6 +258,7 @@
         };
 
         var ownedBrainrots = {};
+        var myUsername = '';
 
         function prettyName(bvKey) { return bvKey.substring(3).replace(/_/g, ' '); }
         function zonePretty(z) { return z.replace(/_/g, ' '); }
@@ -271,10 +272,26 @@
                 var parsed = JSON.parse(raw);
                 if (typeof parsed === 'number') return parsed;
                 if (typeof parsed === 'object' && parsed !== null) {
+                    if (myUsername) {
+                        var uLower = myUsername.toLowerCase();
+                        for (var k in parsed) {
+                            if (k.toLowerCase() === uLower) return Number(parsed[k]) || 0;
+                        }
+                    }
                     var vals = Object.values(parsed);
                     return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
                 }
-            } catch(e) {}
+            } catch(e) {
+                if (raw.indexOf('=') > -1) {
+                    var eqParts = raw.replace(/[{}"]/g, '').split('&');
+                    for (var i = 0; i < eqParts.length; i++) {
+                        var ep = eqParts[i].split('=');
+                        if (ep.length === 2 && myUsername && ep[0].toLowerCase() === myUsername.toLowerCase()) {
+                            return Number(ep[1]) || 0;
+                        }
+                    }
+                }
+            }
             var m = raw.match(/[=:](\d+\.?\d*)/);
             if (m) return parseFloat(m[1]) || 0;
             return 0;
@@ -368,10 +385,21 @@
             if (!msg.startsWith('inv:')) return;
             var payload = msg.substring(4);
             var pairs = payload.split('&');
+            // First pass: extract username
             for (var i = 0; i < pairs.length; i++) {
                 var eq = pairs[i].indexOf('=');
                 if (eq < 0) continue;
                 var key = pairs[i].substring(0, eq).trim();
+                if (key === 'username') {
+                    myUsername = pairs[i].substring(eq + 1).trim().replace(/^["']|["']$/g, '');
+                    break;
+                }
+            }
+            for (var i = 0; i < pairs.length; i++) {
+                var eq = pairs[i].indexOf('=');
+                if (eq < 0) continue;
+                var key = pairs[i].substring(0, eq).trim();
+                if (key === 'username') continue;
                 var val = parseVarValue(pairs[i].substring(eq + 1));
                 if (key.startsWith('Own_bv_')) {
                     var bvKey = key.substring(4);
