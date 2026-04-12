@@ -155,7 +155,7 @@
                 <div class="gold-badge" id="gold-display"><img src="cash.png" style="height:18px;vertical-align:middle;margin-right:4px">0</div>
                 <div class="rebirth-badge" id="rebirth-display">Rebirth: 0</div>
             </div>
-            <div class="close-x" onclick="closeShop()">X</div>
+            <!-- close handled by overlay toggle -->
         </div>
         <div class="shop-body" id="rebirth-content"></div>
     </div>
@@ -172,13 +172,15 @@
         function playSound(type) { var s = _mp3Sounds[type]; if (s) { s.currentTime = 0; s.play().catch(function(){}); } }
 
         var myUsername = '';
-        const REBIRTH_COSTS = [500000, 2000000, 10000000];
-        const REBIRTH_BONUSES = [
-            '1.5x Permanent Cash Income',
-            '2x Permanent Cash Income\n+ Unlock Ancient Ruins zone',
-            '3x Permanent Cash Income\n+ Unlock Sky Platform & The Void zones\n+ Exclusive Night Skybox'
-        ];
-        const REBIRTH_KEEPS = 'Your base, floors, and base upgrades are kept.';
+        const MAX_REBIRTH = 100;
+        function getRebirthCost(rb) {
+            if (rb >= MAX_REBIRTH) return 0;
+            if (rb === 0) return 1000000;
+            if (rb === 1) return 2000000;
+            if (rb === 2) return 3000000;
+            return 5000000 * (rb - 2);
+        }
+        const REBIRTH_KEEPS = 'Your base and base upgrades are kept.';
         const REBIRTH_RESETS = 'Cash, brainrots, zone unlocks, weapons, gear, and items are reset.';
 
         let state = { gold: 0, rebirth: 0 };
@@ -195,34 +197,35 @@
             document.getElementById('rebirth-display').textContent = 'Rebirth: ' + state.rebirth;
             const el = document.getElementById('rebirth-content');
             const nextRebirth = state.rebirth + 1;
-            const maxRebirth = REBIRTH_COSTS.length;
 
-            if (state.rebirth >= maxRebirth) {
-                const stars = '\u2B50'.repeat(state.rebirth);
-                const bonusLines = REBIRTH_BONUSES[state.rebirth-1].split('\n').map(l => '<div>' + l.trim() + '</div>').join('');
+            if (state.rebirth >= MAX_REBIRTH) {
+                const starCount = Math.min(state.rebirth, 10);
+                const stars = '\u2B50'.repeat(starCount);
                 el.innerHTML = `
                     <div class="rebirth-panel">
                         <div class="rebirth-stars">${stars}</div>
                         <h2>MAX REBIRTH!</h2>
-                        <div class="sub">You've reached Rebirth ${state.rebirth}. All zones unlocked.</div>
-                        <div class="rebirth-reward" style="margin-top:14px">${bonusLines}</div>
+                        <div class="sub">You've reached Rebirth ${state.rebirth}.</div>
                         <div class="rebirth-max">All permanent bonuses active</div>
                     </div>
                 `;
                 return;
             }
 
-            const cost = REBIRTH_COSTS[state.rebirth];
+            const cost = getRebirthCost(state.rebirth);
             const canRebirth = state.gold >= cost;
             const progress = Math.min(100, (state.gold / cost) * 100);
-            const stars = state.rebirth > 0 ? '\u2B50'.repeat(state.rebirth) : '';
-            const bonusLines = REBIRTH_BONUSES[state.rebirth].split('\n').map(l => '<div>' + l.trim() + '</div>').join('');
+            const starCount = Math.min(state.rebirth, 10);
+            const stars = state.rebirth > 0 ? '\u2B50'.repeat(starCount) : '';
 
             el.innerHTML = `
                 <div class="rebirth-panel">
                     ${stars ? '<div class="rebirth-stars">' + stars + '</div>' : ''}
                     <h2>REBIRTH ${nextRebirth}</h2>
-                    <div class="rebirth-reward" style="margin-bottom:8px">${bonusLines}</div>
+                    <div class="rebirth-reward" style="margin-bottom:8px">
+                        <div>+ New prestige level</div>
+                        <div>+ Unlock higher zones</div>
+                    </div>
                     <div class="rebirth-cost-badge">$ ${fmt(cost)}</div>
                     <div class="sub" style="margin-top:8px;color:var(--neon-green);font-weight:900">${REBIRTH_KEEPS}</div>
                     <div class="sub" style="margin-top:4px;color:var(--accent);font-weight:900">${REBIRTH_RESETS}</div>
@@ -241,8 +244,8 @@
         }
 
         function doRebirth() {
-            const cost = REBIRTH_COSTS[state.rebirth];
-            if (state.gold < cost) return;
+            const cost = getRebirthCost(state.rebirth);
+            if (cost <= 0 || state.gold < cost) return;
             state.gold -= cost;
             state.rebirth++;
             render();
