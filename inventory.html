@@ -385,6 +385,22 @@
         }
 
         function handleMessage(msg) {
+            if (msg.indexOf('peds:') === 0) {
+                // peds:112,0,0,114,...  (40 comma-separated quest numbers: F1_1..F4_10)
+                var nums = msg.substring(5).split(',');
+                var freshOwned = {};
+                for (var p = 0; p < nums.length; p++) {
+                    var qn = parseInt(nums[p], 10);
+                    if (qn > 0) {
+                        var bvKey = QUEST_NUM_TO_BV[qn];
+                        if (bvKey) freshOwned[bvKey] = (freshOwned[bvKey] || 0) + 1;
+                    }
+                }
+                ownedBrainrots = freshOwned;
+                renderTabs();
+                render();
+                return;
+            }
             if (!msg.startsWith('inv:')) return;
             var payload = msg.substring(4);
             var pairs = payload.split('&');
