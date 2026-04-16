@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Fusion Lab</title>
+    <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --cyan: #00e5ff;
+            --cyan-rgb: 0, 229, 255;
+            --purple: #b44dff;
+            --purple-rgb: 180, 77, 255;
+            --dark: rgba(10, 12, 28, 0.96);
+            --panel: rgba(20, 25, 50, 0.95);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Nunito', sans-serif; background: transparent; overflow: hidden; }
+
+        .frame {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 600px; max-height: 85vh;
+            background: linear-gradient(180deg, rgba(15, 18, 40, 0.97), rgba(8, 10, 25, 0.98));
+            border: 2px solid rgba(0, 229, 255, 0.4);
+            border-radius: 20px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 80px rgba(0, 229, 255, 0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        .header {
+            padding: 14px 20px; text-align: center; flex-shrink: 0;
+            background: linear-gradient(180deg, rgba(0, 229, 255, 0.15), transparent);
+            border-bottom: 2px solid rgba(0, 229, 255, 0.2);
+        }
+        .header h1 {
+            font-family: 'Luckiest Guy', Impact, sans-serif;
+            font-size: 30px; color: var(--cyan); margin: 0;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(var(--cyan-rgb), 0.6), 2px 2px 0 rgba(0,0,0,0.8);
+        }
+        .header .tracker {
+            font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 2px;
+        }
+
+        .fusion-area {
+            display: flex; align-items: center; justify-content: center; gap: 12px;
+            padding: 16px 20px; flex-shrink: 0;
+            background: rgba(0, 229, 255, 0.03);
+        }
+        .slot {
+            width: 110px; height: 110px;
+            border: 2px dashed rgba(var(--cyan-rgb), 0.4);
+            border-radius: 14px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+            background: rgba(var(--cyan-rgb), 0.05);
+            position: relative;
+        }
+        .slot:hover { border-color: rgba(var(--cyan-rgb), 0.7); background: rgba(var(--cyan-rgb), 0.1); }
+        .slot.filled { border-style: solid; border-color: var(--cyan); }
+        .slot img { width: 70px; height: 70px; object-fit: contain; }
+        .slot .slot-label {
+            font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 4px;
+            text-align: center; max-width: 100px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .slot .slot-placeholder {
+            font-size: 11px; color: rgba(var(--cyan-rgb), 0.4); font-weight: 800;
+        }
+        .slot .remove-btn {
+            position: absolute; top: -6px; right: -6px; width: 20px; height: 20px;
+            background: #ff4444; border: none; border-radius: 50%; color: white;
+            font-size: 12px; cursor: pointer; display: none; line-height: 20px; text-align: center;
+        }
+        .slot.filled .remove-btn { display: block; }
+
+        .plus-sign {
+            font-family: 'Luckiest Guy'; font-size: 32px; color: rgba(var(--cyan-rgb), 0.5);
+        }
+
+        .fuse-btn {
+            padding: 10px 28px; border: 2px solid var(--cyan); border-radius: 12px;
+            background: linear-gradient(180deg, rgba(var(--cyan-rgb), 0.2), rgba(var(--cyan-rgb), 0.05));
+            color: var(--cyan); font-family: 'Luckiest Guy'; font-size: 20px;
+            cursor: pointer; letter-spacing: 2px; transition: all 0.3s;
+        }
+        .fuse-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, rgba(var(--cyan-rgb), 0.4), rgba(var(--cyan-rgb), 0.15));
+            box-shadow: 0 0 30px rgba(var(--cyan-rgb), 0.3);
+        }
+        .fuse-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .inventory-label {
+            padding: 8px 20px 4px; font-size: 12px; color: rgba(255,255,255,0.4);
+            font-weight: 800; letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0;
+        }
+
+        .inventory {
+            flex: 1; overflow-y: auto; padding: 6px 14px 14px;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+            align-content: start;
+        }
+        .inventory::-webkit-scrollbar { width: 6px; }
+        .inventory::-webkit-scrollbar-thumb { background: rgba(var(--cyan-rgb), 0.3); border-radius: 3px; }
+
+        .inv-card {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; padding: 6px; text-align: center; cursor: pointer;
+            transition: all 0.15s;
+        }
+        .inv-card:hover { background: rgba(var(--cyan-rgb), 0.1); border-color: rgba(var(--cyan-rgb), 0.4); }
+        .inv-card.selected { border-color: var(--cyan); background: rgba(var(--cyan-rgb), 0.15); box-shadow: 0 0 12px rgba(var(--cyan-rgb), 0.2); }
+        .inv-card.fusion-owned { border-color: rgba(var(--purple-rgb), 0.5); }
+        .inv-card img { width: 52px; height: 52px; object-fit: contain; }
+        .inv-card .card-name {
+            font-size: 9px; color: rgba(255,255,255,0.6); margin-top: 2px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .inv-card .card-gps {
+            font-size: 10px; color: rgba(var(--cyan-rgb), 0.7); font-weight: 800;
+        }
+        .inv-card .card-count {
+            position: absolute; top: 2px; right: 4px; font-size: 10px; color: #ffd700; font-weight: 900;
+        }
+
+        /* Result overlay */
+        .result-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85); display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 200;
+        }
+        .result-overlay.show { display: flex; }
+        .result-card {
+            text-align: center; padding: 30px 40px; border-radius: 20px;
+            border: 2px solid; animation: resultPop 0.5s ease-out;
+        }
+        @keyframes resultPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .result-card img { width: 120px; height: 120px; object-fit: contain; }
+        .result-card .result-tier {
+            font-family: 'Luckiest Guy'; font-size: 16px; letter-spacing: 2px; margin-top: 8px;
+        }
+        .result-card .result-name {
+            font-family: 'Luckiest Guy'; font-size: 22px; color: white; margin-top: 4px;
+        }
+        .result-card .result-gps {
+            font-size: 16px; color: #ffd700; font-weight: 800; margin-top: 4px;
+        }
+        .result-card .result-note {
+            font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 8px;
+        }
+        .result-ok {
+            margin-top: 16px; padding: 10px 32px; border-radius: 10px;
+            border: 2px solid var(--cyan); background: rgba(var(--cyan-rgb), 0.15);
+            color: var(--cyan); font-family: 'Luckiest Guy'; font-size: 16px;
+            cursor: pointer; letter-spacing: 1px;
+        }
+
+        .tier-Rare { border-color: #4a7fff; }
+        .tier-Rare .result-tier { color: #4a7fff; }
+        .tier-Epic { border-color: #a155f2; }
+        .tier-Epic .result-tier { color: #a155f2; }
+        .tier-Legendary { border-color: #ffb347; }
+        .tier-Legendary .result-tier { color: #ffb347; }
+        .tier-Mythic { border-color: #ff4a9f; }
+        .tier-Mythic .result-tier { color: #ff4a9f; }
+        .tier-BrainrotGod { border-color: #ff2222; }
+        .tier-BrainrotGod .result-tier { color: #ff2222; }
+        .tier-Secret { border-color: #00ff88; }
+        .tier-Secret .result-tier { color: #00ff88; }
+        .tier-OG { border-color: #ffd700; }
+        .tier-OG .result-tier { color: #ffd700; }
+        .tier-Glitch { border-color: #ff00ff; }
+        .tier-Glitch .result-tier { color: #ff00ff; }
+        .result-card.tier-Glitch { animation: glitchPop 0.5s ease-out, glitchShake 0.15s infinite 0.5s; }
+        @keyframes glitchShake { 0%,100%{transform:translate(0)} 25%{transform:translate(-2px,1px)} 75%{transform:translate(2px,-1px)} }
+
+        .complete-msg {
+            text-align: center; padding: 20px; color: rgba(255,255,255,0.4);
+            font-size: 14px; font-weight: 800;
+        }
+    </style>
+</head>
+<body>
+    <div class="frame">
+        <div class="header">
+            <h1>FUSION LAB</h1>
+            <div class="tracker" id="tracker">0 / 40 Discovered</div>
+        </div>
+        <div class="fusion-area">
+            <div class="slot" id="slotA" onclick="clearSlot('A')">
+                <span class="slot-placeholder">SLOT A</span>
+                <button class="remove-btn">&times;</button>
+            </div>
+            <span class="plus-sign">+</span>
+            <div class="slot" id="slotB" onclick="clearSlot('B')">
+                <span class="slot-placeholder">SLOT B</span>
+                <button class="remove-btn">&times;</button>
+            </div>
+            <button class="fuse-btn" id="fuseBtn" disabled onclick="doFuse()">FUSE</button>
+        </div>
+        <div class="inventory-label">YOUR PEDESTAL BRAINROTS</div>
+        <div class="inventory" id="invGrid"></div>
+    </div>
+
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-card" id="resultCard">
+            <img id="resultImg" src="">
+            <div class="result-tier" id="resultTier"></div>
+            <div class="result-name" id="resultName"></div>
+            <div class="result-gps" id="resultGps"></div>
+            <div class="result-note">Deposit on a pedestal to start earning!</div>
+        </div>
+        <button class="result-ok" onclick="closeResult()">NICE</button>
+    </div>
+
+    <script>
+        var sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+        var IMG_BASE = 'https://jbgibbons093.github.io/base-tycoon/brainrots/';
+        var IMG_V = Date.now();
+        var myUsername = '';
+
+        // === FUSION DATA (generated from fusion_data.json) ===
+        var CR={"bv_67":[22,42],"bv_Africa_by_toto_to_sahur":[12,15],"bv_Astronaut":[11,19],"bv_AvocadiniGuffo":[38,48],"bv_Avocadini_Antilopini":[34,44],"bv_Bacuru_and_Egguru":[35,65],"bv_Ballerina_cappucinaaaa21pct":[55,71],"bv_Ballerinolololo":[11,15],"bv_Banana":[1,6],"bv_Bandito_Axolito":[60,110],"bv_Berry_berry_bicus_dickus":[43,50],"bv_Bombardiro_Crocodilo":[67,80],"bv_Boneca_Ambalabu":[26,30],"bv_BrainrotGodLuckyBlock":[70,84],"bv_Brri_Brri_Bicus_Dicus_Bom":[37,47],"bv_BurbaloniLuliloli":[1,7],"bv_Burguro_And_Fryuro":[36,46],"bv_Cacto_Hipopotamo1":[24,30],"bv_Cant_come_up_with_a_funny":[23,30],"bv_Cappuccino_Assassino":[25,30],"bv_Carti":[50,66],"bv_Cavallo_Virtuoso":[46,62],"bv_Celestial_Pegasus":[104,184],"bv_Cerberus":[31,41],"bv_Chicleteira":[239,299],"bv_Chicliterita_bicicliterit":[182,220],"bv_ChimpanziniBananini":[4,9],"bv_Chocco_Bunny":[402,552],"bv_Christmas_Chachechi":[400,550],"bv_Clickerinocrabo":[16,24],"bv_Cocofanto":[1,5],"bv_Cocosini_Mama":[1,5],"bv_Cuadramat":[28,48],"bv_Cupcake_Koala":[10,16],"bv_DJ_Panda":[100,180],"bv_Disco_Gorilla":[102,182],"bv_Divine_Starfish":[106,186],"bv_DoiDoi":[26,46],"bv_Dolphin_But_Banana":[33,43],"bv_Dolphini_Jetskini":[16,24],"bv_Dragon_Gingerini":[144,184],"bv_Everybody_hates_Chihuanin":[122,140],"bv_Fizzy_Soda":[24,44],"bv_Fluriflura":[4,9],"bv_FrioNinja":[240,360],"bv_GOAT":[40,53],"bv_Ganganzelli_Trulala":[242,362],"bv_Gangster_Crab":[64,114],"bv_Garamadundung":[25,30],"bv_Gattatino_Nyanino":[39,69],"bv_GlorboFruttodrillo":[40,50],"bv_Gorillo_Watermelondrillo":[118,140],"bv_Graipuss":[120,152],"bv_Holy_Arepa":[37,67],"bv_Homicidio_doloso":[33,43],"bv_Hopilikalika_Hopilika":[326,456],"bv_Hydra_Dragon_Cannelloni":[160,280],"bv_Image_removebg_preview_29":[9,15],"bv_Jacko_Spaventosa":[70,80],"bv_Job":[200,220],"bv_Karkerheart_Luvkur":[20,40],"bv_KetupatKepat":[120,148],"bv_King_von":[54,70],"bv_La_Cucaracha":[244,364],"bv_La_vacca_no_effects":[165,205],"bv_LasTralaleritas":[157,197],"bv_Lavadorito_Spinito":[18,26],"bv_Lebron_james":[40,54],"bv_Lil_wayne":[68,80],"bv_Liliri_Lalira":[11,15],"bv_Lionel_Cactuseli":[4,10],"bv_Lol_Fridge":[23,30],"bv_Los_Tralaleritos":[165,205],"bv_Magi_Ribbitini":[200,255],"bv_MalameAmarele":[43,73],"bv_Matteofr":[70,96],"bv_Meowl":[320,350],"bv_Moby":[10,14],"bv_Money_Money_Man":[126,140],"bv_Money_money_puggy":[296,350],"bv_Mummio_Rappitto":[246,366],"bv_Mythic_lucky_block":[72,80],"bv_Navidaddragon":[164,284],"bv_NewBlueberrinni":[40,50],"bv_Noobini_Pizzanini":[5,11],"bv_Nooo_my_polizia":[248,368],"bv_Nuclearo_Dinosauro":[120,140],"bv_Orcalero_Orcala":[320,450],"bv_PIGEONS_ARE_SPIES_MADE_BY":[16,24],"bv_POTATO":[1,4],"bv_Pakrah":[1,7],"bv_Pandaccini_Bananini":[6,12],"bv_PeroLemonfulldetial":[45,50],"bv_Pi_Pi_Watermelon":[40,50],"bv_Pintealotto":[10,14],"bv_Pipi_Kiwi":[1,6],"bv_Pirate_Frog":[62,112],"bv_Puffaball":[10,15],"bv_Quackula":[40,51],"bv_Quivioli_Ameleonni":[40,48],"bv_Rhino_Helicopterino":[162,282],"bv_SecretLuckyBlock":[150,190],"bv_Sig_ma_Boy":[40,56],"bv_SigmaGirl":[43,59],"bv_Skibidi_toilet":[32,42],"bv_Slitta_Sprinta":[13,21],"bv_Snailenzo":[68,118],"bv_StatutinoLibertino":[324,454],"bv_Strawberrelli_Flamingelli":[40,49],"bv_Strawberryelephant":[281,341],"bv_TaTas":[10,14],"bv_TangTangVfx":[138,178],"bv_Tartaragnoo":[168,288],"bv_Tartaruga_Cisternaaaa":[40,53],"bv_Te_Te_Te_Sahur":[54,70],"bv_Teenage_turtle":[26,30],"bv_Tim_Cheese":[5,11],"bv_Time_moving_slow":[40,56],"bv_Tipi_Topi_Taco":[66,116],"bv_Toiletto":[58,74],"bv_Tracoducotulu":[47,63],"bv_TractorDino":[70,91],"bv_TralaleroTralala":[200,230],"bv_Tralalita":[115,140],"bv_Travis_scott":[71,80],"bv_Trenostruzzo_Turbo_3000":[22,30],"bv_Trippi_Troppi":[15,23],"bv_Trippi_Troppi_Troppa_Trip":[126,140],"bv_Tukanno_Bananno":[70,95],"bv_Unclito_Samito":[322,452],"bv_Watermelon_Doggy":[25,30],"bv_boba_panda":[108,188],"bv_cappuccino_clownino":[166,286],"bv_carrotini_brainini":[41,71],"bv_clanker":[404,554],"bv_dumborino_miracello":[406,556],"bv_tentacolo_tecnico":[328,458],"bv_vulturino_skeletino":[408,558],"bv_wombo":[32,42]};
+
+        var FB=[{bv:"bv_Karkerheart_Luvkur",q:310,tier:"Rare",gps:18,rs:[5,20]},{bv:"bv_67",q:312,tier:"Rare",gps:20,rs:[8,23]},{bv:"bv_Fizzy_Soda",q:314,tier:"Rare",gps:22,rs:[11,26]},{bv:"bv_DoiDoi",q:316,tier:"Rare",gps:16,rs:[17,32]},{bv:"bv_Cuadramat",q:318,tier:"Rare",gps:24,rs:[20,35]},{bv:"bv_Bacuru_and_Egguru",q:320,tier:"Epic",gps:45,rs:[25,48]},{bv:"bv_Holy_Arepa",q:322,tier:"Epic",gps:40,rs:[30,52]},{bv:"bv_Gattatino_Nyanino",q:324,tier:"Epic",gps:50,rs:[34,56]},{bv:"bv_carrotini_brainini",q:326,tier:"Epic",gps:42,rs:[43,66]},{bv:"bv_MalameAmarele",q:328,tier:"Epic",gps:48,rs:[48,70]},{bv:"bv_Bandito_Axolito",q:330,tier:"Legendary",gps:130,rs:[55,92]},{bv:"bv_Pirate_Frog",q:332,tier:"Legendary",gps:120,rs:[62,100]},{bv:"bv_Gangster_Crab",q:334,tier:"Legendary",gps:140,rs:[70,108]},{bv:"bv_Tipi_Topi_Taco",q:336,tier:"Legendary",gps:125,rs:[85,122]},{bv:"bv_Snailenzo",q:338,tier:"Legendary",gps:135,rs:[92,130]},{bv:"bv_DJ_Panda",q:340,tier:"Mythic",gps:280,rs:[110,165]},{bv:"bv_Disco_Gorilla",q:342,tier:"Mythic",gps:300,rs:[121,176]},{bv:"bv_Celestial_Pegasus",q:344,tier:"Mythic",gps:320,rs:[132,187]},{bv:"bv_Divine_Starfish",q:346,tier:"Mythic",gps:260,rs:[154,209]},{bv:"bv_boba_panda",q:348,tier:"Mythic",gps:340,rs:[165,220]},{bv:"bv_Hydra_Dragon_Cannelloni",q:350,tier:"Brainrot God",gps:500,rs:[190,265]},{bv:"bv_Rhino_Helicopterino",q:352,tier:"Brainrot God",gps:550,rs:[205,280]},{bv:"bv_Navidaddragon",q:354,tier:"Brainrot God",gps:480,rs:[220,295]},{bv:"bv_cappuccino_clownino",q:356,tier:"Brainrot God",gps:520,rs:[250,325]},{bv:"bv_Tartaragnoo",q:358,tier:"Brainrot God",gps:560,rs:[265,340]},{bv:"bv_FrioNinja",q:360,tier:"Secret",gps:800,rs:[300,385]},{bv:"bv_Ganganzelli_Trulala",q:362,tier:"Secret",gps:850,rs:[317,402]},{bv:"bv_La_Cucaracha",q:364,tier:"Secret",gps:900,rs:[334,419]},{bv:"bv_Mummio_Rappitto",q:366,tier:"Secret",gps:750,rs:[368,453]},{bv:"bv_Nooo_my_polizia",q:368,tier:"Secret",gps:950,rs:[385,470]},{bv:"bv_Orcalero_Orcala",q:370,tier:"OG",gps:2000,rs:[430,515]},{bv:"bv_Unclito_Samito",q:372,tier:"OG",gps:2500,rs:[447,532]},{bv:"bv_StatutinoLibertino",q:374,tier:"OG",gps:1800,rs:[464,549]},{bv:"bv_Hopilikalika_Hopilika",q:376,tier:"OG",gps:2200,rs:[498,583]},{bv:"bv_tentacolo_tecnico",q:378,tier:"OG",gps:3000,rs:[515,600]},{bv:"bv_Christmas_Chachechi",q:380,tier:"Glitch",gps:6000,rs:[560,630]},{bv:"bv_Chocco_Bunny",q:382,tier:"Glitch",gps:7000,rs:[574,644]},{bv:"bv_clanker",q:384,tier:"Glitch",gps:8000,rs:[588,658]},{bv:"bv_dumborino_miracello",q:386,tier:"Glitch",gps:9000,rs:[616,686]},{bv:"bv_vulturino_skeletino",q:388,tier:"Glitch",gps:10000,rs:[630,700]}];
+
+        var QBV={112:"bv_Banana",114:"bv_BurbaloniLuliloli",116:"bv_Noobini_Pizzanini",118:"bv_Tim_Cheese",120:"bv_Image_removebg_preview_29",122:"bv_Fluriflura",124:"bv_Pandaccini_Bananini",126:"bv_Puffaball",128:"bv_Liliri_Lalira",130:"bv_Pipi_Kiwi",132:"bv_Pakrah",134:"bv_Lionel_Cactuseli",136:"bv_Cocofanto",138:"bv_ChimpanziniBananini",140:"bv_Africa_by_toto_to_sahur",142:"bv_Ballerinolololo",144:"bv_POTATO",146:"bv_Cocosini_Mama",148:"bv_PIGEONS_ARE_SPIES_MADE_BY",150:"bv_Teenage_turtle",152:"bv_Dolphini_Jetskini",154:"bv_Slitta_Sprinta",156:"bv_Trippi_Troppi",158:"bv_Clickerinocrabo",160:"bv_Astronaut",162:"bv_Cant_come_up_with_a_funny",164:"bv_Lol_Fridge",166:"bv_Boneca_Ambalabu",168:"bv_Cupcake_Koala",170:"bv_Lavadorito_Spinito",172:"bv_Cacto_Hipopotamo1",174:"bv_TaTas",176:"bv_Pintealotto",178:"bv_Moby",180:"bv_Watermelon_Doggy",182:"bv_Garamadundung",184:"bv_Trenostruzzo_Turbo_3000",186:"bv_Cappuccino_Assassino",188:"bv_Burguro_And_Fryuro",190:"bv_AvocadiniGuffo",192:"bv_Homicidio_doloso",194:"bv_Brri_Brri_Bicus_Dicus_Bom",196:"bv_Skibidi_toilet",198:"bv_PeroLemonfulldetial",200:"bv_Avocadini_Antilopini",202:"bv_Dolphin_But_Banana",204:"bv_wombo",206:"bv_Berry_berry_bicus_dickus",208:"bv_Cerberus",210:"bv_NewBlueberrinni",212:"bv_Quackula",214:"bv_Sig_ma_Boy",216:"bv_GOAT",218:"bv_Strawberrelli_Flamingelli",220:"bv_Pi_Pi_Watermelon",222:"bv_GlorboFruttodrillo",224:"bv_Time_moving_slow",226:"bv_Quivioli_Ameleonni",228:"bv_Lebron_james",230:"bv_SigmaGirl",232:"bv_Tartaruga_Cisternaaaa",234:"bv_Tracoducotulu",236:"bv_Toiletto",238:"bv_Mythic_lucky_block",240:"bv_Ballerina_cappucinaaaa21pct",242:"bv_King_von",244:"bv_Jacko_Spaventosa",246:"bv_Travis_scott",248:"bv_Cavallo_Virtuoso",250:"bv_Lil_wayne",252:"bv_Bombardiro_Crocodilo",254:"bv_Te_Te_Te_Sahur",256:"bv_Carti",258:"bv_Tralalita",260:"bv_Everybody_hates_Chihuanin",262:"bv_TractorDino",264:"bv_BrainrotGodLuckyBlock",266:"bv_Tukanno_Bananno",268:"bv_Gorillo_Watermelondrillo",270:"bv_Money_Money_Man",272:"bv_Matteofr",274:"bv_Trippi_Troppi_Troppa_Trip",276:"bv_Dragon_Gingerini",278:"bv_Graipuss",280:"bv_TangTangVfx",282:"bv_Nuclearo_Dinosauro",284:"bv_LasTralaleritas",286:"bv_Job",288:"bv_Los_Tralaleritos",290:"bv_Chicliterita_bicicliterit",292:"bv_SecretLuckyBlock",294:"bv_KetupatKepat",296:"bv_La_vacca_no_effects",298:"bv_Chicleteira",300:"bv_TralaleroTralala",302:"bv_Strawberryelephant",304:"bv_Magi_Ribbitini",306:"bv_Meowl",308:"bv_Money_money_puggy",310:"bv_Karkerheart_Luvkur",312:"bv_67",314:"bv_Fizzy_Soda",316:"bv_DoiDoi",318:"bv_Cuadramat",320:"bv_Bacuru_and_Egguru",322:"bv_Holy_Arepa",324:"bv_Gattatino_Nyanino",326:"bv_carrotini_brainini",328:"bv_MalameAmarele",330:"bv_Bandito_Axolito",332:"bv_Pirate_Frog",334:"bv_Gangster_Crab",336:"bv_Tipi_Topi_Taco",338:"bv_Snailenzo",340:"bv_DJ_Panda",342:"bv_Disco_Gorilla",344:"bv_Celestial_Pegasus",346:"bv_Divine_Starfish",348:"bv_boba_panda",350:"bv_Hydra_Dragon_Cannelloni",352:"bv_Rhino_Helicopterino",354:"bv_Navidaddragon",356:"bv_cappuccino_clownino",358:"bv_Tartaragnoo",360:"bv_FrioNinja",362:"bv_Ganganzelli_Trulala",364:"bv_La_Cucaracha",366:"bv_Mummio_Rappitto",368:"bv_Nooo_my_polizia",370:"bv_Orcalero_Orcala",372:"bv_Unclito_Samito",374:"bv_StatutinoLibertino",376:"bv_Hopilikalika_Hopilika",378:"bv_tentacolo_tecnico",380:"bv_Christmas_Chachechi",382:"bv_Chocco_Bunny",384:"bv_clanker",386:"bv_dumborino_miracello",388:"bv_vulturino_skeletino"};
+
+        // Fusion quest number set (for identifying fusion brainrots)
+        var FUSION_QS = {};
+        for (var i = 0; i < FB.length; i++) FUSION_QS[FB[i].q] = true;
+
+        // GPS lookup
+        var GPS_BY_BV = {};
+        for (var i = 0; i < FB.length; i++) GPS_BY_BV[FB[i].bv] = FB[i].gps;
+
+        // === STATE ===
+        var pedestals = []; // array of 40 {floor, slot, questNum, bv}
+        var slotA = null;   // {floor, slot, questNum, bv}
+        var slotB = null;
+        var ownedFusionQs = []; // quest numbers of fusion brainrots on pedestals
+        var fuseLocked = false;
+
+        // === SDK SETUP ===
+        function _doFocusGame() {
+            if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+        }
+        document.addEventListener('click', function() { _doFocusGame(); });
+        document.addEventListener('keydown', function() { _doFocusGame(); });
+
+        var _lastMsg = '', _lastMsgT = 0;
+        function processMessage(msg) {
+            var now = Date.now();
+            var id = msg.substring(0, 60) + '_' + Math.floor(now / 100);
+            if (id === _lastMsg && now - _lastMsgT < 200) return;
+            _lastMsg = id; _lastMsgT = now;
+            handleMessage(msg);
+        }
+
+        if (sdk) {
+            sdk.setMessageListener(function(msg) { processMessage(msg); });
+        }
+        window.addEventListener('message', function(e) {
+            if (e.data && typeof e.data === 'string') processMessage(e.data);
+            else if (e.data && e.data.portalsMessage) processMessage(e.data.portalsMessage);
+        });
+
+        function requestSync() {
+            if (!sdk) return;
+            sdk.sendMessageToUnity(JSON.stringify({ TaskName: 'hud_sync', TaskTargetState: 'SetAnyToActive' }));
+        }
+        setTimeout(requestSync, 300);
+        setTimeout(requestSync, 1000);
+        setTimeout(requestSync, 2500);
+
+        function parseVarValue(raw) {
+            if (raw === undefined || raw === null || raw === '') return 0;
+            raw = String(raw).trim();
+            var num = Number(raw);
+            if (!isNaN(num)) return num;
+            try {
+                var parsed = JSON.parse(raw);
+                if (typeof parsed === 'number') return parsed;
+                if (typeof parsed === 'object' && parsed !== null) {
+                    if (myUsername) {
+                        var uLower = myUsername.toLowerCase();
+                        for (var k in parsed) { if (k.toLowerCase() === uLower) return Number(parsed[k]) || 0; }
+                    }
+                    var vals = Object.values(parsed);
+                    return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
+                }
+            } catch(e) {}
+            var m = raw.match(/[=:](\d+\.?\d*)/);
+            return m ? parseFloat(m[1]) || 0 : 0;
+        }
+
+        // === MESSAGE HANDLER ===
+        function handleMessage(msg) {
+            if (msg.startsWith('peds:')) {
+                var nums = msg.substring(5).split(',');
+                pedestals = [];
+                ownedFusionQs = [];
+                var idx = 0;
+                for (var f = 1; f <= 4; f++) {
+                    for (var s = 1; s <= 10; s++) {
+                        var qn = parseInt(nums[idx], 10) || 0;
+                        if (qn > 0 && QBV[qn]) {
+                            pedestals.push({ floor: f, slot: s, questNum: qn, bv: QBV[qn] });
+                            if (FUSION_QS[qn]) ownedFusionQs.push(qn);
+                        }
+                        idx++;
+                    }
+                }
+                render();
+            } else if (msg.startsWith('inv:')) {
+                var pairs = msg.substring(4).split('&');
+                pedestals = [];
+                ownedFusionQs = [];
+                for (var i = 0; i < pairs.length; i++) {
+                    var eq = pairs[i].indexOf('=');
+                    if (eq < 0) continue;
+                    var key = pairs[i].substring(0, eq).trim();
+                    var val = parseVarValue(pairs[i].substring(eq + 1));
+                    var pm = key.match(/^Ped_F(\d+)_(\d+)$/);
+                    if (pm) {
+                        var qn = Math.round(val);
+                        if (qn > 0 && QBV[qn]) {
+                            pedestals.push({ floor: parseInt(pm[1]), slot: parseInt(pm[2]), questNum: qn, bv: QBV[qn] });
+                            if (FUSION_QS[qn]) ownedFusionQs.push(qn);
+                        }
+                    }
+                    if (key === 'username') myUsername = pairs[i].substring(eq + 1).trim();
+                }
+                render();
+            }
+        }
+
+        // === RENDERING ===
+        function prettyName(bv) { return bv.substring(3).replace(/_/g, ' '); }
+
+        function imgUrl(bv) {
+            return IMG_BASE + bv + '.webp?v=' + IMG_V;
+        }
+
+        function fmtGps(gps) {
+            if (gps >= 1000) return (gps / 1000).toFixed(1) + 'K';
+            return gps.toFixed(1);
+        }
+
+        function render() {
+            var grid = document.getElementById('invGrid');
+            var html = '';
+
+            if (pedestals.length === 0) {
+                html = '<div class="complete-msg" style="grid-column:1/-1">No brainrots on pedestals.<br>Deposit brainrots first!</div>';
+            } else {
+                for (var i = 0; i < pedestals.length; i++) {
+                    var p = pedestals[i];
+                    var isFusion = FUSION_QS[p.questNum];
+                    var isSelectedA = slotA && slotA.floor === p.floor && slotA.slot === p.slot;
+                    var isSelectedB = slotB && slotB.floor === p.floor && slotB.slot === p.slot;
+                    var cls = 'inv-card';
+                    if (isSelectedA || isSelectedB) cls += ' selected';
+                    if (isFusion) cls += ' fusion-owned';
+
+                    var gps = GPS_BY_BV[p.bv] || 0;
+                    html += '<div class="' + cls + '" onclick="selectBrainrot(' + i + ')" style="position:relative">';
+                    html += '<img src="' + imgUrl(p.bv) + '" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><text x=%2226%22 y=%2234%22 text-anchor=%22middle%22 font-size=%2224%22>?</text></svg>\'">';
+                    html += '<div class="card-name">' + prettyName(p.bv) + '</div>';
+                    if (gps > 0) html += '<div class="card-gps">' + fmtGps(gps) + '/s</div>';
+                    html += '</div>';
+                }
+            }
+            grid.innerHTML = html;
+
+            // Update slots
+            renderSlot('slotA', slotA, 'SLOT A');
+            renderSlot('slotB', slotB, 'SLOT B');
+
+            // Fuse button
+            document.getElementById('fuseBtn').disabled = !slotA || !slotB || fuseLocked;
+
+            // Tracker
+            var discovered = ownedFusionQs.length;
+            document.getElementById('tracker').textContent = discovered + ' / 40 Discovered';
+        }
+
+        function renderSlot(elemId, data, placeholder) {
+            var el = document.getElementById(elemId);
+            if (data) {
+                el.className = 'slot filled';
+                el.innerHTML = '<img src="' + imgUrl(data.bv) + '"><div class="slot-label">' + prettyName(data.bv) + '</div><button class="remove-btn" onclick="event.stopPropagation();clearSlot(\'' + elemId.charAt(4) + '\')">&times;</button>';
+            } else {
+                el.className = 'slot';
+                el.innerHTML = '<span class="slot-placeholder">' + placeholder + '</span>';
+            }
+        }
+
+        // === INTERACTION ===
+        function selectBrainrot(idx) {
+            var p = pedestals[idx];
+            // Don't select if already in a slot
+            if (slotA && slotA.floor === p.floor && slotA.slot === p.slot) { clearSlot('A'); return; }
+            if (slotB && slotB.floor === p.floor && slotB.slot === p.slot) { clearSlot('B'); return; }
+
+            if (!slotA) { slotA = p; }
+            else if (!slotB) { slotB = p; }
+            else { slotB = p; } // replace B if both filled
+            render();
+        }
+
+        function clearSlot(which) {
+            if (which === 'A') slotA = null;
+            else slotB = null;
+            render();
+        }
+
+        // === FUSION ALGORITHM ===
+        function randInt(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+
+        function doFuse() {
+            if (!slotA || !slotB || fuseLocked) return;
+            fuseLocked = true;
+            document.getElementById('fuseBtn').disabled = true;
+
+            var bvA = slotA.bv;
+            var bvB = slotB.bv;
+            var rangeA = CR[bvA] || [1, 5];
+            var rangeB = CR[bvB] || [1, 5];
+
+            var pointsA = randInt(rangeA[0], rangeA[1]);
+            var pointsB = randInt(rangeB[0], rangeB[1]);
+            var total = pointsA + pointsB;
+
+            // Find candidates: in range AND not already owned
+            var candidates = [];
+            for (var i = 0; i < FB.length; i++) {
+                var fb = FB[i];
+                if (total >= fb.rs[0] && total <= fb.rs[1] && ownedFusionQs.indexOf(fb.q) === -1) {
+                    candidates.push(fb);
+                }
+            }
+
+            var result;
+            if (candidates.length > 0) {
+                result = candidates[Math.floor(Math.random() * candidates.length)];
+            } else {
+                // Fallback: closest unowned
+                var unowned = [];
+                for (var i = 0; i < FB.length; i++) {
+                    if (ownedFusionQs.indexOf(FB[i].q) === -1) unowned.push(FB[i]);
+                }
+                if (unowned.length === 0) {
+                    fuseLocked = false;
+                    alert('Collection Complete! You own all 40 fusion brainrots!');
+                    render();
+                    return;
+                }
+                unowned.sort(function(a, b) {
+                    var midA = (a.rs[0] + a.rs[1]) / 2;
+                    var midB = (b.rs[0] + b.rs[1]) / 2;
+                    return Math.abs(total - midA) - Math.abs(total - midB);
+                });
+                result = unowned[0];
+            }
+
+            // Send quest triggers to Portals
+            if (sdk) {
+                // Clear slot A
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: 'fuse_clr_F' + slotA.floor + '_' + slotA.slot,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+                // Clear slot B (200ms delay)
+                setTimeout(function() {
+                    sdk.sendMessageToUnity(JSON.stringify({
+                        TaskName: 'fuse_clr_F' + slotB.floor + '_' + slotB.slot,
+                        TaskTargetState: 'SetNotActiveToActive'
+                    }));
+                }, 200);
+                // Grant result (500ms delay)
+                setTimeout(function() {
+                    sdk.sendMessageToUnity(JSON.stringify({
+                        TaskName: 'fuse_gr_' + result.q,
+                        TaskTargetState: 'SetNotActiveToActive'
+                    }));
+                }, 500);
+                // Request fresh sync (1000ms)
+                setTimeout(function() {
+                    sdk.sendMessageToUnity(JSON.stringify({
+                        TaskName: 'hud_sync',
+                        TaskTargetState: 'SetAnyToActive'
+                    }));
+                }, 1000);
+            }
+
+            // Show result
+            setTimeout(function() {
+                showResult(result);
+            }, 600);
+        }
+
+        function showResult(fb) {
+            var tierClass = 'tier-' + fb.tier.replace(/ /g, '');
+            var card = document.getElementById('resultCard');
+            card.className = 'result-card ' + tierClass;
+            document.getElementById('resultImg').src = imgUrl(fb.bv);
+            document.getElementById('resultTier').textContent = fb.tier.toUpperCase();
+            document.getElementById('resultName').textContent = prettyName(fb.bv);
+            document.getElementById('resultGps').textContent = fmtGps(fb.gps) + ' gold/sec';
+            document.getElementById('resultOverlay').classList.add('show');
+        }
+
+        function closeResult() {
+            document.getElementById('resultOverlay').classList.remove('show');
+            slotA = null;
+            slotB = null;
+            fuseLocked = false;
+            // Re-sync after fusion
+            setTimeout(requestSync, 300);
+            setTimeout(function() { render(); }, 500);
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>
