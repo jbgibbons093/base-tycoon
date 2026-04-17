@@ -435,7 +435,7 @@
     </style>
 </head>
 <body>
-    <!-- BOTTOM-LEFT HUD STACK (top to bottom: timers, notifs, cash, carry) -->
+    <!-- BOTTOM-LEFT HUD STACK (top to bottom: notifs, cash, carry) -->
     <div class="hud-stack">
         <!-- Spawn pip strip disabled — actionbar TIMERS overlay replaces it (room-side spawn system). -->
         <!-- <div class="spawn-strip" id="spawn-strip"></div> -->
@@ -480,10 +480,11 @@
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
         console.log('[HUD] v30 loaded, sdk=' + (sdk ? 'OK' : 'NULL'));
-        // DEBUG: visible log panel
+        // DEBUG: log panel (hidden — actionbar TIMERS overlay owns spawn debug now).
+        // Kept in-DOM so dbg() calls don't throw; display:none keeps it invisible.
         var _dbg = document.createElement('div');
         _dbg.id = 'dbg';
-        _dbg.style.cssText = 'position:fixed;top:4px;right:4px;width:340px;max-height:200px;overflow-y:auto;background:rgba(0,0,0,0.85);color:lime;font:10px monospace;padding:6px;z-index:99999;border-radius:4px;pointer-events:auto;';
+        _dbg.style.cssText = 'display:none;position:fixed;top:4px;right:4px;width:340px;max-height:200px;overflow-y:auto;background:rgba(0,0,0,0.85);color:lime;font:10px monospace;padding:6px;z-index:99999;border-radius:4px;pointer-events:auto;';
         _dbg.innerHTML = '<b>HUD v31</b> sdk=' + (sdk ? 'OK' : 'NULL') + '<br>';
         document.body.appendChild(_dbg);
         var _dbgLines = 0;
@@ -1337,7 +1338,8 @@
                         }
                     }
                     // Last_Picked_Brainrot — carry state tracked via explicit messages, not inv: pipe
-                    updateTimerUI();
+                    // Spawn pip strip migrated to actionbar TIMERS overlay — UI update disabled.
+                    // updateTimerUI();
                     parseTutorialVars(params);
                     updateDisplay();
                     checkTutorial();
