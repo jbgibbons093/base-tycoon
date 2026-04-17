@@ -179,6 +179,22 @@
             text-align: center; padding: 20px; color: rgba(255,255,255,0.4);
             font-size: 14px; font-weight: 800;
         }
+
+        .close-x {
+            position: absolute; top: 10px; right: 14px;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: linear-gradient(180deg, rgba(255,100,100,0.85), rgba(200,40,40,0.85));
+            border: 2px solid rgba(255,255,255,0.12);
+            box-shadow: 0 0 12px rgba(255,50,50,0.3);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-family: 'Luckiest Guy', Impact, sans-serif; font-size: 18px;
+            color: white; text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 10;
+        }
+        .close-x:hover { transform: scale(1.15); }
+        .close-x:active { transform: scale(0.85); transition-duration: 0.05s; }
     </style>
 </head>
 <body>
@@ -186,6 +202,7 @@
         <div class="header">
             <h1>FUSION LAB</h1>
             <div class="tracker" id="tracker">0 / 40 Discovered</div>
+            <div class="close-x" onclick="closeShop()">X</div>
         </div>
         <div class="fusion-area">
             <div class="slot" id="slotA" onclick="clearSlot('A')">
@@ -231,9 +248,8 @@
         var FUSION_QS = {};
         for (var i = 0; i < FB.length; i++) FUSION_QS[FB[i].q] = true;
 
-        // GPS lookup
-        var GPS_BY_BV = {};
-        for (var i = 0; i < FB.length; i++) GPS_BY_BV[FB[i].bv] = FB[i].gps;
+        // GPS lookup for ALL brainrots (regular + fusion) — generated from _brainrot_meta.json
+        var GPS_BY_BV={"bv_Banana":1.3,"bv_BurbaloniLuliloli":1.4,"bv_Noobini_Pizzanini":1.9,"bv_Tim_Cheese":1.9,"bv_Image_removebg_preview_29":2.4,"bv_Fluriflura":1.7,"bv_Pandaccini_Bananini":2.0,"bv_Puffaball":2.5,"bv_Liliri_Lalira":2.7,"bv_Pipi_Kiwi":1.3,"bv_Pakrah":1.4,"bv_Lionel_Cactuseli":1.8,"bv_Cocofanto":1.1,"bv_ChimpanziniBananini":1.7,"bv_Africa_by_toto_to_sahur":2.8,"bv_Ballerinolololo":2.6,"bv_POTATO":1.0,"bv_Cocosini_Mama":1.2,"bv_PIGEONS_ARE_SPIES_MADE_BY":7.4,"bv_Teenage_turtle":9.5,"bv_Dolphini_Jetskini":7.4,"bv_Slitta_Sprinta":6.8,"bv_Trippi_Troppi":7.2,"bv_Clickerinocrabo":7.4,"bv_Astronaut":6.4,"bv_Cant_come_up_with_a_funny":8.9,"bv_Lol_Fridge":8.8,"bv_Boneca_Ambalabu":9.4,"bv_Cupcake_Koala":5.8,"bv_Lavadorito_Spinito":7.9,"bv_Cacto_Hipopotamo1":9.0,"bv_TaTas":5.4,"bv_Pintealotto":5.3,"bv_Moby":5.4,"bv_Watermelon_Doggy":9.3,"bv_Garamadundung":9.2,"bv_Trenostruzzo_Turbo_3000":8.6,"bv_Cappuccino_Assassino":10.8,"bv_Burguro_And_Fryuro":16.8,"bv_AvocadiniGuffo":17.5,"bv_Homicidio_doloso":15.6,"bv_Brri_Brri_Bicus_Dicus_Bom":16.9,"bv_Skibidi_toilet":15.2,"bv_PeroLemonfulldetial":19.9,"bv_Avocadini_Antilopini":16.0,"bv_Dolphin_But_Banana":15.7,"bv_wombo":15.2,"bv_Berry_berry_bicus_dickus":19.3,"bv_Cerberus":14.9,"bv_NewBlueberrinni":25.0,"bv_Quackula":26.7,"bv_Sig_ma_Boy":33.3,"bv_GOAT":29.5,"bv_Strawberrelli_Flamingelli":24.3,"bv_Pi_Pi_Watermelon":25.3,"bv_GlorboFruttodrillo":25.5,"bv_Time_moving_slow":33.3,"bv_Quivioli_Ameleonni":22.5,"bv_Lebron_james":31.0,"bv_SigmaGirl":38.2,"bv_Tartaruga_Cisternaaaa":29.3,"bv_Tracoducotulu":44.5,"bv_Toiletto":59.7,"bv_Mythic_lucky_block":79.5,"bv_Ballerina_cappucinaaaa21pct":55.9,"bv_King_von":53.7,"bv_Jacko_Spaventosa":76.0,"bv_Travis_scott":78.4,"bv_Cavallo_Virtuoso":41.9,"bv_Lil_wayne":74.3,"bv_Bombardiro_Crocodilo":72.8,"bv_Te_Te_Te_Sahur":54.3,"bv_Carti":48.7,"bv_Tralalita":139.1,"bv_Everybody_hates_Chihuanin":145.6,"bv_TractorDino":94.2,"bv_BrainrotGodLuckyBlock":87.8,"bv_Tukanno_Bananno":97.2,"bv_Gorillo_Watermelondrillo":142.2,"bv_Money_Money_Man":148.8,"bv_Matteofr":98.1,"bv_Trippi_Troppi_Troppa_Trip":148.6,"bv_Dragon_Gingerini":204.5,"bv_Graipuss":169.4,"bv_TangTangVfx":198.0,"bv_Nuclearo_Dinosauro":156.0,"bv_LasTralaleritas":219.4,"bv_Job":266.4,"bv_Los_Tralaleritos":228.2,"bv_Chicliterita_bicicliterit":246.1,"bv_SecretLuckyBlock":211.1,"bv_KetupatKepat":165.2,"bv_La_vacca_no_effects":227.8,"bv_Chicleteira":428.9,"bv_TralaleroTralala":405.3,"bv_Strawberryelephant":443.1,"bv_Magi_Ribbitini":413.9,"bv_Meowl":456.6,"bv_Money_money_puggy":448.5,"bv_Karkerheart_Luvkur":18,"bv_67":20,"bv_Fizzy_Soda":22,"bv_DoiDoi":16,"bv_Cuadramat":24,"bv_Bacuru_and_Egguru":45,"bv_Holy_Arepa":40,"bv_Gattatino_Nyanino":50,"bv_carrotini_brainini":42,"bv_MalameAmarele":48,"bv_Bandito_Axolito":130,"bv_Pirate_Frog":120,"bv_Gangster_Crab":140,"bv_Tipi_Topi_Taco":125,"bv_Snailenzo":135,"bv_DJ_Panda":280,"bv_Disco_Gorilla":300,"bv_Celestial_Pegasus":320,"bv_Divine_Starfish":260,"bv_boba_panda":340,"bv_Hydra_Dragon_Cannelloni":500,"bv_Rhino_Helicopterino":550,"bv_Navidaddragon":480,"bv_cappuccino_clownino":520,"bv_Tartaragnoo":560,"bv_FrioNinja":800,"bv_Ganganzelli_Trulala":850,"bv_La_Cucaracha":900,"bv_Mummio_Rappitto":750,"bv_Nooo_my_polizia":950,"bv_Orcalero_Orcala":2000,"bv_Unclito_Samito":2500,"bv_StatutinoLibertino":1800,"bv_Hopilikalika_Hopilika":2200,"bv_tentacolo_tecnico":3000,"bv_Christmas_Chachechi":6000,"bv_Chocco_Bunny":7000,"bv_clanker":8000,"bv_dumborino_miracello":9000,"bv_vulturino_skeletino":10000};
 
         // === STATE ===
         var pedestals = []; // array of 40 {floor, slot, questNum, bv}
@@ -270,6 +286,13 @@
             if (!sdk) return;
             sdk.sendMessageToUnity(JSON.stringify({ TaskName: 'hud_sync', TaskTargetState: 'SetAnyToActive' }));
         }
+
+        function closeShop() {
+            if (sdk) { try { sdk.focusGameKeyboard(); } catch(e){} try { sdk.closeIframe(); } catch(e){} }
+        }
+        document.addEventListener('keydown', function(e){
+            if (e.key === 'Escape') { e.preventDefault(); closeShop(); }
+        });
         setTimeout(requestSync, 300);
         setTimeout(requestSync, 1000);
         setTimeout(requestSync, 2500);
