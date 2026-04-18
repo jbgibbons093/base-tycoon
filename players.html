@@ -98,7 +98,13 @@
         for (var i = 1; i <= 10; i++) players.push({baseId: i, gold: 0, carry: 0});
         var myBaseId = 0;
 
-        function prettyName(bvKey) { return bvKey.substring(3).replace(/_/g, ' '); }
+        var NAMEOV = {
+            'bv_Image_removebg_preview_29': 'Lerulerulerule',
+            'bv_Africa_by_toto_to_sahur': 'To to to Sahur',
+            'bv_PIGEONS_ARE_SPIES_MADE_BY': 'Piccione Macchina',
+            'bv_Cant_come_up_with_a_funny': 'Bombombini Gusini'
+        };
+        function prettyName(bvKey) { return NAMEOV[bvKey] || bvKey.substring(3).replace(/_/g, ' '); }
         function fmt(n) {
             n = Math.floor(n);
             if (n >= 1e9) return (n/1e9).toFixed(1)+'B';

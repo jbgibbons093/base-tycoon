@@ -723,6 +723,14 @@
             Fusion_Lab: ["bv_Karkerheart_Luvkur","bv_67","bv_Fizzy_Soda","bv_DoiDoi","bv_Cuadramat","bv_Bacuru_and_Egguru","bv_Holy_Arepa","bv_Gattatino_Nyanino","bv_carrotini_brainini","bv_MalameAmarele","bv_Bandito_Axolito","bv_Pirate_Frog","bv_Gangster_Crab","bv_Tipi_Topi_Taco","bv_Snailenzo","bv_DJ_Panda","bv_Disco_Gorilla","bv_Celestial_Pegasus","bv_Divine_Starfish","bv_boba_panda","bv_Hydra_Dragon_Cannelloni","bv_Rhino_Helicopterino","bv_Navidaddragon","bv_cappuccino_clownino","bv_Tartaragnoo","bv_FrioNinja","bv_Ganganzelli_Trulala","bv_La_Cucaracha","bv_Mummio_Rappitto","bv_Nooo_my_polizia","bv_Orcalero_Orcala","bv_Unclito_Samito","bv_StatutinoLibertino","bv_Hopilikalika_Hopilika","bv_tentacolo_tecnico","bv_Christmas_Chachechi","bv_Chocco_Bunny","bv_clanker","bv_dumborino_miracello","bv_vulturino_skeletino"]
         };
 
+        /* ---- NAME OVERRIDES (for bv_ keys whose original name was placeholder/typo) ---- */
+        var NAMEOV = {
+            'bv_Image_removebg_preview_29': 'Lerulerulerule',
+            'bv_Africa_by_toto_to_sahur': 'To to to Sahur',
+            'bv_PIGEONS_ARE_SPIES_MADE_BY': 'Piccione Macchina',
+            'bv_Cant_come_up_with_a_funny': 'Bombombini Gusini'
+        };
+
         /* ---- GOLD PER SECOND (from brainrot_economy.xlsx) ---- */
         var GOLD_PER_SECOND = {
             'bv_Banana': 1.3, 'bv_BurbaloniLuliloli': 1.4, 'bv_Noobini_Pizzanini': 1.9,
@@ -1138,7 +1146,7 @@
                             var bvKey = QUEST_NUM_TO_BV[carryNum];
                             state.carrying = 1;
                             state.carryBvKey = bvKey;
-                            state.carryName = bvKey.substring(3).replace(/_/g, ' ');
+                            state.carryName = NAMEOV[bvKey] || bvKey.substring(3).replace(/_/g, ' ');
                             state.carryGold = GOLD_PER_SECOND[bvKey] || 0;
                         } else if (carryNum === 0) {
                             // Save last name for deposit notification (sync may arrive before deposit: msg)

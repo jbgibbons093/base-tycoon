@@ -437,7 +437,13 @@
         }
 
         // === RENDERING ===
-        function prettyName(bv) { return bv.substring(3).replace(/_/g, ' '); }
+        var NAMEOV = {
+            'bv_Image_removebg_preview_29': 'Lerulerulerule',
+            'bv_Africa_by_toto_to_sahur': 'To to to Sahur',
+            'bv_PIGEONS_ARE_SPIES_MADE_BY': 'Piccione Macchina',
+            'bv_Cant_come_up_with_a_funny': 'Bombombini Gusini'
+        };
+        function prettyName(bv) { return NAMEOV[bv] || bv.substring(3).replace(/_/g, ' '); }
 
         function imgUrl(bv) {
             return IMG_BASE + bv + '.webp?v=' + IMG_V;
