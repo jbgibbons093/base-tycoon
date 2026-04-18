@@ -356,12 +356,15 @@
 
         function switchTab(tab) {
             currentTab = tab;
+            var body = document.getElementById('body-content');
+            if (body) body.scrollTop = 0;
             renderTabs();
             render();
         }
 
         function render() {
             var body = document.getElementById('body-content');
+            var prevScroll = body ? body.scrollTop : 0;
             var list = getBrainrotsForRarity(currentTab);
             var html = '<div class="grid">';
             var ownedCount = 0;
@@ -382,6 +385,9 @@
             }
             html += '</div>';
             body.innerHTML = html;
+            // Preserve scroll position across re-renders triggered by live sync messages.
+            // Clamp in case content got shorter than the previous scrollTop.
+            if (prevScroll > 0) body.scrollTop = Math.min(prevScroll, body.scrollHeight - body.clientHeight);
 
             // Summary — count across all rarity tabs (covers regular zones + fusion tiers)
             var totalOwned = 0, totalTypes = 0, totalBrainrots = 0;
