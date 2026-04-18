@@ -811,6 +811,14 @@
             setTimeout(function() { if (t.parentNode) t.remove(); }, 2500);
         }
 
+        /* ---- NAME OVERRIDES (display-name fix for 4 mis-named bvs) ---- */
+        var NAMEOV = {
+            'bv_Image_removebg_preview_29': 'Lerulerulerule',
+            'bv_Africa_by_toto_to_sahur': 'To to to Sahur',
+            'bv_PIGEONS_ARE_SPIES_MADE_BY': 'Piccione Macchina',
+            'bv_Cant_come_up_with_a_funny': 'Bombombini Gusini'
+        };
+
         /* ---- SPAWN SYSTEM ---- */
         const ZONES = {
             Beach: ["bv_Banana","bv_BurbaloniLuliloli","bv_Noobini_Pizzanini","bv_Tim_Cheese","bv_Image_removebg_preview_29","bv_Fluriflura","bv_Pandaccini_Bananini","bv_Puffaball","bv_Liliri_Lalira","bv_Pipi_Kiwi"],
@@ -1392,8 +1400,8 @@
                     var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
                     if (pMatch) {
                         state.carrying = 1;
-                        state.carryName = pMatch[1].replace(/_/g, ' ');
                         state.carryBvKey = 'bv_' + pMatch[1];
+                        state.carryName = NAMEOV[state.carryBvKey] || pMatch[1].replace(/_/g, ' ');
                         state.carryGold = parseFloat(pMatch[2]) || 0;
                         notify('Picked up ' + state.carryName + '! (' + state.carryGold + ' cash/s)', 'pickup');
                         notify('\u{1F4E6} Run back to your base to deposit or press F to drop', 'info');

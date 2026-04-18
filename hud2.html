@@ -1208,8 +1208,8 @@
                         var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
                         if (pMatch) {
                             state.carrying = 1;
-                            state.carryName = pMatch[1].replace(/_/g, ' ');
                             state.carryBvKey = 'bv_' + pMatch[1];
+                            state.carryName = NAMEOV[state.carryBvKey] || pMatch[1].replace(/_/g, ' ');
                             state.carryGold = parseFloat(pMatch[2]) || 0;
                             notify('Picked up ' + state.carryName + '! (' + state.carryGold + ' cash/s)', 'pickup');
                             // Decrement zone spawn count
