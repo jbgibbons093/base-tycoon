@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Sell Lab</title>
+    <script src="https://portals-labs.github.io/portals-sdk/portals-sdk.js?v=10005456"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Luckiest+Guy&family=Nunito:wght@700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --gold: #ffd700;
+            --gold-rgb: 255, 215, 0;
+            --purple: #b44dff;
+            --purple-rgb: 180, 77, 255;
+            --dark: rgba(10, 12, 28, 0.96);
+            --panel: rgba(20, 25, 50, 0.95);
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Nunito', sans-serif; background: transparent; overflow: hidden; }
+
+        .frame {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 600px; max-height: 85vh;
+            background: linear-gradient(180deg, rgba(30, 22, 8, 0.97), rgba(15, 10, 5, 0.98));
+            border: 2px solid rgba(255, 215, 0, 0.4);
+            border-radius: 20px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.7), 0 0 80px rgba(255, 215, 0, 0.1), inset 0 1px 0 rgba(255,255,255,0.05);
+            display: flex; flex-direction: column; overflow: hidden;
+        }
+
+        .header {
+            padding: 14px 20px; text-align: center; flex-shrink: 0;
+            background: linear-gradient(180deg, rgba(255, 215, 0, 0.15), transparent);
+            border-bottom: 2px solid rgba(255, 215, 0, 0.2);
+            position: relative;
+        }
+        .header h1 {
+            font-family: 'Luckiest Guy', Impact, sans-serif;
+            font-size: 30px; color: var(--gold); margin: 0;
+            letter-spacing: 3px;
+            text-shadow: 0 0 20px rgba(var(--gold-rgb), 0.6), 2px 2px 0 rgba(0,0,0,0.8);
+        }
+        .header .tracker {
+            font-size: 13px; color: rgba(255,255,255,0.55); margin-top: 2px;
+        }
+        .header .tracker .hint { color: var(--gold); font-weight: 800; }
+
+        .sell-area {
+            display: flex; align-items: center; justify-content: center; gap: 16px;
+            padding: 18px 20px; flex-shrink: 0;
+            background: rgba(255, 215, 0, 0.03);
+        }
+        .slot {
+            width: 120px; height: 120px;
+            border: 2px dashed rgba(var(--gold-rgb), 0.4);
+            border-radius: 14px;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            cursor: pointer; transition: all 0.2s;
+            background: rgba(var(--gold-rgb), 0.05);
+            position: relative;
+        }
+        .slot:hover { border-color: rgba(var(--gold-rgb), 0.7); background: rgba(var(--gold-rgb), 0.1); }
+        .slot.filled { border-style: solid; border-color: var(--gold); }
+        .slot img { width: 72px; height: 72px; object-fit: contain; }
+        .slot .slot-label {
+            font-size: 10px; color: rgba(255,255,255,0.7); margin-top: 4px;
+            text-align: center; max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .slot .slot-placeholder {
+            font-size: 11px; color: rgba(var(--gold-rgb), 0.5); font-weight: 800;
+        }
+        .slot .remove-btn {
+            position: absolute; top: -6px; right: -6px; width: 20px; height: 20px;
+            background: #ff4444; border: none; border-radius: 50%; color: white;
+            font-size: 12px; cursor: pointer; display: none; line-height: 20px; text-align: center;
+        }
+        .slot.filled .remove-btn { display: block; }
+        .slot .slot-gps { font-size: 10px; color: var(--gold); font-weight: 800; margin-top: 2px; }
+        .slot .slot-rar { font-size: 8px; font-weight: 900; letter-spacing: 0.3px; margin-top: 1px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 110px; }
+
+        .sell-info {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            min-width: 180px; gap: 6px;
+        }
+        .price-box {
+            text-align: center;
+            padding: 10px 16px;
+            border: 2px solid rgba(var(--gold-rgb), 0.35);
+            border-radius: 12px;
+            background: rgba(var(--gold-rgb), 0.08);
+            min-width: 160px;
+        }
+        .price-label {
+            font-size: 10px; color: rgba(255,255,255,0.5);
+            font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+        }
+        .price-value {
+            font-family: 'Luckiest Guy', Impact, sans-serif;
+            font-size: 24px; color: var(--gold);
+            text-shadow: 0 0 10px rgba(var(--gold-rgb), 0.4), 2px 2px 0 rgba(0,0,0,0.6);
+            letter-spacing: 1px;
+            line-height: 1.1;
+        }
+        .price-value.empty { color: rgba(255,255,255,0.3); font-size: 16px; }
+        .price-sub {
+            font-size: 10px; color: rgba(255,255,255,0.5); margin-top: 2px;
+        }
+
+        .sell-btn {
+            padding: 10px 28px; border: 2px solid var(--gold); border-radius: 12px;
+            background: linear-gradient(180deg, rgba(var(--gold-rgb), 0.25), rgba(var(--gold-rgb), 0.08));
+            color: var(--gold); font-family: 'Luckiest Guy'; font-size: 20px;
+            cursor: pointer; letter-spacing: 2px; transition: all 0.3s;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+        }
+        .sell-btn:hover:not(:disabled) {
+            background: linear-gradient(180deg, rgba(var(--gold-rgb), 0.45), rgba(var(--gold-rgb), 0.18));
+            box-shadow: 0 0 30px rgba(var(--gold-rgb), 0.35);
+        }
+        .sell-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+
+        .inventory-label {
+            padding: 8px 20px 4px; font-size: 12px; color: rgba(255,255,255,0.45);
+            font-weight: 800; letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0;
+        }
+
+        .inventory {
+            flex: 1; overflow-y: auto; padding: 6px 14px 14px;
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
+            align-content: start;
+        }
+        .inventory::-webkit-scrollbar { width: 6px; }
+        .inventory::-webkit-scrollbar-thumb { background: rgba(var(--gold-rgb), 0.3); border-radius: 3px; }
+
+        .inv-card {
+            background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 10px; padding: 6px; text-align: center; cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+        .inv-card:hover { background: rgba(var(--gold-rgb), 0.1); border-color: rgba(var(--gold-rgb), 0.4); }
+        .inv-card.selected { border-color: var(--gold); background: rgba(var(--gold-rgb), 0.15); box-shadow: 0 0 12px rgba(var(--gold-rgb), 0.3); }
+        .inv-card.fusion-owned { border-color: rgba(var(--purple-rgb), 0.5); }
+        .inv-card img { width: 52px; height: 52px; object-fit: contain; }
+        .inv-card .card-name {
+            font-size: 9px; color: rgba(255,255,255,0.65); margin-top: 2px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .inv-card .card-price {
+            font-size: 10px; color: var(--gold); font-weight: 800; margin-top: 1px;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+        }
+        .inv-card .card-rar {
+            font-size: 8px; font-weight: 900; letter-spacing: 0.3px; margin-top: 1px;
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
+        /* Confirm modal */
+        .confirm-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.75); display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 150;
+        }
+        .confirm-overlay.show { display: flex; }
+        .confirm-card {
+            text-align: center; padding: 26px 36px; border-radius: 18px;
+            border: 2px solid var(--gold);
+            background: linear-gradient(180deg, rgba(30, 22, 8, 0.98), rgba(15, 10, 5, 0.99));
+            box-shadow: 0 8px 40px rgba(0,0,0,0.8), 0 0 60px rgba(var(--gold-rgb), 0.15);
+            max-width: 440px;
+            animation: confirmPop 0.25s ease-out;
+        }
+        @keyframes confirmPop { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .confirm-card img {
+            width: 90px; height: 90px; object-fit: contain;
+            margin-bottom: 8px;
+        }
+        .confirm-title {
+            font-family: 'Luckiest Guy', Impact, sans-serif;
+            font-size: 22px; color: white; letter-spacing: 2px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.6);
+        }
+        .confirm-brainrot {
+            font-family: 'Luckiest Guy', Impact, sans-serif;
+            font-size: 20px; color: var(--gold); margin-top: 4px;
+            text-shadow: 0 0 10px rgba(var(--gold-rgb), 0.5);
+        }
+        .confirm-price {
+            font-family: 'Luckiest Guy', Impact, sans-serif;
+            font-size: 28px; color: var(--gold); margin-top: 8px;
+            text-shadow: 0 0 15px rgba(var(--gold-rgb), 0.6), 2px 2px 0 rgba(0,0,0,0.6);
+        }
+        .confirm-sub {
+            font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 4px;
+        }
+        .confirm-btns {
+            display: flex; gap: 14px; justify-content: center; margin-top: 18px;
+        }
+        .confirm-btns button {
+            padding: 10px 26px; border-radius: 10px;
+            font-family: 'Luckiest Guy', Impact, sans-serif; font-size: 16px;
+            cursor: pointer; letter-spacing: 1.5px; border: 2px solid;
+            transition: all 0.15s;
+        }
+        .btn-confirm {
+            border-color: var(--gold); color: var(--gold);
+            background: linear-gradient(180deg, rgba(var(--gold-rgb), 0.25), rgba(var(--gold-rgb), 0.08));
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+        }
+        .btn-confirm:hover {
+            background: linear-gradient(180deg, rgba(var(--gold-rgb), 0.45), rgba(var(--gold-rgb), 0.18));
+            box-shadow: 0 0 22px rgba(var(--gold-rgb), 0.35);
+        }
+        .btn-cancel {
+            border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.7);
+            background: rgba(255,255,255,0.05);
+        }
+        .btn-cancel:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: rgba(255,255,255,0.5);
+        }
+
+        /* SOLD overlay */
+        .result-overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.85); display: none;
+            flex-direction: column; align-items: center; justify-content: center;
+            z-index: 200;
+        }
+        .result-overlay.show { display: flex; }
+        .result-card {
+            text-align: center; padding: 30px 40px; border-radius: 20px;
+            border: 3px solid var(--gold);
+            background: linear-gradient(180deg, rgba(30, 22, 8, 0.98), rgba(15, 10, 5, 0.99));
+            animation: resultPop 0.5s ease-out;
+            box-shadow: 0 0 60px rgba(var(--gold-rgb), 0.4);
+        }
+        @keyframes resultPop { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .result-card img { width: 110px; height: 110px; object-fit: contain; }
+        .result-card .result-banner {
+            font-family: 'Luckiest Guy'; font-size: 38px; letter-spacing: 4px;
+            color: var(--gold);
+            text-shadow: 0 0 20px rgba(var(--gold-rgb), 0.7), 3px 3px 0 rgba(0,0,0,0.7);
+            margin-top: 8px;
+        }
+        .result-card .result-name {
+            font-family: 'Luckiest Guy'; font-size: 18px; color: white; margin-top: 4px;
+            text-shadow: 2px 2px 0 rgba(0,0,0,0.5);
+        }
+        .result-card .result-payout {
+            font-family: 'Luckiest Guy'; font-size: 30px; color: var(--gold); margin-top: 10px;
+            text-shadow: 0 0 15px rgba(var(--gold-rgb), 0.6), 2px 2px 0 rgba(0,0,0,0.6);
+        }
+        .result-card .result-note {
+            font-size: 12px; color: rgba(255,255,255,0.5); margin-top: 8px;
+        }
+        .result-ok {
+            margin-top: 16px; padding: 10px 32px; border-radius: 10px;
+            border: 2px solid var(--gold); background: rgba(var(--gold-rgb), 0.18);
+            color: var(--gold); font-family: 'Luckiest Guy'; font-size: 16px;
+            cursor: pointer; letter-spacing: 1px;
+            text-shadow: 1px 1px 0 rgba(0,0,0,0.5);
+        }
+        .result-ok:hover { background: rgba(var(--gold-rgb), 0.3); }
+
+        .tier-Common { border-color: #9db7c9; }
+        .tier-Uncommon { border-color: #6ecf4a; }
+        .tier-Rare { border-color: #4a7fff; }
+        .tier-Epic { border-color: #a155f2; }
+        .tier-Legendary { border-color: #ffb347; }
+        .tier-Mythic { border-color: #ff4a9f; }
+        .tier-BrainrotGod { border-color: #ff2222; }
+        .tier-Secret { border-color: #00ff88; }
+        .tier-OG { border-color: #ffd700; }
+        .tier-Glitch { border-color: #ff00ff; }
+
+        .complete-msg {
+            text-align: center; padding: 20px; color: rgba(255,255,255,0.4);
+            font-size: 14px; font-weight: 800;
+        }
+
+        .close-x {
+            position: absolute; top: 10px; right: 14px;
+            width: 32px; height: 32px; border-radius: 50%;
+            background: linear-gradient(180deg, rgba(255,100,100,0.85), rgba(200,40,40,0.85));
+            border: 2px solid rgba(255,255,255,0.12);
+            box-shadow: 0 0 12px rgba(255,50,50,0.3);
+            display: flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            font-family: 'Luckiest Guy', Impact, sans-serif; font-size: 18px;
+            color: white; text-shadow: 1px 1px 0 rgba(0,0,0,0.4);
+            transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1);
+            z-index: 10;
+        }
+        .close-x:hover { transform: scale(1.15); }
+        .close-x:active { transform: scale(0.85); transition-duration: 0.05s; }
+    </style>
+</head>
+<body>
+    <div class="frame">
+        <div class="header">
+            <h1>SELL LAB</h1>
+            <div class="tracker" id="tracker">Select a brainrot from your pedestals <span class="hint">(2 min GPS payout)</span></div>
+            <div class="close-x" onclick="closeShop()">X</div>
+        </div>
+        <div class="sell-area">
+            <div class="slot" id="slotA" onclick="clearSlot()">
+                <span class="slot-placeholder">PICK ONE</span>
+                <button class="remove-btn">&times;</button>
+            </div>
+            <div class="sell-info">
+                <div class="price-box">
+                    <div class="price-label">SELL PRICE</div>
+                    <div class="price-value empty" id="priceValue">&mdash;</div>
+                    <div class="price-sub" id="priceSub">2 minutes of passive gold</div>
+                </div>
+                <button class="sell-btn" id="sellBtn" disabled onclick="openConfirm()">SELL</button>
+            </div>
+        </div>
+        <div class="inventory-label">YOUR PEDESTAL BRAINROTS</div>
+        <div class="inventory" id="invGrid"></div>
+    </div>
+
+    <div class="confirm-overlay" id="confirmOverlay">
+        <div class="confirm-card" id="confirmCard">
+            <img id="confirmImg" src="">
+            <div class="confirm-title">SELL</div>
+            <div class="confirm-brainrot" id="confirmBrainrot"></div>
+            <div class="confirm-price" id="confirmPrice"></div>
+            <div class="confirm-sub">This brainrot will return to its spawn zone.</div>
+            <div class="confirm-btns">
+                <button class="btn-cancel" onclick="cancelConfirm()">CANCEL</button>
+                <button class="btn-confirm" onclick="doSell()">CONFIRM</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="result-overlay" id="resultOverlay">
+        <div class="result-card" id="resultCard">
+            <img id="resultImg" src="">
+            <div class="result-banner">SOLD!</div>
+            <div class="result-name" id="resultName"></div>
+            <div class="result-payout" id="resultPayout"></div>
+            <div class="result-note">Gold added to your balance.</div>
+        </div>
+        <button class="result-ok" onclick="closeResult()">NICE</button>
+    </div>
+
+    <script>
+        var sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
+        var IMG_BASE = 'https://jbgibbons093.github.io/base-tycoon/brainrots/';
+        var IMG_V = Date.now();
+        var myUsername = '';
+        var SELL_MULT = 120; // 2 minutes of GPS
+
+        // === QBV: quest num -> bv name (all 139: regular + fusion) ===
+        var QBV={112:"bv_Banana",114:"bv_BurbaloniLuliloli",116:"bv_Noobini_Pizzanini",118:"bv_Tim_Cheese",120:"bv_Image_removebg_preview_29",122:"bv_Fluriflura",124:"bv_Pandaccini_Bananini",126:"bv_Puffaball",128:"bv_Liliri_Lalira",130:"bv_Pipi_Kiwi",132:"bv_Pakrah",134:"bv_Lionel_Cactuseli",136:"bv_Cocofanto",138:"bv_ChimpanziniBananini",140:"bv_Africa_by_toto_to_sahur",142:"bv_Ballerinolololo",144:"bv_POTATO",146:"bv_Cocosini_Mama",148:"bv_PIGEONS_ARE_SPIES_MADE_BY",150:"bv_Teenage_turtle",152:"bv_Dolphini_Jetskini",154:"bv_Slitta_Sprinta",156:"bv_Trippi_Troppi",158:"bv_Clickerinocrabo",160:"bv_Astronaut",162:"bv_Cant_come_up_with_a_funny",164:"bv_Lol_Fridge",166:"bv_Boneca_Ambalabu",168:"bv_Cupcake_Koala",170:"bv_Lavadorito_Spinito",172:"bv_Cacto_Hipopotamo1",174:"bv_TaTas",176:"bv_Pintealotto",178:"bv_Moby",180:"bv_Watermelon_Doggy",182:"bv_Garamadundung",184:"bv_Trenostruzzo_Turbo_3000",186:"bv_Cappuccino_Assassino",188:"bv_Burguro_And_Fryuro",190:"bv_AvocadiniGuffo",192:"bv_Homicidio_doloso",194:"bv_Brri_Brri_Bicus_Dicus_Bom",196:"bv_Skibidi_toilet",198:"bv_PeroLemonfulldetial",200:"bv_Avocadini_Antilopini",202:"bv_Dolphin_But_Banana",204:"bv_wombo",206:"bv_Berry_berry_bicus_dickus",208:"bv_Cerberus",210:"bv_NewBlueberrinni",212:"bv_Quackula",214:"bv_Sig_ma_Boy",216:"bv_GOAT",218:"bv_Strawberrelli_Flamingelli",220:"bv_Pi_Pi_Watermelon",222:"bv_GlorboFruttodrillo",224:"bv_Time_moving_slow",226:"bv_Quivioli_Ameleonni",228:"bv_Lebron_james",230:"bv_SigmaGirl",232:"bv_Tartaruga_Cisternaaaa",234:"bv_Tracoducotulu",236:"bv_Toiletto",238:"bv_Mythic_lucky_block",240:"bv_Ballerina_cappucinaaaa21pct",242:"bv_King_von",244:"bv_Jacko_Spaventosa",246:"bv_Travis_scott",248:"bv_Cavallo_Virtuoso",250:"bv_Lil_wayne",252:"bv_Bombardiro_Crocodilo",254:"bv_Te_Te_Te_Sahur",256:"bv_Carti",258:"bv_Tralalita",260:"bv_Everybody_hates_Chihuanin",262:"bv_TractorDino",264:"bv_BrainrotGodLuckyBlock",266:"bv_Tukanno_Bananno",268:"bv_Gorillo_Watermelondrillo",270:"bv_Money_Money_Man",272:"bv_Matteofr",274:"bv_Trippi_Troppi_Troppa_Trip",276:"bv_Dragon_Gingerini",278:"bv_Graipuss",280:"bv_TangTangVfx",282:"bv_Nuclearo_Dinosauro",284:"bv_LasTralaleritas",286:"bv_Job",288:"bv_Los_Tralaleritos",290:"bv_Chicliterita_bicicliterit",292:"bv_SecretLuckyBlock",294:"bv_KetupatKepat",296:"bv_La_vacca_no_effects",298:"bv_Chicleteira",300:"bv_TralaleroTralala",302:"bv_Strawberryelephant",304:"bv_Magi_Ribbitini",306:"bv_Meowl",308:"bv_Money_money_puggy",310:"bv_Karkerheart_Luvkur",312:"bv_67",314:"bv_Fizzy_Soda",316:"bv_DoiDoi",318:"bv_Cuadramat",320:"bv_Bacuru_and_Egguru",322:"bv_Holy_Arepa",324:"bv_Gattatino_Nyanino",326:"bv_carrotini_brainini",328:"bv_MalameAmarele",330:"bv_Bandito_Axolito",332:"bv_Pirate_Frog",334:"bv_Gangster_Crab",336:"bv_Tipi_Topi_Taco",338:"bv_Snailenzo",340:"bv_DJ_Panda",342:"bv_Disco_Gorilla",344:"bv_Celestial_Pegasus",346:"bv_Divine_Starfish",348:"bv_boba_panda",350:"bv_Hydra_Dragon_Cannelloni",352:"bv_Rhino_Helicopterino",354:"bv_Navidaddragon",356:"bv_cappuccino_clownino",358:"bv_Tartaragnoo",360:"bv_FrioNinja",362:"bv_Ganganzelli_Trulala",364:"bv_La_Cucaracha",366:"bv_Mummio_Rappitto",368:"bv_Nooo_my_polizia",370:"bv_Orcalero_Orcala",372:"bv_Unclito_Samito",374:"bv_StatutinoLibertino",376:"bv_Hopilikalika_Hopilika",378:"bv_tentacolo_tecnico",380:"bv_Christmas_Chachechi",382:"bv_Chocco_Bunny",384:"bv_clanker",386:"bv_dumborino_miracello",388:"bv_vulturino_skeletino"};
+
+        // Fusion quest set (purple border hint on inventory cards)
+        var FUSION_QS={310:1,312:1,314:1,316:1,318:1,320:1,322:1,324:1,326:1,328:1,330:1,332:1,334:1,336:1,338:1,340:1,342:1,344:1,346:1,348:1,350:1,352:1,354:1,356:1,358:1,360:1,362:1,364:1,366:1,368:1,370:1,372:1,374:1,376:1,378:1,380:1,382:1,384:1,386:1,388:1};
+
+        // === RARITY DATA ===
+        var RAR_LIST=[{"id":"common","label":"COMMON","color":"#9db7c9"},{"id":"uncommon","label":"UNCOMMON","color":"#6ecf4a"},{"id":"rare","label":"RARE","color":"#4a7fff"},{"id":"epic","label":"EPIC","color":"#a155f2"},{"id":"legendary","label":"LEGENDARY","color":"#ffb347"},{"id":"mythic","label":"MYTHIC","color":"#ff4a9f"},{"id":"fusion_rare","label":"RARE","color":"#00d4ff"},{"id":"fusion_epic","label":"EPIC","color":"#7b4dff"},{"id":"fusion_legendary","label":"LEGENDARY","color":"#ff8c00"},{"id":"fusion_mythic","label":"MYTHIC","color":"#ff1493"},{"id":"fusion_brainrot_god","label":"BRAINROT GOD","color":"#ff2222"},{"id":"fusion_secret","label":"SECRET","color":"#00ff88"},{"id":"fusion_og","label":"OG","color":"#ffd700"},{"id":"fusion_glitch","label":"GLITCH","color":"#ff00ff"}];
+        var RBV={"bv_Banana":0,"bv_BurbaloniLuliloli":0,"bv_Noobini_Pizzanini":0,"bv_Tim_Cheese":0,"bv_Image_removebg_preview_29":0,"bv_Fluriflura":0,"bv_Pandaccini_Bananini":0,"bv_Puffaball":0,"bv_Liliri_Lalira":0,"bv_Pipi_Kiwi":0,"bv_Pakrah":0,"bv_Lionel_Cactuseli":0,"bv_Cocofanto":0,"bv_ChimpanziniBananini":0,"bv_Africa_by_toto_to_sahur":0,"bv_Ballerinolololo":0,"bv_POTATO":0,"bv_Cocosini_Mama":0,"bv_PIGEONS_ARE_SPIES_MADE_BY":1,"bv_Teenage_turtle":1,"bv_Dolphini_Jetskini":1,"bv_Slitta_Sprinta":1,"bv_Trippi_Troppi":1,"bv_Clickerinocrabo":1,"bv_Astronaut":1,"bv_Cant_come_up_with_a_funny":1,"bv_Lol_Fridge":1,"bv_Boneca_Ambalabu":1,"bv_Cupcake_Koala":1,"bv_Lavadorito_Spinito":1,"bv_Cacto_Hipopotamo1":1,"bv_TaTas":1,"bv_Pintealotto":1,"bv_Moby":1,"bv_Watermelon_Doggy":1,"bv_Garamadundung":1,"bv_Trenostruzzo_Turbo_3000":1,"bv_Cappuccino_Assassino":2,"bv_Burguro_And_Fryuro":2,"bv_AvocadiniGuffo":2,"bv_Homicidio_doloso":2,"bv_Brri_Brri_Bicus_Dicus_Bom":2,"bv_Skibidi_toilet":2,"bv_PeroLemonfulldetial":2,"bv_Avocadini_Antilopini":2,"bv_Dolphin_But_Banana":2,"bv_wombo":2,"bv_Berry_berry_bicus_dickus":2,"bv_Cerberus":2,"bv_NewBlueberrinni":3,"bv_Quackula":3,"bv_Sig_ma_Boy":3,"bv_GOAT":3,"bv_Strawberrelli_Flamingelli":3,"bv_Pi_Pi_Watermelon":3,"bv_GlorboFruttodrillo":3,"bv_Time_moving_slow":3,"bv_Quivioli_Ameleonni":3,"bv_Lebron_james":3,"bv_SigmaGirl":3,"bv_Tartaruga_Cisternaaaa":3,"bv_Tracoducotulu":3,"bv_Toiletto":3,"bv_Mythic_lucky_block":3,"bv_Ballerina_cappucinaaaa21pct":3,"bv_King_von":3,"bv_Jacko_Spaventosa":3,"bv_Travis_scott":3,"bv_Cavallo_Virtuoso":3,"bv_Lil_wayne":3,"bv_Bombardiro_Crocodilo":3,"bv_Te_Te_Te_Sahur":3,"bv_Carti":3,"bv_Tralalita":4,"bv_Everybody_hates_Chihuanin":4,"bv_TractorDino":4,"bv_BrainrotGodLuckyBlock":4,"bv_Tukanno_Bananno":4,"bv_Gorillo_Watermelondrillo":4,"bv_Money_Money_Man":4,"bv_Matteofr":4,"bv_Trippi_Troppi_Troppa_Trip":4,"bv_Dragon_Gingerini":5,"bv_Graipuss":5,"bv_TangTangVfx":5,"bv_Nuclearo_Dinosauro":5,"bv_LasTralaleritas":5,"bv_Job":5,"bv_Los_Tralaleritos":5,"bv_Chicliterita_bicicliterit":5,"bv_SecretLuckyBlock":5,"bv_KetupatKepat":5,"bv_La_vacca_no_effects":5,"bv_Chicleteira":6,"bv_TralaleroTralala":6,"bv_Strawberryelephant":6,"bv_Magi_Ribbitini":6,"bv_Meowl":6,"bv_Money_money_puggy":6};
+
+        // Fusion tier -> rarity override
+        var FB_RAR = {310:6,312:6,314:6,316:6,318:6,320:7,322:7,324:7,326:7,328:7,330:8,332:8,334:8,336:8,338:8,340:9,342:9,344:9,346:9,348:9,350:10,352:10,354:10,356:10,358:10,360:11,362:11,364:11,366:11,368:11,370:12,372:12,374:12,376:12,378:12,380:13,382:13,384:13,386:13,388:13};
+        for (var q in FB_RAR) { if (QBV[q]) RBV[QBV[q]] = FB_RAR[q]; }
+
+        function rarityOf(bv) {
+            var idx = RBV[bv];
+            if (idx === undefined || idx < 0 || idx >= RAR_LIST.length) return null;
+            return RAR_LIST[idx];
+        }
+
+        // GPS lookup (from _brainrot_meta + FB inline)
+        var GPS_BY_BV={"bv_Banana":1.3,"bv_BurbaloniLuliloli":1.4,"bv_Noobini_Pizzanini":1.9,"bv_Tim_Cheese":1.9,"bv_Image_removebg_preview_29":2.4,"bv_Fluriflura":1.7,"bv_Pandaccini_Bananini":2.0,"bv_Puffaball":2.5,"bv_Liliri_Lalira":2.7,"bv_Pipi_Kiwi":1.3,"bv_Pakrah":1.4,"bv_Lionel_Cactuseli":1.8,"bv_Cocofanto":1.1,"bv_ChimpanziniBananini":1.7,"bv_Africa_by_toto_to_sahur":2.8,"bv_Ballerinolololo":2.6,"bv_POTATO":1.0,"bv_Cocosini_Mama":1.2,"bv_PIGEONS_ARE_SPIES_MADE_BY":7.4,"bv_Teenage_turtle":9.5,"bv_Dolphini_Jetskini":7.4,"bv_Slitta_Sprinta":6.8,"bv_Trippi_Troppi":7.2,"bv_Clickerinocrabo":7.4,"bv_Astronaut":6.4,"bv_Cant_come_up_with_a_funny":8.9,"bv_Lol_Fridge":8.8,"bv_Boneca_Ambalabu":9.4,"bv_Cupcake_Koala":5.8,"bv_Lavadorito_Spinito":7.9,"bv_Cacto_Hipopotamo1":9.0,"bv_TaTas":5.4,"bv_Pintealotto":5.3,"bv_Moby":5.4,"bv_Watermelon_Doggy":9.3,"bv_Garamadundung":9.2,"bv_Trenostruzzo_Turbo_3000":8.6,"bv_Cappuccino_Assassino":10.8,"bv_Burguro_And_Fryuro":16.8,"bv_AvocadiniGuffo":17.5,"bv_Homicidio_doloso":15.6,"bv_Brri_Brri_Bicus_Dicus_Bom":16.9,"bv_Skibidi_toilet":15.2,"bv_PeroLemonfulldetial":19.9,"bv_Avocadini_Antilopini":16.0,"bv_Dolphin_But_Banana":15.7,"bv_wombo":15.2,"bv_Berry_berry_bicus_dickus":19.3,"bv_Cerberus":14.9,"bv_NewBlueberrinni":25.0,"bv_Quackula":26.7,"bv_Sig_ma_Boy":33.3,"bv_GOAT":29.5,"bv_Strawberrelli_Flamingelli":24.3,"bv_Pi_Pi_Watermelon":25.3,"bv_GlorboFruttodrillo":25.5,"bv_Time_moving_slow":33.3,"bv_Quivioli_Ameleonni":22.5,"bv_Lebron_james":31.0,"bv_SigmaGirl":38.2,"bv_Tartaruga_Cisternaaaa":29.3,"bv_Tracoducotulu":44.5,"bv_Toiletto":59.7,"bv_Mythic_lucky_block":79.5,"bv_Ballerina_cappucinaaaa21pct":55.9,"bv_King_von":53.7,"bv_Jacko_Spaventosa":76.0,"bv_Travis_scott":78.4,"bv_Cavallo_Virtuoso":41.9,"bv_Lil_wayne":74.3,"bv_Bombardiro_Crocodilo":72.8,"bv_Te_Te_Te_Sahur":54.3,"bv_Carti":48.7,"bv_Tralalita":139.1,"bv_Everybody_hates_Chihuanin":145.6,"bv_TractorDino":94.2,"bv_BrainrotGodLuckyBlock":87.8,"bv_Tukanno_Bananno":97.2,"bv_Gorillo_Watermelondrillo":142.2,"bv_Money_Money_Man":148.8,"bv_Matteofr":98.1,"bv_Trippi_Troppi_Troppa_Trip":148.6,"bv_Dragon_Gingerini":204.5,"bv_Graipuss":169.4,"bv_TangTangVfx":198.0,"bv_Nuclearo_Dinosauro":156.0,"bv_LasTralaleritas":219.4,"bv_Job":266.4,"bv_Los_Tralaleritos":228.2,"bv_Chicliterita_bicicliterit":246.1,"bv_SecretLuckyBlock":211.1,"bv_KetupatKepat":165.2,"bv_La_vacca_no_effects":227.8,"bv_Chicleteira":428.9,"bv_TralaleroTralala":405.3,"bv_Strawberryelephant":443.1,"bv_Magi_Ribbitini":413.9,"bv_Meowl":456.6,"bv_Money_money_puggy":448.5,"bv_Karkerheart_Luvkur":18,"bv_67":20,"bv_Fizzy_Soda":22,"bv_DoiDoi":16,"bv_Cuadramat":24,"bv_Bacuru_and_Egguru":45,"bv_Holy_Arepa":40,"bv_Gattatino_Nyanino":50,"bv_carrotini_brainini":42,"bv_MalameAmarele":48,"bv_Bandito_Axolito":130,"bv_Pirate_Frog":120,"bv_Gangster_Crab":140,"bv_Tipi_Topi_Taco":125,"bv_Snailenzo":135,"bv_DJ_Panda":280,"bv_Disco_Gorilla":300,"bv_Celestial_Pegasus":320,"bv_Divine_Starfish":260,"bv_boba_panda":340,"bv_Hydra_Dragon_Cannelloni":500,"bv_Rhino_Helicopterino":550,"bv_Navidaddragon":480,"bv_cappuccino_clownino":520,"bv_Tartaragnoo":560,"bv_FrioNinja":800,"bv_Ganganzelli_Trulala":850,"bv_La_Cucaracha":900,"bv_Mummio_Rappitto":750,"bv_Nooo_my_polizia":950,"bv_Orcalero_Orcala":2000,"bv_Unclito_Samito":2500,"bv_StatutinoLibertino":1800,"bv_Hopilikalika_Hopilika":2200,"bv_tentacolo_tecnico":3000,"bv_Christmas_Chachechi":6000,"bv_Chocco_Bunny":7000,"bv_clanker":8000,"bv_dumborino_miracello":9000,"bv_vulturino_skeletino":10000};
+
+        // === STATE ===
+        var pedestals = [];
+        var slotA = null;
+        var sellLocked = false;
+
+        // === SDK SETUP ===
+        function _doFocusGame() {
+            if (typeof PortalsSdk !== 'undefined' && PortalsSdk.focusGameKeyboard) PortalsSdk.focusGameKeyboard();
+        }
+        document.addEventListener('click', function() { _doFocusGame(); });
+        document.addEventListener('keydown', function() { _doFocusGame(); });
+
+        var _lastMsg = '', _lastMsgT = 0;
+        function processMessage(msg) {
+            var now = Date.now();
+            var id = msg.substring(0, 60) + '_' + Math.floor(now / 100);
+            if (id === _lastMsg && now - _lastMsgT < 200) return;
+            _lastMsg = id; _lastMsgT = now;
+            handleMessage(msg);
+        }
+
+        if (sdk) {
+            sdk.setMessageListener(function(msg) { processMessage(msg); });
+        }
+        window.addEventListener('message', function(e) {
+            if (e.data && typeof e.data === 'string') processMessage(e.data);
+            else if (e.data && e.data.portalsMessage) processMessage(e.data.portalsMessage);
+        });
+
+        function requestSync() {
+            if (!sdk) return;
+            sdk.sendMessageToUnity(JSON.stringify({ TaskName: 'hud_sync', TaskTargetState: 'SetAnyToActive' }));
+        }
+
+        function closeShop() {
+            if (sdk) { try { sdk.focusGameKeyboard(); } catch(e){} try { sdk.closeIframe(); } catch(e){} }
+        }
+        document.addEventListener('keydown', function(e){
+            if (e.key === 'Escape') {
+                e.preventDefault();
+                if (document.getElementById('confirmOverlay').classList.contains('show')) { cancelConfirm(); return; }
+                if (document.getElementById('resultOverlay').classList.contains('show')) { closeResult(); return; }
+                closeShop();
+            }
+        });
+        setTimeout(requestSync, 300);
+        setTimeout(requestSync, 1000);
+        setTimeout(requestSync, 2500);
+
+        function parseVarValue(raw) {
+            if (raw === undefined || raw === null || raw === '') return 0;
+            raw = String(raw).trim();
+            var num = Number(raw);
+            if (!isNaN(num)) return num;
+            try {
+                var parsed = JSON.parse(raw);
+                if (typeof parsed === 'number') return parsed;
+                if (typeof parsed === 'object' && parsed !== null) {
+                    if (myUsername) {
+                        var uLower = myUsername.toLowerCase();
+                        for (var k in parsed) { if (k.toLowerCase() === uLower) return Number(parsed[k]) || 0; }
+                    }
+                    var vals = Object.values(parsed);
+                    return vals.length > 0 ? (Number(vals[0]) || 0) : 0;
+                }
+            } catch(e) {}
+            var m = raw.match(/[=:](\d+\.?\d*)/);
+            return m ? parseFloat(m[1]) || 0 : 0;
+        }
+
+        // === MESSAGE HANDLER ===
+        function handleMessage(msg) {
+            if (msg.startsWith('peds:')) {
+                var nums = msg.substring(5).split(',');
+                pedestals = [];
+                var idx = 0;
+                for (var f = 1; f <= 4; f++) {
+                    for (var s = 1; s <= 10; s++) {
+                        var qn = parseInt(nums[idx], 10) || 0;
+                        if (qn > 0 && QBV[qn]) {
+                            pedestals.push({ floor: f, slot: s, questNum: qn, bv: QBV[qn] });
+                        }
+                        idx++;
+                    }
+                }
+                // If selected slot's pedestal is now empty, clear selection
+                if (slotA) {
+                    var stillThere = false;
+                    for (var i = 0; i < pedestals.length; i++) {
+                        if (pedestals[i].floor === slotA.floor && pedestals[i].slot === slotA.slot && pedestals[i].questNum === slotA.questNum) {
+                            stillThere = true; break;
+                        }
+                    }
+                    if (!stillThere) slotA = null;
+                }
+                render();
+            } else if (msg.startsWith('inv:')) {
+                var pairs = msg.substring(4).split('&');
+                pedestals = [];
+                for (var i = 0; i < pairs.length; i++) {
+                    var eq = pairs[i].indexOf('=');
+                    if (eq < 0) continue;
+                    var key = pairs[i].substring(0, eq).trim();
+                    var val = parseVarValue(pairs[i].substring(eq + 1));
+                    var pm = key.match(/^Ped_F(\d+)_(\d+)$/);
+                    if (pm) {
+                        var qn = Math.round(val);
+                        if (qn > 0 && QBV[qn]) {
+                            pedestals.push({ floor: parseInt(pm[1]), slot: parseInt(pm[2]), questNum: qn, bv: QBV[qn] });
+                        }
+                    }
+                    if (key === 'username') myUsername = pairs[i].substring(eq + 1).trim();
+                }
+                if (slotA) {
+                    var stillThere2 = false;
+                    for (var j = 0; j < pedestals.length; j++) {
+                        if (pedestals[j].floor === slotA.floor && pedestals[j].slot === slotA.slot && pedestals[j].questNum === slotA.questNum) {
+                            stillThere2 = true; break;
+                        }
+                    }
+                    if (!stillThere2) slotA = null;
+                }
+                render();
+            }
+        }
+
+        // === RENDERING ===
+        var NAMEOV = {
+            'bv_Image_removebg_preview_29': 'Lerulerulerule',
+            'bv_Africa_by_toto_to_sahur': 'To to to Sahur',
+            'bv_PIGEONS_ARE_SPIES_MADE_BY': 'Piccione Macchina',
+            'bv_Cant_come_up_with_a_funny': 'Bombombini Gusini'
+        };
+        function prettyName(bv) { return NAMEOV[bv] || bv.substring(3).replace(/_/g, ' '); }
+
+        function imgUrl(bv) { return IMG_BASE + bv + '.webp?v=' + IMG_V; }
+
+        function fmtGold(n) {
+            n = Math.round(n);
+            if (n >= 1000000) return (n / 1000000).toFixed(1) + 'M';
+            if (n >= 10000) return (n / 1000).toFixed(1) + 'K';
+            return n.toLocaleString();
+        }
+
+        function fmtGps(gps) {
+            if (gps >= 1000) return (gps / 1000).toFixed(1) + 'K';
+            return gps.toFixed(1);
+        }
+
+        function sellPriceFor(bv) {
+            var gps = GPS_BY_BV[bv] || 0;
+            return Math.max(1, Math.round(gps * SELL_MULT));
+        }
+
+        function render() {
+            var grid = document.getElementById('invGrid');
+            var html = '';
+
+            if (pedestals.length === 0) {
+                html = '<div class="complete-msg" style="grid-column:1/-1">No brainrots on pedestals.<br>Deposit brainrots at your base first!</div>';
+            } else {
+                for (var i = 0; i < pedestals.length; i++) {
+                    var p = pedestals[i];
+                    var isFusion = FUSION_QS[p.questNum];
+                    var isSelected = slotA && slotA.floor === p.floor && slotA.slot === p.slot;
+                    var cls = 'inv-card';
+                    if (isSelected) cls += ' selected';
+                    if (isFusion) cls += ' fusion-owned';
+
+                    var price = sellPriceFor(p.bv);
+                    var rar = rarityOf(p.bv);
+                    html += '<div class="' + cls + '" onclick="selectBrainrot(' + i + ')">';
+                    html += '<img src="' + imgUrl(p.bv) + '" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><text x=%2226%22 y=%2234%22 text-anchor=%22middle%22 font-size=%2224%22>?</text></svg>\'">';
+                    html += '<div class="card-name">' + prettyName(p.bv) + '</div>';
+                    html += '<div class="card-price">' + fmtGold(price) + 'g</div>';
+                    if (rar) html += '<div class="card-rar" style="color:' + rar.color + '">' + rar.label + '</div>';
+                    html += '</div>';
+                }
+            }
+            grid.innerHTML = html;
+
+            renderSlot();
+            renderPrice();
+
+            document.getElementById('sellBtn').disabled = !slotA || sellLocked;
+        }
+
+        function renderSlot() {
+            var el = document.getElementById('slotA');
+            if (slotA) {
+                el.className = 'slot filled';
+                var gps = GPS_BY_BV[slotA.bv] || 0;
+                var rar = rarityOf(slotA.bv);
+                var parts = '<img src="' + imgUrl(slotA.bv) + '"><div class="slot-label">' + prettyName(slotA.bv) + '</div>';
+                if (gps > 0) parts += '<div class="slot-gps">' + fmtGps(gps) + '/s</div>';
+                if (rar) parts += '<div class="slot-rar" style="color:' + rar.color + '">' + rar.label + '</div>';
+                parts += '<button class="remove-btn" onclick="event.stopPropagation();clearSlot()">&times;</button>';
+                el.innerHTML = parts;
+            } else {
+                el.className = 'slot';
+                el.innerHTML = '<span class="slot-placeholder">PICK ONE</span>';
+            }
+        }
+
+        function renderPrice() {
+            var pv = document.getElementById('priceValue');
+            var ps = document.getElementById('priceSub');
+            if (slotA) {
+                var price = sellPriceFor(slotA.bv);
+                pv.className = 'price-value';
+                pv.textContent = fmtGold(price) + ' gold';
+                ps.textContent = '~2 min of ' + fmtGps(GPS_BY_BV[slotA.bv] || 0) + '/s';
+            } else {
+                pv.className = 'price-value empty';
+                pv.innerHTML = '&mdash;';
+                ps.textContent = '2 minutes of passive gold';
+            }
+        }
+
+        // === INTERACTION ===
+        function selectBrainrot(idx) {
+            var p = pedestals[idx];
+            if (slotA && slotA.floor === p.floor && slotA.slot === p.slot) { clearSlot(); return; }
+            slotA = p;
+            render();
+        }
+
+        function clearSlot() {
+            slotA = null;
+            render();
+        }
+
+        // === CONFIRM MODAL ===
+        function openConfirm() {
+            if (!slotA || sellLocked) return;
+            var price = sellPriceFor(slotA.bv);
+            document.getElementById('confirmImg').src = imgUrl(slotA.bv);
+            document.getElementById('confirmBrainrot').textContent = prettyName(slotA.bv);
+            document.getElementById('confirmPrice').textContent = fmtGold(price) + ' gold';
+            document.getElementById('confirmOverlay').classList.add('show');
+        }
+
+        function cancelConfirm() {
+            document.getElementById('confirmOverlay').classList.remove('show');
+        }
+
+        // === SELL ===
+        function doSell() {
+            if (!slotA || sellLocked) return;
+            sellLocked = true;
+            document.getElementById('sellBtn').disabled = true;
+            document.getElementById('confirmOverlay').classList.remove('show');
+
+            var sold = { bv: slotA.bv, floor: slotA.floor, slot: slotA.slot, questNum: slotA.questNum };
+            var price = sellPriceFor(sold.bv);
+
+            if (sdk) {
+                // Fire the sell effector for this pedestal
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: 'sell_F' + sold.floor + '_' + sold.slot,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
+                // Refresh HUD gold display shortly after
+                setTimeout(function() {
+                    sdk.sendMessageToUnity(JSON.stringify({
+                        TaskName: 'hud_sync',
+                        TaskTargetState: 'SetAnyToActive'
+                    }));
+                }, 700);
+            }
+
+            setTimeout(function() { showResult(sold, price); }, 500);
+        }
+
+        function showResult(sold, price) {
+            document.getElementById('resultImg').src = imgUrl(sold.bv);
+            document.getElementById('resultName').textContent = prettyName(sold.bv);
+            document.getElementById('resultPayout').textContent = '+' + fmtGold(price) + ' gold';
+            document.getElementById('resultOverlay').classList.add('show');
+        }
+
+        function closeResult() {
+            document.getElementById('resultOverlay').classList.remove('show');
+            slotA = null;
+            sellLocked = false;
+            setTimeout(requestSync, 300);
+            setTimeout(function() { render(); }, 500);
+        }
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>
