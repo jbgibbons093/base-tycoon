@@ -95,6 +95,52 @@
             font-weight: 800; letter-spacing: 1px; text-transform: uppercase; flex-shrink: 0;
         }
 
+        .possible {
+            display: none; flex-shrink: 0;
+            padding: 6px 14px 10px;
+            border-bottom: 1px solid rgba(var(--cyan-rgb), 0.12);
+            background: rgba(0, 229, 255, 0.02);
+        }
+        .possible.show { display: block; }
+        .possible-label {
+            font-size: 11px; color: rgba(var(--cyan-rgb), 0.7);
+            font-weight: 800; letter-spacing: 1px; text-transform: uppercase;
+            margin: 0 4px 6px; display: flex; justify-content: space-between; align-items: center;
+        }
+        .possible-label .range-hint { color: rgba(255,255,255,0.35); font-weight: 700; font-size: 10px; letter-spacing: 0; text-transform: none; }
+        .possible-strip {
+            display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px;
+            scrollbar-width: thin;
+        }
+        .possible-strip::-webkit-scrollbar { height: 4px; }
+        .possible-strip::-webkit-scrollbar-thumb { background: rgba(var(--cyan-rgb), 0.3); border-radius: 2px; }
+        .pchip {
+            flex: 0 0 auto; width: 64px;
+            background: rgba(255,255,255,0.04);
+            border: 2px solid rgba(255,255,255,0.12);
+            border-radius: 8px; padding: 4px; text-align: center;
+        }
+        .pchip.owned { opacity: 0.35; }
+        .pchip img { width: 44px; height: 44px; object-fit: contain; }
+        .pchip .pname {
+            font-size: 8px; color: rgba(255,255,255,0.7);
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+            margin-top: 2px;
+        }
+        .pchip .pgps { font-size: 9px; color: #ffd700; font-weight: 800; margin-top: 1px; }
+        .pchip.tier-Rare { border-color: #4a7fff; }
+        .pchip.tier-Epic { border-color: #a155f2; }
+        .pchip.tier-Legendary { border-color: #ffb347; }
+        .pchip.tier-Mythic { border-color: #ff4a9f; }
+        .pchip.tier-BrainrotGod { border-color: #ff2222; }
+        .pchip.tier-Secret { border-color: #00ff88; }
+        .pchip.tier-OG { border-color: #ffd700; }
+        .pchip.tier-Glitch { border-color: #ff00ff; }
+        .possible-empty {
+            font-size: 11px; color: rgba(255,100,100,0.7); text-align: center;
+            padding: 4px 0; font-weight: 700;
+        }
+
         .inventory {
             flex: 1; overflow-y: auto; padding: 6px 14px 14px;
             display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px;
@@ -215,6 +261,10 @@
                 <button class="remove-btn">&times;</button>
             </div>
             <button class="fuse-btn" id="fuseBtn" disabled onclick="doFuse()">FUSE</button>
+        </div>
+        <div class="possible" id="possibleBox">
+            <div class="possible-label"><span>POSSIBLE OUTCOMES</span><span class="range-hint" id="rangeHint"></span></div>
+            <div class="possible-strip" id="possibleStrip"></div>
         </div>
         <div class="inventory-label">YOUR PEDESTAL BRAINROTS</div>
         <div class="inventory" id="invGrid"></div>
@@ -401,12 +451,60 @@
             renderSlot('slotA', slotA, 'SLOT A');
             renderSlot('slotB', slotB, 'SLOT B');
 
+            // Possible outcomes preview
+            renderPossibleOutcomes();
+
             // Fuse button
             document.getElementById('fuseBtn').disabled = !slotA || !slotB || fuseLocked;
 
             // Tracker
             var discovered = ownedFusionQs.length;
             document.getElementById('tracker').textContent = discovered + ' / 40 Discovered';
+        }
+
+        function renderPossibleOutcomes() {
+            var box = document.getElementById('possibleBox');
+            var strip = document.getElementById('possibleStrip');
+            var hint = document.getElementById('rangeHint');
+            if (!slotA || !slotB) { box.classList.remove('show'); return; }
+            var rA = CR[slotA.bv] || [1, 5];
+            var rB = CR[slotB.bv] || [1, 5];
+            var minT = rA[0] + rB[0];
+            var maxT = rA[1] + rB[1];
+            // Candidates: FB entries whose required-score window overlaps [minT, maxT]
+            var hits = [];
+            for (var i = 0; i < FB.length; i++) {
+                var fb = FB[i];
+                if (fb.rs[0] <= maxT && fb.rs[1] >= minT) hits.push(fb);
+            }
+            // Sort by tier order then gps
+            var tierOrder = { 'Rare': 0, 'Epic': 1, 'Legendary': 2, 'Mythic': 3, 'Brainrot God': 4, 'Secret': 5, 'OG': 6, 'Glitch': 7 };
+            hits.sort(function(a, b) {
+                var d = (tierOrder[a.tier] || 0) - (tierOrder[b.tier] || 0);
+                return d !== 0 ? d : a.gps - b.gps;
+            });
+            var unownedHits = [];
+            for (var j = 0; j < hits.length; j++) {
+                if (ownedFusionQs.indexOf(hits[j].q) === -1) unownedHits.push(hits[j]);
+            }
+            hint.textContent = 'score ' + minT + '-' + maxT + ' · ' + unownedHits.length + ' new possible';
+            if (hits.length === 0) {
+                strip.innerHTML = '<div class="possible-empty">No matching fusions — closest unowned will be granted.</div>';
+            } else {
+                var html = '';
+                for (var k = 0; k < hits.length; k++) {
+                    var h = hits[k];
+                    var owned = ownedFusionQs.indexOf(h.q) !== -1;
+                    var tierClass = 'tier-' + h.tier.replace(/ /g, '');
+                    html += '<div class="pchip ' + tierClass + (owned ? ' owned' : '') + '" title="' + prettyName(h.bv) + (owned ? ' (already owned)' : '') + '">';
+                    html += '<img src="' + imgUrl(h.bv) + '" onerror="this.style.visibility=\'hidden\'">';
+                    html += '<div class="pname">' + prettyName(h.bv) + '</div>';
+                    html += '<div class="pgps">' + fmtGps(h.gps) + '/s</div>';
+                    html += '</div>';
+                }
+                strip.innerHTML = html;
+            }
+            box.classList.add('show');
         }
 
         function renderSlot(elemId, data, placeholder) {
