@@ -233,7 +233,7 @@
             { id: 'brainrot_god', label: 'BRAINROT GOD', bvs: ['bv_DJ_Panda','bv_Disco_Gorilla','bv_Celestial_Pegasus','bv_Divine_Starfish','bv_boba_panda','bv_Hydra_Dragon_Cannelloni','bv_Rhino_Helicopterino','bv_Navidaddragon','bv_cappuccino_clownino','bv_Tartaragnoo'] },
             { id: 'fusion_secret', label: 'SECRET', bvs: ['bv_FrioNinja','bv_Ganganzelli_Trulala','bv_La_Cucaracha','bv_Mummio_Rappitto','bv_Nooo_my_polizia'] },
             { id: 'fusion_og', label: 'OG', bvs: ['bv_Orcalero_Orcala','bv_Unclito_Samito','bv_StatutinoLibertino','bv_Hopilikalika_Hopilika','bv_tentacolo_tecnico'] },
-            { id: 'fusion_glitch', label: 'GLITCH', bvs: ['bv_Christmas_Chachechi','bv_Chocco_Bunny','bv_clanker','bv_dumborino_miracello','bv_vulturino_skeletino'] }
+            { id: 'glitch', label: 'GLITCH', displayZone: 'Glitch', bvs: ['bv_Christmas_Chachechi','bv_Chocco_Bunny','bv_clanker','bv_dumborino_miracello','bv_vulturino_skeletino'] }
         ];
 
         var ZONES = {
@@ -321,8 +321,9 @@
             if (!rarity) return [];
             var list = [];
             if (rarity.bvs) {
+                var dz = rarity.displayZone || 'Fusion';
                 for (var i = 0; i < rarity.bvs.length; i++) {
-                    list.push({bv: rarity.bvs[i], zone: 'Fusion'});
+                    list.push({bv: rarity.bvs[i], zone: dz});
                 }
             } else if (rarity.zones) {
                 for (var i = 0; i < rarity.zones.length; i++) {
