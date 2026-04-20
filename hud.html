@@ -221,103 +221,6 @@
             opacity: 0.4;
         }
 
-        /* ---- NOTIFICATION FEED (above cash in stack) ---- */
-        .notif-container {
-            position: fixed;
-            top: 60px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            align-items: center;
-            pointer-events: none;
-            z-index: 50;
-        }
-        .notif {
-            padding: 10px 24px;
-            border-radius: 999px;
-            box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 0 20px rgba(0,0,0,0.15);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 18px;
-            text-shadow: 1px 1px 0 rgba(0,0,0,0.25);
-            white-space: nowrap;
-            animation: notifPop 0.4s cubic-bezier(0.175,0.885,0.32,1.275), notifOut 0.5s ease 4.5s forwards;
-        }
-        .notif-gold {
-            background: linear-gradient(180deg, rgba(255,228,77,0.92), rgba(255,184,0,0.92));
-            border: 2px solid rgba(204,136,0,0.6);
-            color: #4A2800;
-        }
-        .notif-pickup {
-            background: linear-gradient(180deg, rgba(255,179,71,0.92), rgba(255,140,0,0.92));
-            border: 2px solid rgba(204,102,0,0.6);
-            color: #3A1800;
-        }
-        .notif-deposit {
-            background: linear-gradient(180deg, rgba(110,240,110,0.92), rgba(46,204,64,0.92));
-            border: 2px solid rgba(31,160,48,0.6);
-            color: #0A3A0A;
-        }
-        .notif-spawn {
-            background: linear-gradient(180deg, rgba(116,185,255,0.92), rgba(52,152,219,0.92));
-            border: 2px solid rgba(33,118,170,0.6);
-            color: #0A1A3A;
-        }
-        .notif-info {
-            background: linear-gradient(180deg, rgba(223,230,233,0.92), rgba(178,190,195,0.92));
-            border: 2px solid rgba(149,165,166,0.6);
-            color: #2C3E50;
-        }
-        .notif-error {
-            background: linear-gradient(180deg, rgba(255,107,107,0.92), rgba(231,76,60,0.92));
-            border: 2px solid rgba(192,57,43,0.6);
-            color: #FFFFFF;
-        }
-        @keyframes notifPop {
-            0% { transform: scale(0.3); opacity: 0; }
-            50% { transform: scale(1.12); }
-            70% { transform: scale(0.95); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes notifOut {
-            to { opacity: 0; transform: scale(0.8) translateY(-10px); }
-        }
-
-        /* ---- LEGACY TOAST (keep for compat) ---- */
-        .toast-container {
-            position: fixed;
-            bottom: 80px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            align-items: center;
-            z-index: 30;
-        }
-        .toast {
-            padding: 8px 20px;
-            border-radius: 999px;
-            background: linear-gradient(180deg, rgba(255,228,77,0.92), rgba(255,184,0,0.92));
-            border: 2px solid rgba(204,136,0,0.6);
-            box-shadow: 0 3px 0 rgba(0,0,0,0.2);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 16px;
-            color: #4A2800;
-            text-shadow: 1px 1px 0 rgba(255,255,255,0.3);
-            animation: toastPop 0.3s ease, toastOut 0.3s ease 2s forwards;
-            white-space: nowrap;
-        }
-        @keyframes toastPop {
-            0% { transform: scale(0.5); opacity: 0; }
-            70% { transform: scale(1.1); }
-            100% { transform: scale(1); opacity: 1; }
-        }
-        @keyframes toastOut {
-            to { opacity: 0; transform: translateY(-10px) scale(0.9); }
-        }
-
         /* Pending gold sub-text */
         .gold-pending {
             font-family: 'Nunito', sans-serif;
@@ -363,13 +266,6 @@
             100% { opacity: 0; transform: translate(var(--dx), var(--dy)) scale(0.5); }
         }
 
-        /* ---- KILL NOTIFICATION ---- */
-        .notif-kill {
-            background: linear-gradient(180deg, rgba(110,240,110,0.92), rgba(46,204,64,0.92));
-            border: 2px solid rgba(31,160,48,0.6);
-            color: #0A3A0A;
-        }
-
         /* ---- DEATH/KILL SCREEN FLASH ---- */
         .screen-flash {
             position: fixed;
@@ -408,40 +304,13 @@
             50% { box-shadow: 0 4px 0 rgba(0,0,0,0.3), 0 0 40px rgba(255,184,0,0.7), 0 0 60px rgba(255,184,0,0.3); }
         }
 
-        /* ---- CENTER KILL/DEATH TEXT ---- */
-        .center-alert {
-            position: fixed;
-            top: 30%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-family: 'Luckiest Guy', cursive;
-            font-size: 32px;
-            text-shadow: 2px 2px 0 rgba(0,0,0,0.4), 0 0 20px rgba(0,0,0,0.3);
-            pointer-events: none;
-            z-index: 51;
-            animation: alertPop 0.4s ease, alertOut 0.4s ease 1.5s forwards;
-            white-space: nowrap;
-        }
-        .center-alert.death { color: #FF4444; }
-        .center-alert.kill { color: #2ECC40; }
-        @keyframes alertPop {
-            0% { transform: translate(-50%, -50%) scale(0.3); opacity: 0; }
-            60% { transform: translate(-50%, -50%) scale(1.15); }
-            100% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-        }
-        @keyframes alertOut {
-            to { opacity: 0; transform: translate(-50%, -60%) scale(0.8); }
-        }
     </style>
 </head>
 <body>
-    <!-- BOTTOM-LEFT HUD STACK (top to bottom: notifs, cash, carry) -->
+    <!-- BOTTOM-LEFT HUD STACK (top to bottom: cash, carry) -->
     <div class="hud-stack">
         <!-- Spawn pip strip disabled — actionbar TIMERS overlay replaces it (room-side spawn system). -->
         <!-- <div class="spawn-strip" id="spawn-strip"></div> -->
-
-        <!-- NOTIFICATION FEED (above cash) -->
-        <div class="notif-container" id="notifs"></div>
 
         <!-- CASH PILL -->
         <div class="currency-pill pill-gold" id="pill-gold">
@@ -473,9 +342,6 @@
         </div>
         <div class="tutorial-banner" id="tutorial-banner"></div>
     </div>
-
-    <!-- TOAST (legacy) -->
-    <div class="toast-container" id="toasts"></div>
 
     <script>
         const sdk = typeof PortalsSdk !== 'undefined' ? PortalsSdk : null;
@@ -511,47 +377,7 @@
         }
         setInterval(_writeState, 1000);
 
-        // ---- SOUND SYSTEM (Web Audio API — HUD has noPointerEvents so no user gestures) ----
-        // Match farming sim HUD pattern: create AudioContext eagerly, resume before each play
-        var _audioCtx = null;
-        var _audioBuffers = {};
-
-        (function() {
-            try {
-                _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            } catch(e) {}
-            if (!_audioCtx) return;
-            var files = {
-                purchase: 'purchase.mp3', click: 'click.mp3', levelup: 'levelup.mp3',
-                uipop: 'ui-pop.mp3', harvest: 'harvest.mp3', talent: 'talent.mp3',
-                xp: 'xp-gain.mp3', cropready: 'cropready.mp3',
-                notification: 'notification.mp3', pickup: 'brainrot-collect.mp3',
-                deposit: 'deposit-brainrot.mp3', death: 'death.mp3', kill: 'kill.mp3'
-            };
-            for (var k in files) {
-                (function(key, url) {
-                    fetch(url)
-                        .then(function(r) { return r.arrayBuffer(); })
-                        .then(function(buf) { return _audioCtx.decodeAudioData(buf); })
-                        .then(function(decoded) { _audioBuffers[key] = decoded; })
-                        .catch(function() {});
-                })(k, files[k]);
-            }
-        })();
-
-        function playSound(type) {
-            try {
-                if (!_audioCtx || !_audioBuffers[type]) return;
-                if (_audioCtx.state === 'suspended') _audioCtx.resume();
-                var source = _audioCtx.createBufferSource();
-                var gain = _audioCtx.createGain();
-                source.buffer = _audioBuffers[type];
-                gain.gain.value = (type === 'click') ? 0.5 : 0.3;
-                source.connect(gain);
-                gain.connect(_audioCtx.destination);
-                source.start(0);
-            } catch(e) {}
-        }
+        // Sound system removed — actionbar overlay owns all notification audio now.
 
         let state = { gold: 0, baseId: 0, carrying: 0, carryGold: 0, carryName: '', carryBvKey: '', lastCarryName: '', rebirth: 0, pendingGold: 0, earningRate: 0, hasDied: false };
         var baseDisplayFired = false;
@@ -590,8 +416,6 @@
             dbg('floors=' + JSON.stringify(floors) + ' scanning...');
             if (emptySlot === 0) {
                 dbg('ALL FULL — no empty slot');
-                playSound('uipop');
-                notify('Base is full!', 'error');
                 return;
             }
             var questName = 'p_auto_b' + state.baseId + '_f' + emptyFloor + '_s' + emptySlot;
@@ -603,9 +427,6 @@
             autoDepositInFlight = true;
             setTimeout(function() { autoDepositInFlight = false; }, 2000);
             pedestals[emptyFloor][emptySlot] = 1;
-            playSound('deposit');
-            var depositName = state.carryName || state.lastCarryName || 'brainrot';
-            notify('Deposited ' + depositName + '!', 'deposit');
             if (state.carryBvKey) {
                 ownedBrainrots[state.carryBvKey] = (ownedBrainrots[state.carryBvKey] || 0) + 1;
                 calcEarningRate();
@@ -670,8 +491,6 @@
         const carryBanner = document.getElementById('carry-banner');
         const carryGoldEl = document.getElementById('carry-gold');
         const carryNameEl = document.getElementById('carry-name');
-        const toastContainer = document.getElementById('toasts');
-        const notifContainer = document.getElementById('notifs');
 
         /* ---- FORMAT ---- */
         function fmt(n) {
@@ -744,22 +563,7 @@
             }
         }
 
-        /* ---- NOTIFICATION SYSTEM ---- */
-        // types: gold, pickup, deposit, spawn, info
-        function notify(text, type) {
-            type = type || 'info';
-            const el = document.createElement('div');
-            el.className = 'notif notif-' + type;
-            el.textContent = text;
-            notifContainer.appendChild(el);
-            // Cap at 5 visible
-            while (notifContainer.children.length > 5) {
-                notifContainer.removeChild(notifContainer.firstChild);
-            }
-            setTimeout(function() { if (el.parentNode) el.remove(); }, 5000);
-        }
-
-        /* ---- DEATH/KILL ALERTS ---- */
+        /* ---- DEATH/KILL STATE (visuals live in actionbar overlay) ---- */
         function showScreenFlash(type) {
             var flash = document.createElement('div');
             flash.className = 'screen-flash ' + type;
@@ -767,48 +571,18 @@
             setTimeout(function() { if (flash.parentNode) flash.remove(); }, 700);
         }
 
-        function showCenterAlert(text, type) {
-            var alert = document.createElement('div');
-            alert.className = 'center-alert ' + type;
-            alert.textContent = text;
-            document.body.appendChild(alert);
-            setTimeout(function() { if (alert.parentNode) alert.remove(); }, 2000);
-        }
-
         function showDeathAlert(goldLost) {
             showScreenFlash('death');
-            showCenterAlert('YOU DIED', 'death');
-            playSound('death');
             state.hasDied = true;
-            // Wipe uncollected pending gold on death
-            var lostPending = Math.floor(state.pendingGold);
             state.pendingGold = 0;
             updateGoldDisplay();
-            if (goldLost) {
-                var totalLost = parseInt(goldLost) + (lostPending > 0 ? lostPending : 0);
-                notify('Lost $' + fmt(totalLost) + ' cash!', 'error');
-            } else {
-                notify('You died! Lost all your cash!', 'error');
-            }
             spawnCashParticles('spend', 6);
         }
 
         function showKillAlert(goldGained) {
             showScreenFlash('kill');
-            showCenterAlert('KILL! +$' + (goldGained || '?'), 'kill');
-            playSound('kill');
-            notify('+$' + (goldGained || '?') + ' cash from kill!', 'kill');
             spawnCashParticles('earn', 8);
             pop(document.getElementById('pill-gold'));
-        }
-
-        // Legacy toast (still works for old messages)
-        function showToast(text) {
-            const t = document.createElement('div');
-            t.className = 'toast';
-            t.textContent = text;
-            toastContainer.appendChild(t);
-            setTimeout(function() { if (t.parentNode) t.remove(); }, 2500);
         }
 
         /* ---- NAME OVERRIDES (display-name fix for 4 mis-named bvs) ---- */
@@ -967,9 +741,7 @@
                 })(tasks[t], t * 200);
             }
 
-            // Show notification + cash burst
-            playSound('xp');
-            notify('+$' + fmt(amount) + ' Cash collected!', 'gold');
+            // Cash burst (toast handled by actionbar overlay)
             pop(document.getElementById('pill-gold'));
             spawnCashParticles('earn', 8);
             updateGoldDisplay();
@@ -1174,7 +946,6 @@
                         updateGoldDisplay();
                         updateDisplay();
                         pop(document.getElementById('pill-gold'));
-                        notify('+$' + fmt(pgAmt) + ' Cash', 'gold');
                     }
                     return;
                 }
@@ -1207,25 +978,12 @@
                         state.earningRate = 0;
                         updateGoldDisplay();
                     }
-                    if (d.toast) showToast(d.toast);
-                    if (d.notif) notify(d.notif, d.notifType || 'info');
                     updateDisplay();
                     return;
                 } catch(e) {}
-                // Base tip messages from room triggers (cooldown to prevent dupes from shared quest)
-                if (msg.startsWith('basetip:')) {
-                    var now = Date.now();
-                    if (!window._lastBaseTip || now - window._lastBaseTip > 3000) {
-                        window._lastBaseTip = now;
-                        notify('\u{1F449} Press R on a pad to pick up a brainrot', 'info');
-                    }
-                    return;
-                }
-                // R key pickup from pedestal — show deposit tip
-                if (msg.startsWith('rpickup:')) {
-                    notify('\u{1F4E6} Run over green pads to deposit or press F to drop', 'info');
-                    return;
-                }
+                // basetip: / rpickup: — display handled by actionbar overlay; no-op here.
+                if (msg.startsWith('basetip:')) return;
+                if (msg.startsWith('rpickup:')) return;
                 // String-based messages
                 if (msg.startsWith('inv:')) {
                     // Parse key=value pairs: inv:username=bob&Gold=123&health={"bob"=100&"Hugh"=175}
@@ -1383,19 +1141,11 @@
                     }
                 } else if (msg === 'collect:go') {
                     // Room-side logic already gates on player_Base_num — just collect
-                    if (state.pendingGold < 1) {
-                        playSound('uipop');
-                        notify('No cash to collect yet!', 'info');
-                    } else {
-                        collectGold();
-                    }
+                    if (state.pendingGold >= 1) collectGold();
                 } else if (msg.startsWith('gold:')) {
                     var v = parseFloat(msg.substring(5))||0;
-                    var diff = v - state.gold;
                     state.gold = v; updateDisplay(); pop(document.getElementById('pill-gold'));
-                    if (diff > 0) notify('+$' + fmt(diff) + ' Cash', 'gold');
                 } else if (msg.startsWith('pickup:')) {
-                    playSound('pickup');
                     if (!state.claimDismissed) { state.claimDismissed = true; }
                     var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
                     if (pMatch) {
@@ -1403,27 +1153,14 @@
                         state.carryBvKey = 'bv_' + pMatch[1];
                         state.carryName = NAMEOV[state.carryBvKey] || pMatch[1].replace(/_/g, ' ');
                         state.carryGold = parseFloat(pMatch[2]) || 0;
-                        notify('Picked up ' + state.carryName + '! (' + state.carryGold + ' cash/s)', 'pickup');
-                        notify('\u{1F4E6} Run back to your base to deposit or press F to drop', 'info');
                         var pickupZone = BV_TO_ZONE[state.carryBvKey];
                         if (pickupZone && spawnCounts[pickupZone] > 0) spawnCounts[pickupZone]--;
                         updateDisplay();
                         checkTutorial();
-                    } else {
-                        notify(msg.substring(7), 'pickup');
                     }
                 } else if (msg.startsWith('deposit:')) {
-                    // Parse base number from message: "Deposited brainrot at Base N!"
-                    var baseMatch = msg.match(/Base (\d+)/);
-                    var depositBase = baseMatch ? parseInt(baseMatch[1]) : 0;
                     // Room-side logic already gates on player_Base_num — just deposit
-                    if (state.carrying <= 0) {
-                        playSound('uipop');
-                        notify('You\'re not carrying a brainrot!', 'error');
-                    } else {
-                        playSound('deposit');
-                        var depositName = state.carryName || state.lastCarryName || 'brainrot';
-                        notify('Deposited ' + depositName + '!', 'deposit');
+                    if (state.carrying > 0) {
                         state.lastCarryName = '';
                         // Increment owned brainrot count locally
                         if (state.carryBvKey) {
@@ -1450,8 +1187,7 @@
                     updateGoldDisplay();
                     updateDisplay();
                 } else if (msg.startsWith('toast:')) {
-                    playSound('notification');
-                    showToast(msg.substring(6));
+                    // toast: handled by actionbar overlay; no-op here.
                 } else if (msg === 'drop:1') {
                     // Player dropped brainrot with F — put it back in the spawn queue
                     if (state.carryBvKey) {
@@ -1476,7 +1212,6 @@
                     state.carryBvKey = '';
                     state.carryGold = 0;
                     updateDisplay();
-                    notify('Dropped brainrot!', 'info');
                 } else if (msg.startsWith('death:')) {
                     var deathGold = msg.substring(6);
                     showDeathAlert(deathGold);
@@ -1639,9 +1374,6 @@
                 }
             }
             console.log('[HUD] Fired ' + totalFired + ' DuplicateItem tasks over ' + delay + 'ms');
-            if (totalFired > 0) {
-                notify('Restoring ' + totalFired + ' brainrots...', 'info');
-            }
         }
 
         /* ---- KEYBOARD REFOCUS ---- */
@@ -2074,9 +1806,6 @@
             // Dev preview
             state.gold = 42350; state.baseId = 3; state.carrying = 1; state.carryGold = 14.6; state.rebirth = 1;
             updateDisplay();
-            notify('+125 Gold', 'gold');
-            setTimeout(function() { notify('Picked up Banana! (1.3g)', 'pickup'); }, 500);
-            setTimeout(function() { notify('Deposited Banana!', 'deposit'); }, 1000);
         }
     </script>
 </body>
