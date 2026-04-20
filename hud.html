@@ -1147,7 +1147,7 @@
                     state.gold = v; updateDisplay(); pop(document.getElementById('pill-gold'));
                 } else if (msg.startsWith('pickup:')) {
                     if (!state.claimDismissed) { state.claimDismissed = true; }
-                    var pMatch = msg.match(/Picked up (.+?)! \(([0-9.]+)g/);
+                    var pMatch = msg.match(/Picked up (.+?)! [(]([0-9.]+)g/);
                     if (pMatch) {
                         state.carrying = 1;
                         state.carryBvKey = 'bv_' + pMatch[1];
