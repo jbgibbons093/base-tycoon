@@ -133,13 +133,13 @@
         .pchip .prar { font-size: 7px; font-weight: 900; letter-spacing: 0.3px; margin-top: 1px;
             overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .slot .slot-rar { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100px; }
-        .pchip.tier-Rare { border-color: #4a7fff; }
-        .pchip.tier-Epic { border-color: #a155f2; }
-        .pchip.tier-Legendary { border-color: #ffb347; }
-        .pchip.tier-Mythic { border-color: #ff4a9f; }
-        .pchip.tier-BrainrotGod { border-color: #ff2222; }
-        .pchip.tier-Secret { border-color: #00ff88; }
-        .pchip.tier-OG { border-color: #ffd700; }
+        .pchip.tier-Rare { border-color: #0088FF; }
+        .pchip.tier-Epic { border-color: #AA55FF; }
+        .pchip.tier-Legendary { border-color: #FFA500; }
+        .pchip.tier-Mythic { border-color: #FF4500; }
+        .pchip.tier-BrainrotGod { border-color: #FF0000; }
+        .pchip.tier-Secret { border-color: #00FFFF; }
+        .pchip.tier-OG { border-color: #FF00FF; }
         .pchip.tier-Glitch { border-color: #ff00ff; }
         .possible-empty {
             font-size: 11px; color: rgba(255,100,100,0.7); text-align: center;
@@ -213,22 +213,18 @@
             cursor: pointer; letter-spacing: 1px;
         }
 
-        .tier-Rare { border-color: #4a7fff; }
-        .tier-Rare .result-tier { color: #4a7fff; }
-        .tier-Epic { border-color: #a155f2; }
-        .tier-Epic .result-tier { color: #a155f2; }
-        .tier-Legendary { border-color: #ffb347; }
-        .tier-Legendary .result-tier { color: #ffb347; }
-        .tier-Mythic { border-color: #ff4a9f; }
-        .tier-Mythic .result-tier { color: #ff4a9f; }
-        .tier-BrainrotGod { border-color: #ff2222; }
-        .tier-BrainrotGod .result-tier { color: #ff2222; }
-        .tier-Secret { border-color: #00ff88; }
-        .tier-Secret .result-tier { color: #00ff88; }
-        .tier-OG { border-color: #ffd700; }
-        .tier-OG .result-tier { color: #ffd700; }
+        .tier-Rare { border-color: #0088FF; }
+        .tier-Rare .result-tier, .tier-Rare .result-name { color: #0088FF; }
+        .tier-Epic { border-color: #AA55FF; }
+        .tier-Epic .result-tier, .tier-Epic .result-name { color: #AA55FF; }
+        .tier-Legendary { border-color: #FFA500; }
+        .tier-Legendary .result-tier, .tier-Legendary .result-name { color: #FFA500; }
+        .tier-Mythic { border-color: #FF4500; }
+        .tier-BrainrotGod { border-color: #FF0000; }
+        .tier-Secret { border-color: #00FFFF; }
+        .tier-OG { border-color: #FF00FF; }
         .tier-Glitch { border-color: #ff00ff; }
-        .tier-Glitch .result-tier { color: #ff00ff; }
+        .tier-Glitch .result-tier, .tier-Glitch .result-name { color: #ff00ff; }
         .result-card.tier-Glitch { animation: glitchPop 0.5s ease-out, glitchShake 0.15s infinite 0.5s; }
         @keyframes glitchShake { 0%,100%{transform:translate(0)} 25%{transform:translate(-2px,1px)} 75%{transform:translate(2px,-1px)} }
 
@@ -444,6 +440,40 @@
             'bv_Cant_come_up_with_a_funny': 'Bombombini Gusini'
         };
         function prettyName(bv) { return NAMEOV[bv] || bv.substring(3).replace(/_/g, ' '); }
+        var TIER_COLORS = {
+            'Common': ['AAAAAA'],
+            'Rare': ['0088FF'],
+            'Epic': ['AA55FF'],
+            'Legendary': ['FFA500'],
+            'Mythic': ['FF0000', 'FF2200', 'FF4500', 'FF6600', 'FF8800', 'FFAA00'],
+            'Brainrot God': ['FF0000', 'FF7700', 'FFFF00', '00FF00', '0088FF', 'AA00FF', 'FF00FF'],
+            'Secret': ['00FFFF', '88FFFF', 'FFFFFF', '88FFFF', '00FFFF', '00CCCC'],
+            'OG': ['FF00FF', 'FF69B4'],
+            'Glitch': ['FF00FF']
+        };
+        function escHtml(s) {
+            return String(s).replace(/[&<>"']/g, function(c) {
+                return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];
+            });
+        }
+        function tierHtml(text, tier) {
+            var colors = TIER_COLORS[tier] || ['FFFFFF'];
+            if (colors.length === 1) return '<span style="color:#' + colors[0] + '">' + escHtml(text) + '</span>';
+            var out = '', j = 0, raw = String(text);
+            for (var i = 0; i < raw.length; i++) {
+                var ch = raw.charAt(i);
+                if (ch === ' ') { out += ' '; continue; }
+                out += '<span style="color:#' + colors[j % colors.length] + '">' + escHtml(ch) + '</span>';
+                j++;
+            }
+            return out;
+        }
+        function tierForBv(bv) {
+            for (var i = 0; i < FB.length; i++) if (FB[i].bv === bv) return FB[i].tier;
+            var rar = rarityOf(bv);
+            if (!rar) return null;
+            return rar.label === 'BRAINROT GOD' ? 'Brainrot God' : rar.label.charAt(0) + rar.label.slice(1).toLowerCase();
+        }
 
         function imgUrl(bv) {
             return IMG_BASE + bv + '.webp?v=' + IMG_V;
@@ -474,9 +504,9 @@
                     var rar = rarityOf(p.bv);
                     html += '<div class="' + cls + '" onclick="selectBrainrot(' + i + ')" style="position:relative">';
                     html += '<img src="' + imgUrl(p.bv) + '" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><text x=%2226%22 y=%2234%22 text-anchor=%22middle%22 font-size=%2224%22>?</text></svg>\'">';
-                    html += '<div class="card-name">' + prettyName(p.bv) + '</div>';
+                    html += '<div class="card-name">' + tierHtml(prettyName(p.bv), tierForBv(p.bv)) + '</div>';
                     if (gps > 0) html += '<div class="card-gps">' + fmtGps(gps) + '/s</div>';
-                    if (rar) html += '<div class="card-rar" style="color:' + rar.color + '">' + rar.label + '</div>';
+                    if (rar) html += '<div class="card-rar">' + tierHtml(rar.label, tierForBv(p.bv)) + '</div>';
                     html += '</div>';
                 }
             }
@@ -588,10 +618,10 @@
                     var titleTxt = prettyName(h.bv) + ' · ' + (p * 100).toFixed(2) + '%' + (owned ? ' (already owned)' : '');
                     html += '<div class="pchip ' + tierClass + (owned ? ' owned' : '') + '" title="' + titleTxt + '">';
                     html += '<img src="' + imgUrl(h.bv) + '" onerror="this.style.visibility=\'hidden\'">';
-                    html += '<div class="pname">' + prettyName(h.bv) + '</div>';
+                    html += '<div class="pname">' + tierHtml(prettyName(h.bv), h.tier) + '</div>';
                     html += '<div class="pgps">' + fmtGps(h.gps) + '/s</div>';
                     html += '<div class="prob">' + pctStr + '</div>';
-                    if (rar) html += '<div class="prar" style="color:' + rar.color + '">' + rar.label + '</div>';
+                    if (rar) html += '<div class="prar">' + tierHtml(rar.label, h.tier) + '</div>';
                     html += '</div>';
                 }
                 strip.innerHTML = html;
@@ -605,9 +635,9 @@
                 el.className = 'slot filled';
                 var gps = GPS_BY_BV[data.bv] || 0;
                 var rar = rarityOf(data.bv);
-                var parts = '<img src="' + imgUrl(data.bv) + '"><div class="slot-label">' + prettyName(data.bv) + '</div>';
+                var parts = '<img src="' + imgUrl(data.bv) + '"><div class="slot-label">' + tierHtml(prettyName(data.bv), tierForBv(data.bv)) + '</div>';
                 if (gps > 0) parts += '<div class="slot-gps">' + fmtGps(gps) + '/s</div>';
-                if (rar) parts += '<div class="slot-rar" style="color:' + rar.color + '">' + rar.label + '</div>';
+                if (rar) parts += '<div class="slot-rar">' + tierHtml(rar.label, tierForBv(data.bv)) + '</div>';
                 parts += '<button class="remove-btn" onclick="event.stopPropagation();clearSlot(\'' + elemId.charAt(4) + '\')">&times;</button>';
                 el.innerHTML = parts;
             } else {
@@ -727,8 +757,8 @@
             var card = document.getElementById('resultCard');
             card.className = 'result-card ' + tierClass;
             document.getElementById('resultImg').src = imgUrl(fb.bv);
-            document.getElementById('resultTier').textContent = fb.tier.toUpperCase();
-            document.getElementById('resultName').textContent = prettyName(fb.bv);
+            document.getElementById('resultTier').innerHTML = tierHtml(fb.tier, fb.tier);
+            document.getElementById('resultName').innerHTML = tierHtml(prettyName(fb.bv), fb.tier);
             document.getElementById('resultGps').textContent = fmtGps(fb.gps) + ' gold/sec';
             document.getElementById('resultOverlay').classList.add('show');
         }
