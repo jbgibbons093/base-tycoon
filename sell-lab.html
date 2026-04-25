@@ -539,19 +539,30 @@
             if (pedestals.length === 0) {
                 html = '<div class="complete-msg" style="grid-column:1/-1">No brainrots on pedestals.<br>Deposit brainrots at your base first!</div>';
             } else {
-                for (var i = 0; i < pedestals.length; i++) {
-                    var p = pedestals[i];
+                // Sort pedestals by rarity rank DESC (highest tier first), then floor/slot
+                var sorted = pedestals.slice().sort(function(a, b) {
+                    var ra = (RBV[a.bv] !== undefined) ? RBV[a.bv] : -1;
+                    var rb = (RBV[b.bv] !== undefined) ? RBV[b.bv] : -1;
+                    if (rb !== ra) return rb - ra;
+                    if (a.floor !== b.floor) return a.floor - b.floor;
+                    return a.slot - b.slot;
+                });
+                for (var i = 0; i < sorted.length; i++) {
+                    var p = sorted[i];
+                    var origIdx = pedestals.indexOf(p);
                     var isFusion = FUSION_QS[p.questNum];
                     var isSelected = slotA && slotA.floor === p.floor && slotA.slot === p.slot;
-                    var cls = 'inv-card';
+                    var rar = rarityOf(p.bv);
+                    var TIER_CLS = {'common':'Common','uncommon':'Uncommon','rare':'Rare','epic':'Epic','legendary':'Legendary','mythic':'Mythic','fusion_rare':'Rare','fusion_epic':'Epic','fusion_legendary':'Legendary','fusion_mythic':'Mythic','fusion_brainrot_god':'BrainrotGod','fusion_secret':'Secret','fusion_og':'OG','fusion_glitch':'Glitch'};
+                    var tierCls = (rar && TIER_CLS[rar.id]) ? ' tier-' + TIER_CLS[rar.id] : '';
+                    var cls = 'inv-card' + tierCls;
                     if (isSelected) cls += ' selected';
                     if (isFusion) cls += ' fusion-owned';
 
                     var price = sellPriceFor(p.bv);
-                    var rar = rarityOf(p.bv);
-                    html += '<div class="' + cls + '" onclick="selectBrainrot(' + i + ')">';
+                    html += '<div class="' + cls + '" onclick="selectBrainrot(' + origIdx + ')">';
                     html += '<img src="' + imgUrl(p.bv) + '" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><text x=%2226%22 y=%2234%22 text-anchor=%22middle%22 font-size=%2224%22>?</text></svg>\'">';
-                    html += '<div class="card-name">' + prettyName(p.bv) + '</div>';
+                    html += '<div class="card-name"' + (rar ? ' style="color:' + rar.color + '"' : '') + '>' + prettyName(p.bv) + '</div>';
                     html += '<div class="card-price">' + fmtGold(price) + 'g</div>';
                     if (rar) html += '<div class="card-rar" style="color:' + rar.color + '">' + rar.label + '</div>';
                     html += '</div>';
@@ -568,10 +579,13 @@
         function renderSlot() {
             var el = document.getElementById('slotA');
             if (slotA) {
-                el.className = 'slot filled';
-                var gps = GPS_BY_BV[slotA.bv] || 0;
                 var rar = rarityOf(slotA.bv);
-                var parts = '<img src="' + imgUrl(slotA.bv) + '"><div class="slot-label">' + prettyName(slotA.bv) + '</div>';
+                var TIER_CLS = {'common':'Common','uncommon':'Uncommon','rare':'Rare','epic':'Epic','legendary':'Legendary','mythic':'Mythic','fusion_rare':'Rare','fusion_epic':'Epic','fusion_legendary':'Legendary','fusion_mythic':'Mythic','fusion_brainrot_god':'BrainrotGod','fusion_secret':'Secret','fusion_og':'OG','fusion_glitch':'Glitch'};
+                var tierCls = (rar && TIER_CLS[rar.id]) ? ' tier-' + TIER_CLS[rar.id] : '';
+                el.className = 'slot filled' + tierCls;
+                var gps = GPS_BY_BV[slotA.bv] || 0;
+                var nameStyle = rar ? ' style="color:' + rar.color + '"' : '';
+                var parts = '<img src="' + imgUrl(slotA.bv) + '"><div class="slot-label"' + nameStyle + '>' + prettyName(slotA.bv) + '</div>';
                 if (gps > 0) parts += '<div class="slot-gps">' + fmtGps(gps) + '/s</div>';
                 if (rar) parts += '<div class="slot-rar" style="color:' + rar.color + '">' + rar.label + '</div>';
                 parts += '<button class="remove-btn" onclick="event.stopPropagation();clearSlot()">&times;</button>';
@@ -615,7 +629,10 @@
             if (!slotA || sellLocked) return;
             var price = sellPriceFor(slotA.bv);
             document.getElementById('confirmImg').src = imgUrl(slotA.bv);
-            document.getElementById('confirmBrainrot').textContent = prettyName(slotA.bv);
+            var rarC = rarityOf(slotA.bv);
+            document.getElementById('confirmBrainrot').innerHTML = rarC
+                ? '<span style="color:' + rarC.color + '">' + prettyName(slotA.bv) + '</span><div style="font-size:11px;font-weight:900;letter-spacing:1px;color:' + rarC.color + ';margin-top:4px">' + rarC.label + '</div>'
+                : prettyName(slotA.bv);
             document.getElementById('confirmPrice').textContent = fmtGold(price) + ' gold';
             document.getElementById('confirmOverlay').classList.add('show');
         }
@@ -654,7 +671,10 @@
 
         function showResult(sold, price) {
             document.getElementById('resultImg').src = imgUrl(sold.bv);
-            document.getElementById('resultName').textContent = prettyName(sold.bv);
+            var rarR = rarityOf(sold.bv);
+            document.getElementById('resultName').innerHTML = rarR
+                ? '<span style="color:' + rarR.color + '">' + prettyName(sold.bv) + '</span><div style="font-size:11px;font-weight:900;letter-spacing:1px;color:' + rarR.color + ';margin-top:4px">' + rarR.label + '</div>'
+                : prettyName(sold.bv);
             document.getElementById('resultPayout').textContent = '+' + fmtGold(price) + ' gold';
             document.getElementById('resultOverlay').classList.add('show');
         }

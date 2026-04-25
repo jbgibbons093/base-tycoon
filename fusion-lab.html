@@ -491,22 +491,34 @@
             if (pedestals.length === 0) {
                 html = '<div class="complete-msg" style="grid-column:1/-1">No brainrots on pedestals.<br>Deposit brainrots first!</div>';
             } else {
-                for (var i = 0; i < pedestals.length; i++) {
-                    var p = pedestals[i];
+                // Sort by rarity rank DESC, then floor/slot
+                var sorted = pedestals.slice().sort(function(a, b) {
+                    var ra = (RBV[a.bv] !== undefined) ? RBV[a.bv] : -1;
+                    var rb = (RBV[b.bv] !== undefined) ? RBV[b.bv] : -1;
+                    if (rb !== ra) return rb - ra;
+                    if (a.floor !== b.floor) return a.floor - b.floor;
+                    return a.slot - b.slot;
+                });
+                var TIER_CLS = {'Rare':'Rare','Epic':'Epic','Legendary':'Legendary','Mythic':'Mythic','Brainrot God':'BrainrotGod','Secret':'Secret','OG':'OG','Glitch':'Glitch','Common':'Common','Uncommon':'Uncommon'};
+                for (var i = 0; i < sorted.length; i++) {
+                    var p = sorted[i];
+                    var origIdx = pedestals.indexOf(p);
                     var isFusion = FUSION_QS[p.questNum];
                     var isSelectedA = slotA && slotA.floor === p.floor && slotA.slot === p.slot;
                     var isSelectedB = slotB && slotB.floor === p.floor && slotB.slot === p.slot;
-                    var cls = 'inv-card';
+                    var tier = tierForBv(p.bv);
+                    var tierCls = TIER_CLS[tier] ? ' tier-' + TIER_CLS[tier] : '';
+                    var cls = 'inv-card' + tierCls;
                     if (isSelectedA || isSelectedB) cls += ' selected';
                     if (isFusion) cls += ' fusion-owned';
 
                     var gps = GPS_BY_BV[p.bv] || 0;
                     var rar = rarityOf(p.bv);
-                    html += '<div class="' + cls + '" onclick="selectBrainrot(' + i + ')" style="position:relative">';
+                    html += '<div class="' + cls + '" onclick="selectBrainrot(' + origIdx + ')" style="position:relative">';
                     html += '<img src="' + imgUrl(p.bv) + '" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><text x=%2226%22 y=%2234%22 text-anchor=%22middle%22 font-size=%2224%22>?</text></svg>\'">';
-                    html += '<div class="card-name">' + tierHtml(prettyName(p.bv), tierForBv(p.bv)) + '</div>';
+                    html += '<div class="card-name">' + tierHtml(prettyName(p.bv), tier) + '</div>';
                     if (gps > 0) html += '<div class="card-gps">' + fmtGps(gps) + '/s</div>';
-                    if (rar) html += '<div class="card-rar">' + tierHtml(rar.label, tierForBv(p.bv)) + '</div>';
+                    if (rar) html += '<div class="card-rar">' + tierHtml(rar.label, tier) + '</div>';
                     html += '</div>';
                 }
             }
