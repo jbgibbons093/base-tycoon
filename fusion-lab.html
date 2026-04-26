@@ -439,7 +439,7 @@
             'bv_PIGEONS_ARE_SPIES_MADE_BY': 'Piccione Macchina',
             'bv_Cant_come_up_with_a_funny': 'Bombombini Gusini'
         };
-        function richName(bv) { return NAMEOV[bv] || bv.substring(3).replace(/_/g, ' '); }
+        
         var TIER_COLORS = {
             'Common': ['AAAAAA'],
             'Rare': ['0088FF'],
@@ -647,7 +647,7 @@
                 el.className = 'slot filled';
                 var gps = GPS_BY_BV[data.bv] || 0;
                 var rar = rarityOf(data.bv);
-                var parts = '<img src="' + imgUrl(data.bv) + '"><div class="slot-label">' + richName(data.bv)) + '</div>';
+                var parts = '<img src="' + imgUrl(data.bv) + '"><div class="slot-label">' + richName(data.bv) + '</div>';
                 if (gps > 0) parts += '<div class="slot-gps">' + fmtGps(gps) + '/s</div>';
                 if (rar) parts += '<div class="slot-rar">' + richRarity(data.bv) + '</div>';
                 parts += '<button class="remove-btn" onclick="event.stopPropagation();clearSlot(\'' + elemId.charAt(4) + '\')">&times;</button>';
