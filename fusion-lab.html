@@ -280,6 +280,7 @@
             </div>
             <button class="fuse-btn" id="fuseBtn" disabled onclick="doFuse()">FUSE</button>
         </div>
+        <div id="fuseCostBar" style="text-align:center;font-family:Nunito,sans-serif;font-size:13px;font-weight:800;color:#ffd700;margin:6px 0 2px"></div>
         <div class="possible" id="possibleBox">
             <div class="possible-label"><span>POSSIBLE OUTCOMES</span><span class="range-hint" id="rangeHint"></span></div>
             <div class="possible-strip" id="possibleStrip"></div>
@@ -498,6 +499,7 @@
                     var rm = key.match(/^Ped_Rate_F(\d+)_(\d+)$/);
                     if (rm) applyPedMutation(parseInt(rm[1], 10), parseInt(rm[2], 10), null, Number(val) || 0);
                     if (key === 'username') myUsername = pairs[i].substring(eq + 1).trim();
+                    if (key === 'Gold') _curGold = Number(pairs[i].substring(eq + 1).trim()) || 0;
                     if (key === 'Fu_Pending_Bonus_Label') {
                         window._fuPendingBonusLabel = pairs[i].substring(eq + 1).trim();
                         if (typeof _maybeUpdateResultBonus === 'function') _maybeUpdateResultBonus();
@@ -609,7 +611,9 @@
             renderPossibleOutcomes();
 
             // Fuse button
-            document.getElementById('fuseBtn').disabled = !slotA || !slotB || fuseLocked;
+            var _cst = fusionCost(slotA, slotB);
+            document.getElementById('fuseBtn').disabled = !slotA || !slotB || fuseLocked || (_cst > _curGold);
+            updateFuseCostBar();
 
             // Tracker
             var discovered = ownedFusionQs.length;
@@ -759,8 +763,40 @@
             return Math.floor(Math.random() * (max - min + 1)) + min;
         }
 
+        // Cost per max-ingredient rarity tier (matches room-side fuse_pay_<rarity> quests)
+        var FUSE_COST_BY_TIER = {
+            common: 100, rare: 500, epic: 2500, legendary: 15000, mythic: 75000,
+            brainrot_god: 400000, secret: 2000000, og: 10000000, glitch: 50000000
+        };
+        var TIER_RANK = {
+            common:0, rare:1, epic:2, legendary:3, mythic:4,
+            brainrot_god:5, secret:6, og:7, glitch:8
+        };
+        function rarIdOf(bv) { var r = rarityOf(bv); return r ? r.id : 'common'; }
+        function fusionCost(slotA, slotB) {
+            if (!slotA || !slotB) return 0;
+            var rA = rarIdOf(slotA.bv), rB = rarIdOf(slotB.bv);
+            var topId = (TIER_RANK[rA] || 0) >= (TIER_RANK[rB] || 0) ? rA : rB;
+            return FUSE_COST_BY_TIER[topId] || 100;
+        }
+        var _curGold = 0;
+        function fmtCost(n){ if(n>=1e9)return (n/1e9).toFixed(1)+'B'; if(n>=1e6)return (n/1e6).toFixed(1)+'M'; if(n>=1e3)return (n/1e3).toFixed(1)+'K'; return Math.floor(n).toString(); }
+        function updateFuseCostBar() {
+            var bar = document.getElementById('fuseCostBar'); if (!bar) return;
+            if (!slotA || !slotB) { bar.innerHTML=''; return; }
+            var cost = fusionCost(slotA, slotB);
+            var ok = _curGold >= cost;
+            var color = ok ? '#ffd700' : '#ff5050';
+            bar.innerHTML = "<span style='color:"+color+"'>Fuse cost: $" + fmtCost(cost) + "</span>" + (ok ? '' : "  <span style='color:#999;font-weight:600'>(need $"+fmtCost(cost-_curGold)+" more)</span>");
+        }
+
         function doFuse() {
             if (!slotA || !slotB || fuseLocked) return;
+            var cost = fusionCost(slotA, slotB);
+            if (_curGold < cost) {
+                alert('Not enough gold. This fusion costs $' + fmtCost(cost) + '.');
+                return;
+            }
             fuseLocked = true;
             document.getElementById('fuseBtn').disabled = true;
 
@@ -782,31 +818,23 @@
                 }
             }
 
-            var result;
-            if (candidates.length > 0) {
-                result = candidates[Math.floor(Math.random() * candidates.length)];
-            } else {
-                // Fallback: closest unowned
-                var unowned = [];
-                for (var i = 0; i < FB.length; i++) {
-                    if (ownedFusionQs.indexOf(FB[i].q) === -1) unowned.push(FB[i]);
-                }
-                if (unowned.length === 0) {
-                    fuseLocked = false;
-                    alert('Collection Complete! You own all 40 fusion brainrots!');
-                    render();
-                    return;
-                }
-                unowned.sort(function(a, b) {
-                    var midA = (a.rs[0] + a.rs[1]) / 2;
-                    var midB = (b.rs[0] + b.rs[1]) / 2;
-                    return Math.abs(total - midA) - Math.abs(total - midB);
-                });
-                result = unowned[0];
+            if (candidates.length === 0) {
+                fuseLocked = false;
+                document.getElementById('fuseBtn').disabled = false;
+                alert("These ingredients can't produce any new fusion brainrot you don't already own. Try higher-tier ingredients to reach a new tier.");
+                return;
             }
+            var result = candidates[Math.floor(Math.random() * candidates.length)];
 
             // Send quest triggers to Portals
             if (sdk) {
+                // Pay for the fusion (deducts gold based on max ingredient tier)
+                var rA = rarIdOf(slotA.bv), rB = rarIdOf(slotB.bv);
+                var topId = (TIER_RANK[rA] || 0) >= (TIER_RANK[rB] || 0) ? rA : rB;
+                sdk.sendMessageToUnity(JSON.stringify({
+                    TaskName: 'fuse_pay_' + topId,
+                    TaskTargetState: 'SetNotActiveToActive'
+                }));
                 // Clear slot A
                 sdk.sendMessageToUnity(JSON.stringify({
                     TaskName: 'fuse_clr_F' + slotA.floor + '_' + slotA.slot,
