@@ -293,6 +293,7 @@
             <img id="resultImg" src="">
             <div class="result-tier" id="resultTier"></div>
             <div class="result-name" id="resultName"></div>
+            <div class="result-mut" id="resultMut" style="margin-top:6px;font-size:14px"></div>
             <div class="result-gps" id="resultGps"></div>
             <div class="result-note">Deposit on a pedestal to start earning!</div>
         </div>
@@ -488,6 +489,10 @@
                     var rm = key.match(/^Ped_Rate_F(\d+)_(\d+)$/);
                     if (rm) applyPedMutation(parseInt(rm[1], 10), parseInt(rm[2], 10), null, Number(val) || 0);
                     if (key === 'username') myUsername = pairs[i].substring(eq + 1).trim();
+                    if (key === 'Fu_Pending_Bonus_Label') {
+                        window._fuPendingBonusLabel = pairs[i].substring(eq + 1).trim();
+                        if (typeof _maybeUpdateResultBonus === 'function') _maybeUpdateResultBonus();
+                    }
                 }
                 render();
             }
@@ -827,6 +832,20 @@
             }, 600);
         }
 
+        // Fusion baseline mutation per questNum (mirrors room TN[] table)
+        var FUS_TN = {310:'Gold',312:'',314:'',316:'',318:'',320:'Gold',322:'Frozen',324:'Diamond',326:'',328:'Gold',330:'',332:'',334:'Gold',336:'',338:'',340:'',342:'',344:'',346:'',348:'Gold',350:'',352:'Gold',354:'',356:'',358:'',360:'',362:'Gold',364:'',366:'',368:'Diamond',370:'Diamond',372:'',374:'',376:'',378:'',380:'',382:'',384:'Gold Frozen',386:'',388:''};
+        var FUS_MUT_COLOR = {Gold:'#FFD700',Diamond:'#74E8FF',Frozen:'#9DDCFF',Neon:'#39FF14',Rainbow:'#FF57D8',Galaxy:'#B37CFF'};
+        var _lastFuseResult = null;
+        var _lastFuseBaseHtml = '';
+        function _mutSpan(label) {
+            return '<span style="color:' + (FUS_MUT_COLOR[label] || '#FFFFFF') + ';font-weight:900;text-shadow:0 0 6px rgba(255,255,255,0.3)">' + label + '</span>';
+        }
+        function _baseMutHtml(q) {
+            var lab = FUS_TN[q] || '';
+            if (!lab) return '';
+            return lab.split(' ').map(_mutSpan).join(' ');
+        }
+
         function showResult(fb) {
             var tierClass = 'tier-' + fb.tier.replace(/ /g, '');
             var card = document.getElementById('resultCard');
@@ -834,8 +853,29 @@
             document.getElementById('resultImg').src = imgUrl(fb.bv);
             document.getElementById('resultTier').innerHTML = richRarity(fb.bv);
             document.getElementById('resultName').innerHTML = richName(fb.bv);
+            _lastFuseResult = fb;
+            _lastFuseBaseHtml = _baseMutHtml(fb.q);
+            document.getElementById('resultMut').innerHTML = _lastFuseBaseHtml;
             document.getElementById('resultGps').textContent = fmtGps(fb.gps) + ' gold/sec';
             document.getElementById('resultOverlay').classList.add('show');
+            // Pull the rolled bonus from the room ~500ms later (fuse_gr fires server-side)
+            setTimeout(requestSync, 500);
+            setTimeout(requestSync, 1500);
+        }
+
+        function _maybeUpdateResultBonus() {
+            if (!_lastFuseResult) return;
+            var overlay = document.getElementById('resultOverlay');
+            if (!overlay || !overlay.classList.contains('show')) return;
+            var raw = String(window._fuPendingBonusLabel || '');
+            var label = raw.trim();
+            if (!label || label === '0' || !FUS_MUT_COLOR[label]) {
+                document.getElementById('resultMut').innerHTML = _lastFuseBaseHtml;
+                return;
+            }
+            var bonusHtml = _mutSpan(label);
+            var combined = _lastFuseBaseHtml ? (_lastFuseBaseHtml + ' ' + bonusHtml) : bonusHtml;
+            document.getElementById('resultMut').innerHTML = combined;
         }
 
         function closeResult() {
