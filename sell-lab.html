@@ -652,7 +652,7 @@
                 var TIER_CLS = {'common':'Common','rare':'Rare','epic':'Epic','legendary':'Legendary','mythic':'Mythic','brainrot_god':'BrainrotGod','secret':'Secret','og':'OG','glitch':'Glitch'};
                 var tierCls = (rar && TIER_CLS[rar.id]) ? ' tier-' + TIER_CLS[rar.id] : '';
                 el.className = 'slot filled' + tierCls;
-                var gps = GPS_BY_BV[slotA.bv] || 0;
+                var gps = (slotA.rate && slotA.rate > 0) ? slotA.rate : (GPS_BY_BV[slotA.bv] || 0);
                 var nameStyle = rar ? ' style="color:' + rar.color + '"' : '';
                 var parts = '<img src="' + imgUrl(slotA.bv) + '"><div class="slot-label"' + nameStyle + '>' + richName(slotA.bv) + '</div>';
                 if (gps > 0) parts += '<div class="slot-gps">' + fmtGps(gps) + '/s</div>';

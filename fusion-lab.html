@@ -587,7 +587,7 @@
                     if (isSelectedA || isSelectedB) cls += ' selected';
                     if (isFusion) cls += ' fusion-owned';
 
-                    var gps = GPS_BY_BV[p.bv] || 0;
+                    var gps = (p.rate && p.rate > 0) ? p.rate : (GPS_BY_BV[p.bv] || 0);
                     var rar = rarityOf(p.bv);
                     html += '<div class="' + cls + '" onclick="selectBrainrot(' + origIdx + ')" style="position:relative">';
                     html += '<img src="' + imgUrl(p.bv) + '" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><text x=%2226%22 y=%2234%22 text-anchor=%22middle%22 font-size=%2224%22>?</text></svg>\'">';
@@ -722,7 +722,7 @@
             var el = document.getElementById(elemId);
             if (data) {
                 el.className = 'slot filled';
-                var gps = GPS_BY_BV[data.bv] || 0;
+                var gps = (data.rate && data.rate > 0) ? data.rate : (GPS_BY_BV[data.bv] || 0);
                 var rar = rarityOf(data.bv);
                 var parts = '<img src="' + imgUrl(data.bv) + '"><div class="slot-label">' + richName(data.bv) + '</div>';
                 if (gps > 0) parts += '<div class="slot-gps">' + fmtGps(gps) + '/s</div>';
