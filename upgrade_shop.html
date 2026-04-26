@@ -492,7 +492,7 @@
         function requestSync() {
             if (!sdk) return;
             sdk.sendMessageToUnity(JSON.stringify({
-                TaskName: 'hud_sync',
+                TaskName: 'iframe_sync',
                 TaskTargetState: 'SetAnyToActive'
             }));
         }

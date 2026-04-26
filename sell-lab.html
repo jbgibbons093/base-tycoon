@@ -417,7 +417,7 @@
 
         function requestSync() {
             if (!sdk) return;
-            sdk.sendMessageToUnity(JSON.stringify({ TaskName: 'hud_sync', TaskTargetState: 'SetAnyToActive' }));
+            sdk.sendMessageToUnity(JSON.stringify({ TaskName: 'iframe_sync', TaskTargetState: 'SetAnyToActive' }));
         }
 
         function closeShop() {
@@ -473,9 +473,38 @@
             if (!label) return '';
             var parts = label.split(' ');
             return parts.map(function(l){ return '<span style="color:'+(MUT_COLORS[l]||'#FFFFFF')+';font-weight:900">'+l+'</span>'; }).join(' ');
+        }        function applyPedMutation(f, sl, mut, rate) {
+            f = Number(f) || 0; sl = Number(sl) || 0;
+            var hasMut = mut !== null && mut !== undefined;
+            var hasRate = rate !== null && rate !== undefined;
+            mut = Number(mut) || 0; rate = Number(rate) || 0;
+            for (var i = 0; i < pedestals.length; i++) {
+                if (pedestals[i].floor === f && pedestals[i].slot === sl) {
+                    if (hasMut) pedestals[i].mut = mut;
+                    if (hasRate) pedestals[i].rate = rate;
+                    if (slotA && slotA.floor === f && slotA.slot === sl) { if (hasMut) slotA.mut = mut; if (hasRate) slotA.rate = rate; }
+                    if (typeof slotB !== 'undefined' && slotB && slotB.floor === f && slotB.slot === sl) { if (hasMut) slotB.mut = mut; if (hasRate) slotB.rate = rate; }
+                    break;
+                }
+            }
         }
+        function handlePedMutMessage(body) {
+            var pairs = String(body || '').split('&');
+            for (var i = 0; i < pairs.length; i++) {
+                var eq = pairs[i].indexOf('=');
+                if (eq < 0) continue;
+                var key = pairs[i].substring(0, eq);
+                var vals = pairs[i].substring(eq + 1).split(',');
+                var m = key.match(/^F(\d+)_(\d+)$/);
+                if (m) applyPedMutation(parseInt(m[1], 10), parseInt(m[2], 10), Number(vals[0]) || 0, Number(vals[1]) || 0);
+            }
+        }
+
         function handleMessage(msg) {
-            if (msg.startsWith('peds:')) {
+            if (msg.startsWith('pedmut:')) {
+                handlePedMutMessage(msg.substring(7));
+                render();
+            } else if (msg.startsWith('peds:')) {
                 var nums = msg.substring(5).split(',');
                 pedestals = [];
                 var idx = 0;
@@ -515,19 +544,9 @@
                         }
                     }
                     var mm = key.match(/^Ped_Mut_F(\d+)_(\d+)$/);
-                    if (mm) {
-                        var fl = parseInt(mm[1]), sl = parseInt(mm[2]);
-                        for (var pp = 0; pp < pedestals.length; pp++) {
-                            if (pedestals[pp].floor === fl && pedestals[pp].slot === sl) { pedestals[pp].mut = Number(val) || 0; break; }
-                        }
-                    }
+                    if (mm) applyPedMutation(parseInt(mm[1], 10), parseInt(mm[2], 10), Number(val) || 0, null);
                     var rm = key.match(/^Ped_Rate_F(\d+)_(\d+)$/);
-                    if (rm) {
-                        var fl2 = parseInt(rm[1]), sl2 = parseInt(rm[2]);
-                        for (var pp2 = 0; pp2 < pedestals.length; pp2++) {
-                            if (pedestals[pp2].floor === fl2 && pedestals[pp2].slot === sl2) { pedestals[pp2].rate = Number(val) || 0; break; }
-                        }
-                    }
+                    if (rm) applyPedMutation(parseInt(rm[1], 10), parseInt(rm[2], 10), null, Number(val) || 0);
                     if (key === 'username') myUsername = pairs[i].substring(eq + 1).trim();
                 }
                 if (slotA) {
@@ -604,6 +623,8 @@
                     html += '<div class="card-name"' + (rar ? ' style="color:' + rar.color + '"' : '') + '>' + richName(p.bv) + '</div>';
                     html += '<div class="card-price">$' + fmtGold(price) + '</div>';
                     html += '<div class="card-rar">' + richRarity(p.bv) + '</div>';
+                    var mlab = mutLabelFromMask(p.mut);
+                    if (mlab) html += '<div class="card-mut" style="font-size:9px;font-weight:900;margin-top:2px;line-height:1">' + mutHtml(mlab) + '</div>';
                     html += '</div>';
                 }
             }
@@ -627,6 +648,7 @@
                 var parts = '<img src="' + imgUrl(slotA.bv) + '"><div class="slot-label"' + nameStyle + '>' + richName(slotA.bv) + '</div>';
                 if (gps > 0) parts += '<div class="slot-gps">' + fmtGps(gps) + '/s</div>';
                 parts += '<div class="slot-rar">' + richRarity(slotA.bv) + '</div>';
+                if (mlab) parts += '<div class="card-mut" style="font-size:9px;font-weight:900;margin-top:2px;line-height:1">' + mutHtml(mlab) + '</div>';
                 parts += '<button class="remove-btn" onclick="event.stopPropagation();clearSlot()">&times;</button>';
                 el.innerHTML = parts;
             } else {
@@ -642,7 +664,8 @@
                 var price = sellPriceFor(slotA.bv, slotA.rate);
                 pv.className = 'price-value';
                 pv.textContent = '$' + fmtGold(price);
-                ps.textContent = '~2 min of ' + fmtGps(GPS_BY_BV[slotA.bv] || 0) + '/s';
+                var rate = (slotA.rate && slotA.rate > 0) ? slotA.rate : (GPS_BY_BV[slotA.bv] || 0);
+                ps.textContent = '~2 min of ' + fmtGps(rate) + '/s';
             } else {
                 pv.className = 'price-value empty';
                 pv.innerHTML = '&mdash;';
@@ -669,7 +692,8 @@
             var price = sellPriceFor(slotA.bv, slotA.rate);
             document.getElementById('confirmImg').src = imgUrl(slotA.bv);
             var rarC = rarityOf(slotA.bv);
-            document.getElementById('confirmBrainrot').innerHTML = richName(slotA.bv) + '<div style="font-size:11px;font-weight:900;letter-spacing:1px;margin-top:4px">' + richRarity(slotA.bv) + '</div>';
+            var cMut = mutLabelFromMask(slotA.mut);
+            document.getElementById('confirmBrainrot').innerHTML = richName(slotA.bv) + '<div style="font-size:11px;font-weight:900;letter-spacing:1px;margin-top:4px">' + richRarity(slotA.bv) + '</div>' + (cMut ? '<div style="font-size:11px;font-weight:900;margin-top:4px">' + mutHtml(cMut) + '</div>' : '');
             document.getElementById('confirmPrice').textContent = '$' + fmtGold(price);
             document.getElementById('confirmOverlay').classList.add('show');
         }
@@ -697,7 +721,7 @@
                 // Refresh HUD gold display shortly after
                 setTimeout(function() {
                     sdk.sendMessageToUnity(JSON.stringify({
-                        TaskName: 'hud_sync',
+                        TaskName: 'iframe_sync',
                         TaskTargetState: 'SetAnyToActive'
                     }));
                 }, 700);
@@ -709,9 +733,10 @@
         function showResult(sold, price) {
             document.getElementById('resultImg').src = imgUrl(sold.bv);
             var rarR = rarityOf(sold.bv);
-            document.getElementById('resultName').innerHTML = rarR
+            var rMut = mutLabelFromMask(sold.mut);
+            document.getElementById('resultName').innerHTML = (rarR
                 ? '<span style="color:' + rarR.color + '">' + richName(sold.bv) + '</span><div style="font-size:11px;font-weight:900;letter-spacing:1px;color:' + rarR.color + ';margin-top:4px">' + rarR.label + '</div>'
-                : richName(sold.bv);
+                : richName(sold.bv)) + (rMut ? '<div style="font-size:11px;font-weight:900;margin-top:4px">' + mutHtml(rMut) + '</div>' : '');
             document.getElementById('resultPayout').textContent = '+' + '$' + fmtGold(price);
             document.getElementById('resultOverlay').classList.add('show');
         }
