@@ -265,16 +265,24 @@
         }
         .result-ok:hover { background: rgba(var(--gold-rgb), 0.3); }
 
-        .tier-Common { border-color: #9db7c9; }
-        .tier-Uncommon { border-color: #6ecf4a; }
-        .tier-Rare { border-color: #4a7fff; }
-        .tier-Epic { border-color: #a155f2; }
-        .tier-Legendary { border-color: #ffb347; }
-        .tier-Mythic { border-color: #ff4a9f; }
-        .tier-BrainrotGod { border-color: #ff2222; }
-        .tier-Secret { border-color: #00ff88; }
-        .tier-OG { border-color: #ffd700; }
-        .tier-Glitch { border-color: #ff00ff; }
+        .inv-card.tier-Common { border-color: #888888; box-shadow: 0 0 8px rgba(136,136,136,0.3); }
+        .inv-card.tier-Rare { border-color: #0088FF; box-shadow: 0 0 10px rgba(0,136,255,0.5); }
+        .inv-card.tier-Epic { border-color: #9933FF; box-shadow: 0 0 10px rgba(153,51,255,0.5); }
+        .inv-card.tier-Legendary { border-color: #FFA500; box-shadow: 0 0 10px rgba(255,165,0,0.5); }
+        .inv-card.tier-Mythic { border-color: #FF0000; box-shadow: 0 0 12px rgba(255,0,0,0.5); }
+        .inv-card.tier-BrainrotGod { border-color: #FF0000; box-shadow: 0 0 14px rgba(255,0,0,0.6); }
+        .inv-card.tier-Secret { border-color: #00FFFF; box-shadow: 0 0 14px rgba(0,255,255,0.6); }
+        .inv-card.tier-OG { border-color: #FF00FF; box-shadow: 0 0 14px rgba(255,0,255,0.6); }
+        .inv-card.tier-Glitch { border-color: #ff00ff; box-shadow: 0 0 14px rgba(255,0,255,0.6); }
+        .slot.tier-Common { border-color: #888888 !important; }
+        .slot.tier-Rare { border-color: #0088FF !important; }
+        .slot.tier-Epic { border-color: #9933FF !important; }
+        .slot.tier-Legendary { border-color: #FFA500 !important; }
+        .slot.tier-Mythic { border-color: #FF0000 !important; }
+        .slot.tier-BrainrotGod { border-color: #FF0000 !important; }
+        .slot.tier-Secret { border-color: #00FFFF !important; }
+        .slot.tier-OG { border-color: #FF00FF !important; }
+        .slot.tier-Glitch { border-color: #ff00ff !important; }
 
         .complete-msg {
             text-align: center; padding: 20px; color: rgba(255,255,255,0.4);
@@ -553,7 +561,7 @@
                     var isFusion = FUSION_QS[p.questNum];
                     var isSelected = slotA && slotA.floor === p.floor && slotA.slot === p.slot;
                     var rar = rarityOf(p.bv);
-                    var TIER_CLS = {'common':'Common','uncommon':'Uncommon','rare':'Rare','epic':'Epic','legendary':'Legendary','mythic':'Mythic','fusion_rare':'Rare','fusion_epic':'Epic','fusion_legendary':'Legendary','fusion_mythic':'Mythic','fusion_brainrot_god':'BrainrotGod','fusion_secret':'Secret','fusion_og':'OG','fusion_glitch':'Glitch'};
+                    var TIER_CLS = {'common':'Common','rare':'Rare','epic':'Epic','legendary':'Legendary','mythic':'Mythic','brainrot_god':'BrainrotGod','secret':'Secret','og':'OG','glitch':'Glitch'};
                     var tierCls = (rar && TIER_CLS[rar.id]) ? ' tier-' + TIER_CLS[rar.id] : '';
                     var cls = 'inv-card' + tierCls;
                     if (isSelected) cls += ' selected';
@@ -580,7 +588,7 @@
             var el = document.getElementById('slotA');
             if (slotA) {
                 var rar = rarityOf(slotA.bv);
-                var TIER_CLS = {'common':'Common','uncommon':'Uncommon','rare':'Rare','epic':'Epic','legendary':'Legendary','mythic':'Mythic','fusion_rare':'Rare','fusion_epic':'Epic','fusion_legendary':'Legendary','fusion_mythic':'Mythic','fusion_brainrot_god':'BrainrotGod','fusion_secret':'Secret','fusion_og':'OG','fusion_glitch':'Glitch'};
+                var TIER_CLS = {'common':'Common','rare':'Rare','epic':'Epic','legendary':'Legendary','mythic':'Mythic','brainrot_god':'BrainrotGod','secret':'Secret','og':'OG','glitch':'Glitch'};
                 var tierCls = (rar && TIER_CLS[rar.id]) ? ' tier-' + TIER_CLS[rar.id] : '';
                 el.className = 'slot filled' + tierCls;
                 var gps = GPS_BY_BV[slotA.bv] || 0;
