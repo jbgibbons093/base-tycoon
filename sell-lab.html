@@ -322,7 +322,7 @@
                 <div class="price-box">
                     <div class="price-label">SELL PRICE</div>
                     <div class="price-value empty" id="priceValue">&mdash;</div>
-                    <div class="price-sub" id="priceSub">2 minutes of passive gold</div>
+                    <div class="price-sub" id="priceSub">2 minutes of passive cash</div>
                 </div>
                 <button class="sell-btn" id="sellBtn" disabled onclick="openConfirm()">SELL</button>
             </div>
@@ -571,7 +571,7 @@
                     html += '<div class="' + cls + '" onclick="selectBrainrot(' + origIdx + ')">';
                     html += '<img src="' + imgUrl(p.bv) + '" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><text x=%2226%22 y=%2234%22 text-anchor=%22middle%22 font-size=%2224%22>?</text></svg>\'">';
                     html += '<div class="card-name"' + (rar ? ' style="color:' + rar.color + '"' : '') + '>' + richName(p.bv) + '</div>';
-                    html += '<div class="card-price">' + fmtGold(price) + 'g</div>';
+                    html += '<div class="card-price">$' + fmtGold(price) + '</div>';
                     html += '<div class="card-rar">' + richRarity(p.bv) + '</div>';
                     html += '</div>';
                 }
@@ -610,12 +610,12 @@
             if (slotA) {
                 var price = sellPriceFor(slotA.bv);
                 pv.className = 'price-value';
-                pv.textContent = fmtGold(price) + ' gold';
+                pv.textContent = '$' + fmtGold(price);
                 ps.textContent = '~2 min of ' + fmtGps(GPS_BY_BV[slotA.bv] || 0) + '/s';
             } else {
                 pv.className = 'price-value empty';
                 pv.innerHTML = '&mdash;';
-                ps.textContent = '2 minutes of passive gold';
+                ps.textContent = '2 minutes of passive cash';
             }
         }
 
@@ -639,7 +639,7 @@
             document.getElementById('confirmImg').src = imgUrl(slotA.bv);
             var rarC = rarityOf(slotA.bv);
             document.getElementById('confirmBrainrot').innerHTML = richName(slotA.bv) + '<div style="font-size:11px;font-weight:900;letter-spacing:1px;margin-top:4px">' + richRarity(slotA.bv) + '</div>';
-            document.getElementById('confirmPrice').textContent = fmtGold(price) + ' gold';
+            document.getElementById('confirmPrice').textContent = '$' + fmtGold(price);
             document.getElementById('confirmOverlay').classList.add('show');
         }
 
@@ -681,7 +681,7 @@
             document.getElementById('resultName').innerHTML = rarR
                 ? '<span style="color:' + rarR.color + '">' + richName(sold.bv) + '</span><div style="font-size:11px;font-weight:900;letter-spacing:1px;color:' + rarR.color + ';margin-top:4px">' + rarR.label + '</div>'
                 : richName(sold.bv);
-            document.getElementById('resultPayout').textContent = '+' + fmtGold(price) + ' gold';
+            document.getElementById('resultPayout').textContent = '+' + '$' + fmtGold(price);
             document.getElementById('resultOverlay').classList.add('show');
         }
 
