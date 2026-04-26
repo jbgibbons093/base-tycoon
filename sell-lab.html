@@ -630,9 +630,7 @@
             var price = sellPriceFor(slotA.bv);
             document.getElementById('confirmImg').src = imgUrl(slotA.bv);
             var rarC = rarityOf(slotA.bv);
-            document.getElementById('confirmBrainrot').innerHTML = rarC
-                ? '<span style="color:' ">' + richName(slotA.bv) + '</span><div style="font-size:11px;font-weight:900;letter-spacing:1px;margin-top:4px">' + richRarity(slotA.bv) + '</div>'
-                : richName(slotA.bv);
+            document.getElementById('confirmBrainrot').innerHTML = richName(slotA.bv) + '<div style="font-size:11px;font-weight:900;letter-spacing:1px;margin-top:4px">' + richRarity(slotA.bv) + '</div>';
             document.getElementById('confirmPrice').textContent = fmtGold(price) + ' gold';
             document.getElementById('confirmOverlay').classList.add('show');
         }
