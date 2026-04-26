@@ -469,6 +469,13 @@
                 render();
             } else if (msg.startsWith('inv:')) {
                 var pairs = msg.substring(4).split('&');
+                // Preserve mut/rate already populated by prior pedmut: messages,
+                // so a late inv: doesn't wipe them.
+                var _prevMutRate = {};
+                for (var _pi = 0; _pi < pedestals.length; _pi++) {
+                    var _pp = pedestals[_pi];
+                    _prevMutRate[_pp.floor + '_' + _pp.slot] = { mut: _pp.mut || 0, rate: _pp.rate || 0 };
+                }
                 pedestals = [];
                 ownedFusionQs = [];
                 for (var i = 0; i < pairs.length; i++) {
@@ -480,7 +487,9 @@
                     if (pm) {
                         var qn = Math.round(val);
                         if (qn > 0 && QBV[qn]) {
-                            pedestals.push({ floor: parseInt(pm[1]), slot: parseInt(pm[2]), questNum: qn, bv: QBV[qn], mut: 0, rate: 0 });
+                            var _pf = parseInt(pm[1]), _ps = parseInt(pm[2]);
+                            var _pre = _prevMutRate[_pf + '_' + _ps] || { mut: 0, rate: 0 };
+                            pedestals.push({ floor: _pf, slot: _ps, questNum: qn, bv: QBV[qn], mut: _pre.mut, rate: _pre.rate });
                             if (FUSION_QS[qn]) ownedFusionQs.push(qn);
                         }
                     }
