@@ -403,6 +403,23 @@
         }
 
         // === MESSAGE HANDLER ===
+        
+        var MUT_LABELS_BY_BIT = {1:'Gold',2:'Diamond',4:'Frozen',8:'Neon',16:'Rainbow',32:'Galaxy'};
+        var MUT_COLORS = {'Gold':'#FFD700','Diamond':'#74E8FF','Frozen':'#9DDCFF','Neon':'#39FF14','Rainbow':'#FF57D8','Galaxy':'#B37CFF'};
+        function mutLabelFromMask(m) {
+            m = Number(m) || 0;
+            if (m <= 0) return '';
+            var labs = [];
+            for (var bit in MUT_LABELS_BY_BIT) {
+                if (m & Number(bit)) labs.push(MUT_LABELS_BY_BIT[bit]);
+            }
+            return labs.join(' ');
+        }
+        function mutHtml(label) {
+            if (!label) return '';
+            var parts = label.split(' ');
+            return parts.map(function(l){ return '<span style="color:'+(MUT_COLORS[l]||'#FFFFFF')+';font-weight:900">'+l+'</span>'; }).join(' ');
+        }
         function handleMessage(msg) {
             if (msg.startsWith('peds:')) {
                 var nums = msg.substring(5).split(',');
@@ -530,6 +547,8 @@
                     html += '<div class="card-name">' + richName(p.bv) + '</div>';
                     if (gps > 0) html += '<div class="card-gps">' + fmtGps(gps) + '/s</div>';
                     if (rar) html += '<div class="card-rar">' + richRarity(p.bv) + '</div>';
+                    var mlab = mutLabelFromMask(p.mut);
+                    if (mlab) html += '<div class="card-mut" style="font-size:9px;font-weight:900;margin-top:2px;line-height:1">' + mutHtml(mlab) + '</div>';
                     html += '</div>';
                 }
             }
