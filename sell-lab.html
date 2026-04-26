@@ -648,6 +648,7 @@
                 var parts = '<img src="' + imgUrl(slotA.bv) + '"><div class="slot-label"' + nameStyle + '>' + richName(slotA.bv) + '</div>';
                 if (gps > 0) parts += '<div class="slot-gps">' + fmtGps(gps) + '/s</div>';
                 parts += '<div class="slot-rar">' + richRarity(slotA.bv) + '</div>';
+                var mlab = mutLabelFromMask(slotA.mut);
                 if (mlab) parts += '<div class="card-mut" style="font-size:9px;font-weight:900;margin-top:2px;line-height:1">' + mutHtml(mlab) + '</div>';
                 parts += '<button class="remove-btn" onclick="event.stopPropagation();clearSlot()">&times;</button>';
                 el.innerHTML = parts;
