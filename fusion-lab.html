@@ -450,8 +450,22 @@
                     if (pm) {
                         var qn = Math.round(val);
                         if (qn > 0 && QBV[qn]) {
-                            pedestals.push({ floor: parseInt(pm[1]), slot: parseInt(pm[2]), questNum: qn, bv: QBV[qn] });
+                            pedestals.push({ floor: parseInt(pm[1]), slot: parseInt(pm[2]), questNum: qn, bv: QBV[qn], mut: 0, rate: 0 });
                             if (FUSION_QS[qn]) ownedFusionQs.push(qn);
+                        }
+                    }
+                    var mm = key.match(/^Ped_Mut_F(\d+)_(\d+)$/);
+                    if (mm) {
+                        var mf = parseInt(mm[1]), ms = parseInt(mm[2]);
+                        for (var mp = 0; mp < pedestals.length; mp++) {
+                            if (pedestals[mp].floor === mf && pedestals[mp].slot === ms) { pedestals[mp].mut = Number(val) || 0; break; }
+                        }
+                    }
+                    var rm = key.match(/^Ped_Rate_F(\d+)_(\d+)$/);
+                    if (rm) {
+                        var rf = parseInt(rm[1]), rs = parseInt(rm[2]);
+                        for (var rp = 0; rp < pedestals.length; rp++) {
+                            if (pedestals[rp].floor === rf && pedestals[rp].slot === rs) { pedestals[rp].rate = Number(val) || 0; break; }
                         }
                     }
                     if (key === 'username') myUsername = pairs[i].substring(eq + 1).trim();
