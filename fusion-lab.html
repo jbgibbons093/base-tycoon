@@ -248,6 +248,17 @@
         }
         .close-x:hover { transform: scale(1.15); }
         .close-x:active { transform: scale(0.85); transition-duration: 0.05s; }
+
+        .inv-card.tier-Common { border-color: #888888; box-shadow: 0 0 8px rgba(136,136,136,0.3); }
+        .inv-card.tier-Rare { border-color: #0088FF; box-shadow: 0 0 8px rgba(0,136,255,0.4); }
+        .inv-card.tier-Epic { border-color: #AA55FF; box-shadow: 0 0 8px rgba(170,85,255,0.4); }
+        .inv-card.tier-Legendary { border-color: #FFA500; box-shadow: 0 0 8px rgba(255,165,0,0.4); }
+        .inv-card.tier-Mythic { border-color: #FF4500; box-shadow: 0 0 10px rgba(255,69,0,0.5); }
+        .inv-card.tier-BrainrotGod { border-color: #FF0000; box-shadow: 0 0 12px rgba(255,0,0,0.5); }
+        .inv-card.tier-Secret { border-color: #00FFFF; box-shadow: 0 0 12px rgba(0,255,255,0.5); }
+        .inv-card.tier-OG { border-color: #FF00FF; box-shadow: 0 0 14px rgba(255,0,255,0.6); }
+        .inv-card.tier-Glitch { border-color: #ff00ff; box-shadow: 0 0 14px rgba(255,0,255,0.6); animation: tierGlitchPulse 1s infinite alternate; }
+        @keyframes tierGlitchPulse { 0%{filter:hue-rotate(0deg);} 100%{filter:hue-rotate(60deg);} }
     </style>
 </head>
 <body>
