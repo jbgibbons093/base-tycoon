@@ -594,8 +594,20 @@
             return gps.toFixed(1);
         }
 
-        function sellPriceFor(bv, rate) {
-            var gps = (rate && rate > 0) ? rate : (GPS_BY_BV[bv] || 0);
+        var MUT_MULTS_BY_BIT_SL = {1:1.5, 2:2.0, 4:3.0, 8:4.0, 16:6.0, 32:10.0};
+        function mutMultFromMaskSL(m) {
+            m = Number(m) || 0;
+            if (m <= 0) return 1;
+            var mm = 1;
+            for (var bit in MUT_MULTS_BY_BIT_SL) {
+                if (m & Number(bit)) mm *= MUT_MULTS_BY_BIT_SL[bit];
+            }
+            return mm;
+        }
+        function sellPriceFor(bv, rate, mut) {
+            var gps;
+            if (rate && rate > 0) gps = rate;
+            else gps = (GPS_BY_BV[bv] || 0) * mutMultFromMaskSL(mut || 0);
             return Math.max(1, Math.round(gps * SELL_MULT));
         }
 
@@ -626,7 +638,7 @@
                     if (isSelected) cls += ' selected';
                     if (isFusion) cls += ' fusion-owned';
 
-                    var price = sellPriceFor(p.bv, p.rate);
+                    var price = sellPriceFor(p.bv, p.rate, p.mut);
                     html += '<div class="' + cls + '" onclick="selectBrainrot(' + origIdx + ')">';
                     html += '<img src="' + imgUrl(p.bv) + '" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><text x=%2226%22 y=%2234%22 text-anchor=%22middle%22 font-size=%2224%22>?</text></svg>\'">';
                     html += '<div class="card-name"' + (rar ? ' style="color:' + rar.color + '"' : '') + '>' + richName(p.bv) + '</div>';
@@ -671,7 +683,7 @@
             var pv = document.getElementById('priceValue');
             var ps = document.getElementById('priceSub');
             if (slotA) {
-                var price = sellPriceFor(slotA.bv, slotA.rate);
+                var price = sellPriceFor(slotA.bv, slotA.rate, slotA.mut);
                 pv.className = 'price-value';
                 pv.textContent = '$' + fmtGold(price);
                 var rate = (slotA.rate && slotA.rate > 0) ? slotA.rate : (GPS_BY_BV[slotA.bv] || 0);
@@ -699,7 +711,7 @@
         // === CONFIRM MODAL ===
         function openConfirm() {
             if (!slotA || sellLocked) return;
-            var price = sellPriceFor(slotA.bv, slotA.rate);
+            var price = sellPriceFor(slotA.bv, slotA.rate, slotA.mut);
             document.getElementById('confirmImg').src = imgUrl(slotA.bv);
             var rarC = rarityOf(slotA.bv);
             var cMut = mutLabelFromMask(slotA.mut);
@@ -720,7 +732,7 @@
             document.getElementById('confirmOverlay').classList.remove('show');
 
             var sold = { bv: slotA.bv, floor: slotA.floor, slot: slotA.slot, questNum: slotA.questNum, mut: slotA.mut||0, rate: slotA.rate||0 };
-            var price = sellPriceFor(sold.bv, sold.rate);
+            var price = sellPriceFor(sold.bv, sold.rate, sold.mut);
 
             if (sdk) {
                 // Fire the sell effector for this pedestal

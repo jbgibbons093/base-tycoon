@@ -408,6 +408,21 @@
         
         var MUT_LABELS_BY_BIT = {1:'Gold',2:'Diamond',4:'Frozen',8:'Neon',16:'Rainbow',32:'Galaxy'};
         var MUT_COLORS = {'Gold':'#FFD700','Diamond':'#74E8FF','Frozen':'#9DDCFF','Neon':'#39FF14','Rainbow':'#FF57D8','Galaxy':'#B37CFF'};
+        var MUT_MULTS_BY_BIT = {1:1.5, 2:2.0, 4:3.0, 8:4.0, 16:6.0, 32:10.0};
+        function mutMultFromMask(m) {
+            m = Number(m) || 0;
+            if (m <= 0) return 1;
+            var mm = 1;
+            for (var bit in MUT_MULTS_BY_BIT) {
+                if (m & Number(bit)) mm *= MUT_MULTS_BY_BIT[bit];
+            }
+            return mm;
+        }
+        function gpsForPed(p) {
+            if (p.rate && p.rate > 0) return p.rate;
+            var base = GPS_BY_BV[p.bv] || 0;
+            return base * mutMultFromMask(p.mut || 0);
+        }
         function mutLabelFromMask(m) {
             m = Number(m) || 0;
             if (m <= 0) return '';
@@ -589,7 +604,7 @@
                     if (isSelectedA || isSelectedB) cls += ' selected';
                     if (isFusion) cls += ' fusion-owned';
 
-                    var gps = (p.rate && p.rate > 0) ? p.rate : (GPS_BY_BV[p.bv] || 0);
+                    var gps = gpsForPed(p);
                     var rar = rarityOf(p.bv);
                     html += '<div class="' + cls + '" onclick="selectBrainrot(' + origIdx + ')" style="position:relative">';
                     html += '<img src="' + imgUrl(p.bv) + '" onerror="this.src=\'data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2252%22 height=%2252%22><text x=%2226%22 y=%2234%22 text-anchor=%22middle%22 font-size=%2224%22>?</text></svg>\'">';
@@ -726,7 +741,7 @@
             var el = document.getElementById(elemId);
             if (data) {
                 el.className = 'slot filled';
-                var gps = (data.rate && data.rate > 0) ? data.rate : (GPS_BY_BV[data.bv] || 0);
+                var gps = gpsForPed(data);
                 var rar = rarityOf(data.bv);
                 var parts = '<img src="' + imgUrl(data.bv) + '"><div class="slot-label">' + richName(data.bv) + '</div>';
                 if (gps > 0) parts += '<div class="slot-gps">' + fmtGps(gps) + '/s</div>';
